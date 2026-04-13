@@ -32,7 +32,7 @@ html, body {
   font-family: 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
   color: var(--text);
   overflow: hidden;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.5;
 }
 
@@ -97,7 +97,7 @@ html, body {
 .sidebar-header {
   padding: 2px 8px 4px 6px;
   color: var(--overlay0);
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1px;
   user-select: none;
   -webkit-user-select: none;
@@ -180,7 +180,7 @@ html, body {
   padding: 2px 8px;
   background: var(--surface0);
   color: var(--subtext0);
-  font-size: 13px;
+  font-size: 15px;
   white-space: nowrap;
   overflow: hidden;
   user-select: none;
@@ -374,14 +374,14 @@ a.ext-link:hover {
 
   .tui-mid-border .border-left::before {
     content: '├';
-    font-size: 14px;
+    font-size: 16px;
   }
 
   body {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .tui-statusbar {
-    font-size: 11px;
+    font-size: 13px;
   }
 }
