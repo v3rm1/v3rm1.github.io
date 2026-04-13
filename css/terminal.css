@@ -1,16 +1,23 @@
-/* Dracula palette */
+/* Catppuccin Mocha palette */
 :root {
-  --bg: #282a36;
-  --fg: #f8f8f2;
-  --green: #50fa7b;
-  --purple: #bd93f9;
-  --cyan: #8be9fd;
-  --orange: #ffb86c;
-  --red: #ff5555;
-  --comment: #6272a4;
-  --current-line: #44475a;
-  --selection: #44475a;
-  --pink: #ff79c6;
+  --base: #1e1e2e;
+  --mantle: #181825;
+  --surface0: #313244;
+  --surface1: #45475a;
+  --overlay0: #6c7086;
+  --text: #cdd6f4;
+  --subtext0: #a6adc8;
+  --green: #a6e3a1;
+  --mauve: #cba6f7;
+  --blue: #89b4fa;
+  --peach: #fab387;
+  --red: #f38ba8;
+  --teal: #94e2d5;
+  --pink: #f5c2e7;
+  --yellow: #f9e2af;
+  --lavender: #b4befe;
+
+  --sidebar-width: 16ch;
 }
 
 * {
@@ -21,99 +28,213 @@
 
 html, body {
   height: 100%;
-  background: #1a1b26;
+  background: var(--mantle);
   font-family: 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
-  color: var(--fg);
+  color: var(--text);
   overflow: hidden;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-/* Terminal window */
-.terminal-window {
+/* ── TUI Frame ─────────────────────────────────────── */
+.tui-frame {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 52px);
-  max-width: 960px;
+  height: 100vh;
+  max-width: 1000px;
   margin: 0 auto;
-  background: var(--bg);
-  border-radius: 8px 8px 0 0;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  background: var(--base);
 }
 
-/* Title bar */
-.title-bar {
+/* ── Top border ────────────────────────────────────── */
+.tui-top-border {
   display: flex;
-  align-items: center;
-  height: 36px;
-  min-height: 36px;
-  background: #21222c;
-  padding: 0 12px;
+  color: var(--overlay0);
+  line-height: 1;
+  white-space: nowrap;
   user-select: none;
   -webkit-user-select: none;
 }
 
-.title-buttons {
-  display: flex;
-  gap: 8px;
-  margin-right: 12px;
+.tui-top-border .border-left {
+  flex-shrink: 0;
 }
 
-.title-buttons span {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+.tui-top-border .border-title {
+  flex-shrink: 0;
+  color: var(--blue);
 }
 
-.btn-close { background: var(--red); }
-.btn-minimize { background: var(--orange); }
-.btn-maximize { background: var(--green); }
-
-.title-text {
+.tui-top-border .border-fill {
   flex: 1;
-  text-align: center;
-  font-size: 13px;
-  color: var(--comment);
-  margin-right: 56px;
+  overflow: hidden;
+  color: var(--overlay0);
 }
 
-/* Terminal body */
-.terminal-body {
+.tui-top-border .border-right {
+  flex-shrink: 0;
+}
+
+/* ── Middle section (sidebar + divider + main) ───── */
+.tui-middle {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Sidebar ───────────────────────────────────────── */
+.tui-sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--base);
+  padding: 4px 0;
+  overflow-y: auto;
+  border-left: 1px solid var(--overlay0);
+  border-right: 1px solid var(--overlay0);
+}
+
+.sidebar-header {
+  padding: 2px 8px 4px 6px;
+  color: var(--overlay0);
+  font-size: 11px;
+  letter-spacing: 1px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sidebar-item {
+  padding: 1px 8px 1px 6px;
+  color: var(--teal);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s;
+}
+
+.sidebar-item:hover {
+  background: var(--surface0);
+  color: var(--text);
+}
+
+.sidebar-item.active {
+  background: var(--surface0);
+  color: var(--mauve);
+  font-weight: 700;
+}
+
+.sidebar-item.active::after {
+  content: ' ◂';
+  color: var(--mauve);
+}
+
+/* ── Main terminal panel ──────────────────────────── */
+.tui-main {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
-  font-size: 14px;
-  line-height: 1.6;
+  padding: 4px 12px;
+  min-width: 0;
   scroll-behavior: smooth;
+  border-right: 1px solid var(--overlay0);
 }
 
-.terminal-body::-webkit-scrollbar {
+.tui-main::-webkit-scrollbar {
   width: 8px;
 }
 
-.terminal-body::-webkit-scrollbar-track {
-  background: var(--bg);
+.tui-main::-webkit-scrollbar-track {
+  background: var(--base);
 }
 
-.terminal-body::-webkit-scrollbar-thumb {
-  background: var(--current-line);
+.tui-main::-webkit-scrollbar-thumb {
+  background: var(--surface1);
   border-radius: 4px;
 }
 
-/* Output */
+/* ── Mid border (separator) ───────────────────────── */
+.tui-mid-border {
+  display: flex;
+  color: var(--overlay0);
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tui-mid-border .border-left {
+  flex-shrink: 0;
+}
+
+.tui-mid-border .border-fill {
+  flex: 1;
+  overflow: hidden;
+}
+
+.tui-mid-border .border-right {
+  flex-shrink: 0;
+}
+
+/* ── Status bar ───────────────────────────────────── */
+.tui-statusbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 8px;
+  background: var(--surface0);
+  color: var(--subtext0);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  border-left: 1px solid var(--overlay0);
+  border-right: 1px solid var(--overlay0);
+}
+
+.status-left {
+  color: var(--teal);
+}
+
+.status-right {
+  color: var(--overlay0);
+}
+
+/* ── Bottom border ────────────────────────────────── */
+.tui-bottom-border {
+  display: flex;
+  color: var(--overlay0);
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tui-bottom-border .border-left {
+  flex-shrink: 0;
+}
+
+.tui-bottom-border .border-fill {
+  flex: 1;
+  overflow: hidden;
+}
+
+.tui-bottom-border .border-right {
+  flex-shrink: 0;
+}
+
+/* ── Output ───────────────────────────────────────── */
 #output {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
 .output-line {
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .output-block {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
-/* Prompt and input */
+/* ── Prompt and input ─────────────────────────────── */
 .input-line {
   display: flex;
   align-items: center;
@@ -131,97 +252,71 @@ html, body {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--fg);
+  color: var(--text);
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
-  caret-color: var(--green);
+  caret-color: transparent;
 }
 
-/* Command bar */
-.command-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background: #21222c;
-  border-top: 1px solid var(--current-line);
-  z-index: 100;
+/* Blinking block cursor */
+.input-line::after {
+  content: '▋';
+  color: var(--green);
+  animation: blink 1s step-end infinite;
 }
 
-.cmd-pill {
-  background: var(--current-line);
-  color: var(--cyan);
-  border: 1px solid var(--comment);
-  border-radius: 14px;
-  padding: 4px 14px;
-  font-family: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
-.cmd-pill:hover {
-  background: var(--comment);
-  color: var(--fg);
-  border-color: var(--cyan);
-}
-
-.cmd-pill:active {
-  background: var(--cyan);
-  color: var(--bg);
-}
-
-/* Color utility classes for output */
+/* ── Color utility classes ────────────────────────── */
 .color-green { color: var(--green); }
-.color-purple { color: var(--purple); }
-.color-cyan { color: var(--cyan); }
-.color-orange { color: var(--orange); }
+.color-purple { color: var(--mauve); }
+.color-cyan { color: var(--teal); }
+.color-orange { color: var(--peach); }
 .color-red { color: var(--red); }
-.color-comment { color: var(--comment); }
+.color-comment { color: var(--overlay0); }
 .color-pink { color: var(--pink); }
-.color-fg { color: var(--fg); }
+.color-fg { color: var(--text); }
+.color-blue { color: var(--blue); }
 .bold { font-weight: 700; }
 
-/* Clickable inline commands */
+/* ── Clickable inline commands ────────────────────── */
 .clickable {
-  color: var(--cyan);
+  color: var(--teal);
   cursor: pointer;
   text-decoration: none;
-  border-bottom: 1px dashed var(--cyan);
+  border-bottom: 1px dashed var(--teal);
   transition: color 0.15s;
 }
 
 .clickable:hover {
-  color: var(--fg);
+  color: var(--text);
 }
 
-/* External links */
+/* ── External links ───────────────────────────────── */
 a.ext-link {
-  color: var(--cyan);
+  color: var(--blue);
   text-decoration: none;
-  border-bottom: 1px solid var(--cyan);
+  border-bottom: 1px solid var(--blue);
   transition: color 0.15s;
 }
 
 a.ext-link:hover {
-  color: var(--fg);
+  color: var(--text);
 }
 
-/* Separator */
+/* ── Separator ────────────────────────────────────── */
 .separator {
-  color: var(--comment);
-  margin: 8px 0;
+  color: var(--overlay0);
+  margin: 6px 0;
 }
 
-/* Boot text */
+/* ── Boot text ────────────────────────────────────── */
 .boot-tag {
-  color: var(--comment);
+  color: var(--overlay0);
 }
 
 .boot-ok {
@@ -229,17 +324,17 @@ a.ext-link:hover {
   font-weight: 700;
 }
 
-/* History prompt echo */
+/* ── History prompt echo ──────────────────────────── */
 .history-prompt {
   color: var(--green);
   font-weight: 700;
 }
 
 .history-cmd {
-  color: var(--fg);
+  color: var(--text);
 }
 
-/* Table-like alignment */
+/* ── Help table ───────────────────────────────────── */
 .help-table {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -247,40 +342,46 @@ a.ext-link:hover {
 }
 
 .help-cmd {
-  color: var(--cyan);
+  color: var(--teal);
 }
 
 .help-desc {
-  color: var(--comment);
+  color: var(--overlay0);
 }
 
-/* Skills grid */
-.skills-section {
-  margin-bottom: 12px;
-}
-
-/* Hidden input line during boot */
+/* ── Hidden input line (during boot) ──────────────── */
 .input-line.hidden {
   display: none;
 }
 
-/* Responsive */
+/* ── Responsive: narrow screens ───────────────────── */
 @media (max-width: 600px) {
-  .terminal-body {
-    font-size: 12px;
-    padding: 10px;
+  .tui-sidebar {
+    display: none;
   }
 
-  .title-text {
+  .tui-top-border .border-left {
+    display: none;
+  }
+
+  .tui-top-border .border-title::before {
+    content: '┌─';
+  }
+
+  .tui-mid-border .border-left {
+    font-size: 0;
+  }
+
+  .tui-mid-border .border-left::before {
+    content: '├';
+    font-size: 14px;
+  }
+
+  body {
+    font-size: 12px;
+  }
+
+  .tui-statusbar {
     font-size: 11px;
-  }
-
-  .cmd-pill {
-    font-size: 12px;
-    padding: 4px 10px;
-  }
-
-  .terminal-window {
-    border-radius: 0;
   }
 }

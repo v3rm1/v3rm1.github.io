@@ -5,39 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>v3rm1 — Varun Ravi Varma</title>
   <meta name="description" content="AI Research Scientist & Software Engineer — Terminal Portfolio">
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="v3rm1 — Varun Ravi Varma">
+  <meta property="og:description" content="AI Research Scientist & Software Engineer. PhD researcher in Multi-Agent RL and Interpretability. Explore my portfolio in a terminal.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://v3rm1.github.io/">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="v3rm1 — Terminal Portfolio">
+  <meta name="twitter:description" content="AI Research Scientist & Software Engineer. Explore my portfolio in a terminal UI.">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/terminal.css">
 </head>
 <body>
-  <div class="terminal-window">
-    <div class="title-bar">
-      <div class="title-buttons">
-        <span class="btn-close"></span>
-        <span class="btn-minimize"></span>
-        <span class="btn-maximize"></span>
-      </div>
-      <div class="title-text">v3rm1@portfolio:~</div>
+  <div class="tui-frame">
+    <!-- Top border with title -->
+    <div class="tui-top-border">
+      <span class="border-left">┌─ Commands ──┬</span>
+      <span class="border-title">─ v3rm1@portfolio:~ </span>
+      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+      <span class="border-right">┐</span>
     </div>
-    <div class="terminal-body" id="terminal-body">
-      <div id="output"></div>
-      <div class="input-line" id="input-line">
-        <span class="prompt">v3rm1@portfolio:~$&nbsp;</span>
-        <input type="text" id="command-input" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus>
+
+    <!-- Middle: sidebar + main -->
+    <div class="tui-middle">
+      <!-- Sidebar -->
+      <div class="tui-sidebar" id="sidebar">
+        <div class="sidebar-header">NAVIGATION</div>
+        <div class="sidebar-item" data-cmd="help"> help</div>
+        <div class="sidebar-item" data-cmd="about"> about</div>
+        <div class="sidebar-item" data-cmd="projects"> projects</div>
+        <div class="sidebar-item" data-cmd="cv"> cv</div>
+        <div class="sidebar-item" data-cmd="skills"> skills</div>
+        <div class="sidebar-item" data-cmd="publications"> publications</div>
+        <div class="sidebar-item" data-cmd="contact"> contact</div>
+        <div class="sidebar-item" data-cmd="clear"> clear</div>
       </div>
+
+      <!-- Main terminal panel -->
+      <div class="tui-main" id="terminal-body">
+        <div id="output"></div>
+        <div class="input-line" id="input-line">
+          <span class="prompt">v3rm1@portfolio:~$&nbsp;</span>
+          <input type="text" id="command-input" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus>
+        </div>
+      </div>
+    </div>
+
+    <!-- Separator between middle and status bar -->
+    <div class="tui-mid-border">
+      <span class="border-left">├──────────────┴</span>
+      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+      <span class="border-right">┤</span>
+    </div>
+
+    <!-- Status bar -->
+    <div class="tui-statusbar">
+      <span class="status-left" id="status-keys">
+        [F1]Help [F2]About [F3]Projects [F4]CV [F5]Skills
+      </span>
+      <span class="status-right">
+        v3rm1 │ Grimstad, NO
+      </span>
+    </div>
+
+    <!-- Bottom border -->
+    <div class="tui-bottom-border">
+      <span class="border-left">└</span>
+      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
+      <span class="border-right">┘</span>
     </div>
   </div>
-  <div class="command-bar" id="command-bar">
-    <button class="cmd-pill" data-cmd="help">help</button>
-    <button class="cmd-pill" data-cmd="about">about</button>
-    <button class="cmd-pill" data-cmd="projects">projects</button>
-    <button class="cmd-pill" data-cmd="cv">cv</button>
-    <button class="cmd-pill" data-cmd="skills">skills</button>
-    <button class="cmd-pill" data-cmd="publications">publications</button>
-    <button class="cmd-pill" data-cmd="contact">contact</button>
-    <button class="cmd-pill" data-cmd="clear">clear</button>
-  </div>
+
   <script src="js/data.js"></script>
   <script src="js/terminal.js"></script>
 </body>

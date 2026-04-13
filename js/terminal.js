@@ -3,10 +3,21 @@
   const input = document.getElementById("command-input");
   const inputLine = document.getElementById("input-line");
   const terminalBody = document.getElementById("terminal-body");
-  const commandBar = document.getElementById("command-bar");
+  const sidebar = document.getElementById("sidebar");
 
   const history = [];
   let historyIndex = -1;
+
+  // ── F-key mappings ────────────────────────────────────────────
+  const fKeyMap = {
+    F1: "help",
+    F2: "about",
+    F3: "projects",
+    F4: "cv",
+    F5: "skills",
+    F6: "publications",
+    F7: "contact",
+  };
 
   // ── Boot sequence ──────────────────────────────────────────────
   const bootLines = [
@@ -19,7 +30,7 @@
     { text: "[SYS]  Session started.", delay: 200 },
     { text: "", delay: 100 },
     { text: "Welcome to v3rm1's portfolio terminal.", delay: 100, cls: "color-green bold" },
-    { text: "Type 'help' or click a command below to get started.", delay: 100, cls: "color-comment" },
+    { text: "Type 'help' or select a command from the sidebar.", delay: 100, cls: "color-comment" },
     { text: "", delay: 50 }
   ];
 
@@ -31,7 +42,6 @@
 
   async function boot() {
     inputLine.classList.add("hidden");
-    commandBar.style.visibility = "hidden";
     for (const line of bootLines) {
       await delay(line.delay);
       const div = document.createElement("div");
@@ -47,7 +57,6 @@
     }
     await delay(200);
     inputLine.classList.remove("hidden");
-    commandBar.style.visibility = "visible";
     input.focus();
   }
 
@@ -87,6 +96,13 @@
     return `<a class="ext-link" href="${url}" target="_blank" rel="noopener">${text}</a>`;
   }
 
+  // ── Sidebar highlight ─────────────────────────────────────────
+  function setActiveSidebar(cmd) {
+    sidebar.querySelectorAll(".sidebar-item").forEach((item) => {
+      item.classList.toggle("active", item.dataset.cmd === cmd);
+    });
+  }
+
   // ── Commands ───────────────────────────────────────────────────
   const commands = {};
 
@@ -100,6 +116,8 @@
       ["skills", "View my skills & tools"],
       ["publications", "View my publications"],
       ["contact", "Contact info & social links"],
+      ["whoami", "Display current user identity"],
+      ["neofetch", "System information"],
       ["clear", "Clear the terminal"]
     ];
     let html = '<div class="help-table">';
@@ -188,7 +206,6 @@
     appendLine('<span class="color-purple bold">Curriculum Vitae</span>');
     appendSeparator();
 
-    // Education
     appendLine('<span class="color-orange bold">Education</span>');
     for (const e of DATA.education) {
       appendLine(
@@ -203,7 +220,6 @@
       appendLine("");
     }
 
-    // Experience
     appendLine('<span class="color-orange bold">Experience</span>');
     for (const e of DATA.experience) {
       appendLine(
@@ -308,6 +324,44 @@
     output.innerHTML = "";
   };
 
+  commands.whoami = function () {
+    appendLine(
+      '<span class="color-green bold">Varun Ravi Varma</span> <span class="color-comment">—</span> ' +
+      '<span class="color-purple">AI Research Scientist & Software Engineer</span> <span class="color-comment">@ Grimstad, Norway</span>'
+    );
+  };
+
+  // ── Easter eggs ────────────────────────────────────────────────
+  commands.sudo = function () {
+    appendLine('<span class="color-red bold">[sudo] password for guest: ********</span>');
+    appendLine('<span class="color-red">Access denied. Nice try though.</span>');
+  };
+
+  commands.exit = function () {
+    appendLine('<span class="color-comment">Logout...</span>');
+    appendLine('<span class="color-green bold">Just kidding. You can\'t leave. Stay a while.</span>');
+  };
+
+  commands.neofetch = function () {
+    const art = [
+      '<span class="color-blue bold">        ██╗   ██╗██████╗ </span>  <span class="color-green bold">v3rm1</span><span class="color-comment">@</span><span class="color-blue bold">portfolio</span>',
+      '<span class="color-blue bold">        ██║   ██║╚════██╗</span>  <span class="color-comment">──────────────────</span>',
+      '<span class="color-blue bold">        ██║   ██║ █████╔╝</span>  <span class="color-orange">OS:</span>      <span class="color-fg">v3rm1OS 1.0 (TUI Edition)</span>',
+      '<span class="color-blue bold">        ╚██╗ ██╔╝ ╚═══██╗</span>  <span class="color-orange">Host:</span>    <span class="color-fg">github.io</span>',
+      '<span class="color-blue bold">         ╚████╔╝ ██████╔╝</span>  <span class="color-orange">Kernel:</span>  <span class="color-fg">HTML5/CSS3/JS</span>',
+      '<span class="color-blue bold">          ╚═══╝  ╚═════╝ </span>  <span class="color-orange">Shell:</span>   <span class="color-fg">v3rm1-sh 1.0</span>',
+      '                          <span class="color-orange">Role:</span>    <span class="color-fg">PhD Researcher / AI Engineer</span>',
+      '                          <span class="color-orange">Focus:</span>   <span class="color-fg">Multi-Agent RL, Interpretability</span>',
+      '                          <span class="color-orange">Lang:</span>    <span class="color-fg">Python, C++, Julia</span>',
+      '                          <span class="color-orange">Theme:</span>   <span class="color-fg">Catppuccin Mocha</span>',
+      '',
+      '                          <span class="color-red">██</span><span class="color-orange">██</span><span class="color-green">██</span><span class="color-cyan">██</span><span class="color-blue">██</span><span class="color-purple">██</span><span class="color-pink">██</span>',
+    ];
+    for (const line of art) {
+      appendLine(line);
+    }
+  };
+
   // ── Escape HTML ────────────────────────────────────────────────
   function escapeHtml(str) {
     const div = document.createElement("div");
@@ -320,21 +374,25 @@
     const trimmed = raw.trim();
     if (!trimmed) return;
 
-    // Echo the command
     appendLine(
       `<span class="history-prompt">v3rm1@portfolio:~$</span> <span class="history-cmd">${escapeHtml(trimmed)}</span>`
     );
 
-    // Parse command and args
     const parts = trimmed.split(/\s+/);
     const cmd = parts[0].toLowerCase();
     const args = parts.slice(1).join(" ");
 
-    // Add to history
     history.push(trimmed);
     historyIndex = history.length;
 
-    if (commands[cmd]) {
+    setActiveSidebar(cmd);
+
+    // Easter egg: rm -rf /
+    if (trimmed === "rm -rf /" || trimmed === "rm -rf / --no-preserve-root") {
+      appendLine('<span class="color-red bold">🔥 Deleting everything...</span>');
+      appendLine('<span class="color-red">rm: cannot remove \'/portfolio\': Permission denied</span>');
+      appendLine('<span class="color-comment">This is a portfolio, not a real filesystem. Relax.</span>');
+    } else if (commands[cmd]) {
       commands[cmd](args);
     } else {
       appendLine(
@@ -348,7 +406,23 @@
 
   // ── Input handling ─────────────────────────────────────────────
   input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const partial = input.value.trim().toLowerCase();
+      if (!partial) return;
+      const allCmds = Object.keys(commands);
+      const matches = allCmds.filter((c) => c.startsWith(partial));
+      if (matches.length === 1) {
+        input.value = matches[0];
+      } else if (matches.length > 1) {
+        appendLine(
+          `<span class="history-prompt">v3rm1@portfolio:~$</span> <span class="history-cmd">${escapeHtml(partial)}</span>`
+        );
+        appendLine(matches.join("  "), "color-cyan");
+        appendLine("");
+        scrollToBottom();
+      }
+    } else if (e.key === "Enter") {
       const val = input.value;
       input.value = "";
       execute(val);
@@ -370,29 +444,36 @@
     }
   });
 
-  // ── Click handling (command bar pills) ─────────────────────────
-  commandBar.addEventListener("click", function (e) {
-    const pill = e.target.closest(".cmd-pill");
-    if (!pill) return;
-    const cmd = pill.dataset.cmd;
-    input.value = cmd;
+  // ── F-key handling ─────────────────────────────────────────────
+  document.addEventListener("keydown", function (e) {
+    if (fKeyMap[e.key]) {
+      e.preventDefault();
+      execute(fKeyMap[e.key]);
+      input.focus();
+    }
+  });
+
+  // ── Sidebar click handling ─────────────────────────────────────
+  sidebar.addEventListener("click", function (e) {
+    const item = e.target.closest(".sidebar-item");
+    if (!item) return;
+    const cmd = item.dataset.cmd;
     execute(cmd);
     input.focus();
   });
 
-  // ── Click handling (inline clickable elements) ─────────────────
+  // ── Inline clickable elements ──────────────────────────────────
   output.addEventListener("click", function (e) {
     const el = e.target.closest(".clickable");
     if (!el) return;
     const cmd = el.dataset.cmd;
     if (cmd) {
-      input.value = cmd;
       execute(cmd);
       input.focus();
     }
   });
 
-  // ── Focus input on terminal click ──────────────────────────────
+  // ── Focus input on main panel click ────────────────────────────
   terminalBody.addEventListener("click", function (e) {
     if (!e.target.closest(".clickable") && !e.target.closest("a")) {
       input.focus();
