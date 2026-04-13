@@ -1,0 +1,286 @@
+/* Dracula palette */
+:root {
+  --bg: #282a36;
+  --fg: #f8f8f2;
+  --green: #50fa7b;
+  --purple: #bd93f9;
+  --cyan: #8be9fd;
+  --orange: #ffb86c;
+  --red: #ff5555;
+  --comment: #6272a4;
+  --current-line: #44475a;
+  --selection: #44475a;
+  --pink: #ff79c6;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background: #1a1b26;
+  font-family: 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+  color: var(--fg);
+  overflow: hidden;
+}
+
+/* Terminal window */
+.terminal-window {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 52px);
+  max-width: 960px;
+  margin: 0 auto;
+  background: var(--bg);
+  border-radius: 8px 8px 0 0;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* Title bar */
+.title-bar {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  min-height: 36px;
+  background: #21222c;
+  padding: 0 12px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.title-buttons {
+  display: flex;
+  gap: 8px;
+  margin-right: 12px;
+}
+
+.title-buttons span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.btn-close { background: var(--red); }
+.btn-minimize { background: var(--orange); }
+.btn-maximize { background: var(--green); }
+
+.title-text {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  color: var(--comment);
+  margin-right: 56px;
+}
+
+/* Terminal body */
+.terminal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+
+.terminal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-body::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+.terminal-body::-webkit-scrollbar-thumb {
+  background: var(--current-line);
+  border-radius: 4px;
+}
+
+/* Output */
+#output {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.output-line {
+  margin-bottom: 2px;
+}
+
+.output-block {
+  margin-bottom: 12px;
+}
+
+/* Prompt and input */
+.input-line {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.prompt {
+  color: var(--green);
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+#command-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  caret-color: var(--green);
+}
+
+/* Command bar */
+.command-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #21222c;
+  border-top: 1px solid var(--current-line);
+  z-index: 100;
+}
+
+.cmd-pill {
+  background: var(--current-line);
+  color: var(--cyan);
+  border: 1px solid var(--comment);
+  border-radius: 14px;
+  padding: 4px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.cmd-pill:hover {
+  background: var(--comment);
+  color: var(--fg);
+  border-color: var(--cyan);
+}
+
+.cmd-pill:active {
+  background: var(--cyan);
+  color: var(--bg);
+}
+
+/* Color utility classes for output */
+.color-green { color: var(--green); }
+.color-purple { color: var(--purple); }
+.color-cyan { color: var(--cyan); }
+.color-orange { color: var(--orange); }
+.color-red { color: var(--red); }
+.color-comment { color: var(--comment); }
+.color-pink { color: var(--pink); }
+.color-fg { color: var(--fg); }
+.bold { font-weight: 700; }
+
+/* Clickable inline commands */
+.clickable {
+  color: var(--cyan);
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 1px dashed var(--cyan);
+  transition: color 0.15s;
+}
+
+.clickable:hover {
+  color: var(--fg);
+}
+
+/* External links */
+a.ext-link {
+  color: var(--cyan);
+  text-decoration: none;
+  border-bottom: 1px solid var(--cyan);
+  transition: color 0.15s;
+}
+
+a.ext-link:hover {
+  color: var(--fg);
+}
+
+/* Separator */
+.separator {
+  color: var(--comment);
+  margin: 8px 0;
+}
+
+/* Boot text */
+.boot-tag {
+  color: var(--comment);
+}
+
+.boot-ok {
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* History prompt echo */
+.history-prompt {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.history-cmd {
+  color: var(--fg);
+}
+
+/* Table-like alignment */
+.help-table {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 16px;
+}
+
+.help-cmd {
+  color: var(--cyan);
+}
+
+.help-desc {
+  color: var(--comment);
+}
+
+/* Skills grid */
+.skills-section {
+  margin-bottom: 12px;
+}
+
+/* Hidden input line during boot */
+.input-line.hidden {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .terminal-body {
+    font-size: 12px;
+    padding: 10px;
+  }
+
+  .title-text {
+    font-size: 11px;
+  }
+
+  .cmd-pill {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
+  .terminal-window {
+    border-radius: 0;
+  }
+}
