@@ -1,19 +1,18 @@
 const DATA = {
-  about: `AI Research Scientist and Software Engineer with expertise in multi-agent
-reinforcement learning, interpretable decision-making, and scalable AI-driven
-systems. Proven track record in designing and optimizing intelligent agents
-using neural networks, automaton theory, and continuous control for real-world
-applications.
+  about: `AI Research Scientist specializing in Reinforcement Learning, Agentic AI,
+and Sequential Decision-Making. PhD candidate with a strong background in
+Multi-Agent Systems (MAS) and interpretable decision-making.
 
-Adept at bridging the gap between theoretical research and production-ready
-software, with extensive experience in data analytics, technical consulting,
-and collaborative R&D.
+Expertise in designing intelligent agents that interact with complex
+environments, reasoning over long-horizon objectives, and optimizing behavior
+through simulation and feedback.
 
-Currently pursuing a PhD in Artificial Intelligence at the University of Agder,
-Grimstad, Norway. Specializing in Multi-Agent Systems, Reinforcement Learning,
-and model interpretability.
+Passionate about applying adaptive AI to systems engineering, architecture
+exploration, and engineering workflow automation. Proven track record in
+bridging theoretical research with industrial innovation, with extensive
+experience in PyTorch, Python, and scalable AI infrastructure.
 
-Languages: English (Fluent), German (A1-A2 - Learning)`,
+Languages: English (Fluent), German (A2 - Active Study)`,
 
   education: [
     {
@@ -22,8 +21,8 @@ Languages: English (Fluent), German (A1-A2 - Learning)`,
       period: "Current",
       location: "Grimstad, Norway",
       details: [
-        "Doctoral Researcher specializing in Multi-Agent Systems (MAS), Reinforcement Learning (RL), and model interpretability.",
-        "Developing algorithms for path planning, resource allocation, and trajectory analysis with a focus on emergent dynamics in complex systems."
+        "Doctoral Researcher specializing in Multi-Agent Reinforcement Learning (MARL), Sequential Decision-Making, and Model Interpretability.",
+        "Developing algorithms for hierarchical planning, resource allocation, and trajectory analysis with a focus on emergent dynamics and long-horizon objectives in complex systems."
       ]
     },
     {
@@ -55,8 +54,18 @@ Languages: English (Fluent), German (A1-A2 - Learning)`,
       period: "June 2022 - September 2023",
       location: "Krakow, Poland",
       details: [
-        "Architected analytical pipelines for medical datasets, leveraging knowledge graphs to infer data relationships for clinical research.",
-        "Developed and deployed research tools designed for efficient data consumption and scientific query execution."
+        "Architected analytical pipelines for structured and unstructured medical artifacts, leveraging knowledge graphs and dependency mapping for reasoning and inference.",
+        "Developed and deployed research tools using Docker and Git-based CI/CD workflows, ensuring reproducible experimentation and scalable training pipelines."
+      ]
+    },
+    {
+      company: "University of Agder",
+      role: "Teaching Assistant",
+      period: "August 2025 - January 2026",
+      location: "Grimstad, Norway",
+      details: [
+        "Research Methods for AI and IoT: Assisted with lectures, tutorials and exam evaluations.",
+        "Computer Vision: Assisted with lectures and labs, mentored student projects and evaluated technical reports."
       ]
     },
     {
@@ -65,8 +74,8 @@ Languages: English (Fluent), German (A1-A2 - Learning)`,
       period: "February 2020 - August 2020",
       location: "Groningen, Netherlands",
       details: [
-        "Mentored students in Deep Learning implementations and evaluated technical practical reports.",
-        "Facilitated tutorials on the logical aspects of Multi-Agent Systems and reviewed complex course projects."
+        "Deep Learning: Assisted with labs, mentored students and evaluated technical practical reports.",
+        "Logical Aspects of Multi-Agent Systems: Facilitated tutorials, graded assignments and reviewed course projects."
       ]
     },
     {
@@ -111,21 +120,22 @@ Languages: English (Fluent), German (A1-A2 - Learning)`,
     },
     programming: {
       "Languages": ["Python", "C++", "C#", "Julia"],
-      "Frameworks (Scientific & AI)": ["Numpy", "Scipy", "Scikit-Learn", "Pandas", "Tensorflow", "pyTsetlinMachine"]
+      "Frameworks (Scientific & AI)": ["PyTorch", "JAX", "TensorFlow", "Scikit-Learn", "Numpy", "Pandas", "Scipy", "pyTsetlinMachine"]
     },
     competencies: [
-      "Data Visualization & Automated Reporting (LaTeX/Markdown)",
-      "Multi-Agent System (MAS) Design & Implementation",
-      "Logic-Based & Symbolic AI Development",
-      "Continuous Learning & Adaptive System Analysis"
+      "Agentic AI & Sequential Decision-Making (RL/Planning)",
+      "Multi-Agent Reinforcement Learning (MARL) Design",
+      "Model-Based RL & Structured World Models",
+      "Symbolic AI & Logic-Based Interpretability",
+      "Scalable AI Infrastructure (Docker, Git, CI/CD)"
     ]
   },
 
   publications: [
     {
       title: "Noise Robustness Through Abstractions and Its Impact on Machine Learning",
-      venue: "IEEE Transactions",
-      status: "Under Review",
+      venue: "arXiv preprint",
+      status: "Preprint",
       doi: null,
       description: "Systematic analysis of data discretization techniques to enhance model robustness against noisy datasets, optimizing performance for real-world ML applications."
     },
@@ -285,7 +295,7 @@ Stack: SpaCy, NLTK, GloVe, Rake, Scikit-Learn`
   contact: {
     email: "varunravivarma@gmail.com",
     github: "https://github.com/v3rm1",
-    linkedin: "https://www.linkedin.com/in/varun-ravi-varma-4b183059/",
+    linkedin: "https://www.linkedin.com/in/varun-ravi-varma",
     orcid: "https://orcid.org/0000-0003-1719-2478",
     location: "Grimstad, Norway"
   }

@@ -355,7 +355,19 @@ a.ext-link:hover {
 }
 
 /* ── Responsive: narrow screens ───────────────────── */
+@media (max-width: 768px) {
+  .tui-sidebar {
+    width: 14ch;
+  }
+}
+
 @media (max-width: 600px) {
+  .tui-frame {
+    height: 100%;
+    min-height: 100vh;
+    border: none;
+  }
+
   .tui-sidebar {
     display: none;
   }
@@ -375,6 +387,29 @@ a.ext-link:hover {
   .tui-mid-border .border-left::before {
     content: '├';
     font-size: 16px;
+  }
+
+  .tui-main {
+    padding: 8px;
+  }
+
+  body {
+    font-size: 14px;
+    overflow-y: auto;
+  }
+
+  .tui-statusbar {
+    font-size: 12px;
+    flex-direction: column;
+    gap: 4px;
+    height: auto;
+  }
+
+  .status-right {
+    text-align: right;
+  }
+}
+nt-size: 16px;
   }
 
   body {
