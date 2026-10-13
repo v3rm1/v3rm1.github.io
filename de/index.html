@@ -29,32 +29,29 @@
 </head>
 <body>
   <div class="tui-frame">
-    <div class="tui-top-border" aria-hidden="true">
-      <span class="border-title">┌─ v3rm1@portfolio:~/de </span>
-      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-      <span class="border-right">┐</span>
-    </div>
+    <header class="tui-window-titlebar" aria-hidden="true">
+      <div class="window-controls">
+        <span class="window-dot dot-close"></span>
+        <span class="window-dot dot-minimize"></span>
+        <span class="window-dot dot-maximize"></span>
+      </div>
+      <div class="window-title">v3rm1@portfolio:~/de</div>
+      <div class="window-badge">zsh · de</div>
+    </header>
     <div class="tui-middle">
       <main class="tui-main tui-main-full">
         <header class="hero">
           <h1 class="hero-name">Varun Ravi Varma</h1>
           <p class="hero-headline">KI-Forscher — Reinforcement Learning &amp; Multi-Agenten-Systeme</p>
           <p class="hero-tagline">Doktorand an der Universität Agder (Norwegen). Ich entwickle interpretierbare Multi-Agenten-RL-Systeme für langfristige Entscheidungsprobleme und bringe Industrieerfahrung mit ML- und Datenpipelines mit.</p>
-          <p class="hero-availability">● Offen für Stellen als Research Programmer oder Applied Scientist in Deutschland, Österreich oder der Schweiz ab Anfang 2028.</p>
+          <div class="hero-availability"><span class="status-pulse"></span><span>Offen für Stellen als Research Programmer oder Applied Scientist in Deutschland, Österreich oder der Schweiz ab Anfang 2028.</span></div>
           <div class="hero-cta">
             <a class="cta cta-primary" href="../files/cv/VarunRaviVarma_Industry_CV.pdf" download>Lebenslauf (PDF, Englisch)</a>
-            <a class="cta" href="mailto:varunravivarma@gmail.com">E-Mail</a>
-            <a class="cta" href="https://www.linkedin.com/in/varun-ravi-varma" target="_blank" rel="noopener">LinkedIn</a>
-            <a class="cta" href="https://github.com/v3rm1" target="_blank" rel="noopener">GitHub</a>
+            <a class="cta cta-secondary" href="mailto:varunravivarma@gmail.com">E-Mail</a>
+            <a class="cta cta-secondary" href="https://www.linkedin.com/in/varun-ravi-varma" target="_blank" rel="noopener">LinkedIn</a>
+            <a class="cta cta-secondary" href="https://github.com/v3rm1" target="_blank" rel="noopener">GitHub</a>
+            <a class="cta cta-secondary" href="../" hreflang="en" lang="en">English (Full Site)</a>
           </div>
-          <nav class="hero-navs" aria-label="Abschnitte">
-            <a class="hero-nav" href="#profil">profil</a>
-            <a class="hero-nav" href="#kompetenzen">kompetenzen</a>
-            <a class="hero-nav" href="#werdegang">werdegang</a>
-            <a class="hero-nav" href="#publikationen">publikationen</a>
-            <a class="hero-nav" href="#kontakt">kontakt</a>
-            <a class="hero-nav" href="../" hreflang="en" lang="en">english (full site)</a>
-          </nav>
         </header>
         <div id="static-content">
           <section id="profil">
@@ -117,11 +114,19 @@ Universität Heidelberg).</p>
         </div>
       </main>
     </div>
-    <div class="tui-bottom-border tui-border-row" aria-hidden="true">
-      <span class="border-left">└</span>
-      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-      <span class="border-right">┘</span>
-    </div>
+    <footer class="tui-statusbar" aria-hidden="true">
+      <div class="status-left">
+        <span class="status-mode">STATIC</span>
+        <span class="status-path">~/de</span>
+      </div>
+      <div class="status-right">
+        <span>v3rm1</span>
+        <span class="status-separator">│</span>
+        <span>Grimstad, NO</span>
+        <span class="status-separator">│</span>
+        <span>de-DE</span>
+      </div>
+    </footer>
   </div>
   <script src="../js/track.js"></script>
 </body>

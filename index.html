@@ -149,29 +149,32 @@
 </head>
 <body>
   <div class="tui-frame">
-    <!-- Top border with title -->
-    <div class="tui-top-border">
-      <span class="border-left">┌─ Commands ──┬</span>
-      <span class="border-title" id="frame-title">─ v3rm1@portfolio:~/ </span>
-      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-      <span class="border-right">┐</span>
-    </div>
+    <!-- Modern Terminal Window Titlebar -->
+    <header class="tui-window-titlebar">
+      <div class="window-controls" aria-hidden="true">
+        <span class="window-dot dot-close"></span>
+        <span class="window-dot dot-minimize"></span>
+        <span class="window-dot dot-maximize"></span>
+      </div>
+      <div class="window-title" id="frame-title">v3rm1@portfolio:~/</div>
+      <div class="window-badge" aria-hidden="true">zsh · main</div>
+    </header>
 
     <!-- Middle: sidebar + main -->
     <div class="tui-middle">
       <!-- Sidebar -->
       <nav class="tui-sidebar" id="sidebar" aria-label="Menu">
         <div class="sidebar-header">NAVIGATION</div>
-        <button type="button" class="sidebar-item" data-cmd="">home</button>
-        <button type="button" class="sidebar-item" data-cmd="about">about</button>
-        <button type="button" class="sidebar-item" data-cmd="projects">projects</button>
-        <button type="button" class="sidebar-item" data-cmd="skills">skills</button>
-        <button type="button" class="sidebar-item" data-cmd="timeline">timeline</button>
-        <button type="button" class="sidebar-item" data-cmd="cv">cv</button>
-        <button type="button" class="sidebar-item" data-cmd="teaching">teaching</button>
-        <button type="button" class="sidebar-item" data-cmd="publications">publications</button>
-        <button type="button" class="sidebar-item" data-cmd="blog">blog</button>
-        <button type="button" class="sidebar-item" data-cmd="contact">contact</button>
+        <button type="button" class="sidebar-item" data-cmd=""><span class="sidebar-icon">~</span> home</button>
+        <button type="button" class="sidebar-item" data-cmd="about"><span class="sidebar-icon">✦</span> about</button>
+        <button type="button" class="sidebar-item" data-cmd="projects"><span class="sidebar-icon">⚙</span> projects</button>
+        <button type="button" class="sidebar-item" data-cmd="skills"><span class="sidebar-icon">⚡</span> skills</button>
+        <button type="button" class="sidebar-item" data-cmd="timeline"><span class="sidebar-icon">⧗</span> timeline</button>
+        <button type="button" class="sidebar-item" data-cmd="cv"><span class="sidebar-icon">📄</span> cv</button>
+        <button type="button" class="sidebar-item" data-cmd="teaching"><span class="sidebar-icon">☕</span> teaching</button>
+        <button type="button" class="sidebar-item" data-cmd="publications"><span class="sidebar-icon">✍</span> publications</button>
+        <button type="button" class="sidebar-item" data-cmd="blog"><span class="sidebar-icon">↗</span> blog</button>
+        <button type="button" class="sidebar-item" data-cmd="contact"><span class="sidebar-icon">✉</span> contact</button>
       </nav>
 
       <!-- Main terminal panel -->
@@ -181,15 +184,15 @@
     <h1 class="hero-name">Varun Ravi Varma</h1>
     <p class="hero-headline">AI Research Scientist — Reinforcement Learning &amp; Multi-Agent Systems</p>
     <p class="hero-tagline">PhD researcher at the University of Agder building interpretable, multi-agent RL agents for long-horizon decision-making, with industry experience shipping ML and data pipelines.</p>
-    <p class="hero-availability">● Open to research programmer and applied scientist roles in Germany, Austria or Switzerland (DACH) from early 2028.</p>
+    <div class="hero-availability"><span class="status-pulse"></span><span>Open to research programmer and applied scientist roles in Germany, Austria or Switzerland (DACH) from early 2028.</span></div>
     <p class="tags hero-skills"><a class="tag" href="#skill-multi-agent-rl" data-cmd="skills multi-agent-rl">Multi-agent RL</a> <a class="tag" href="#skill-jax" data-cmd="skills jax">JAX</a> <a class="tag" href="#skill-simulation-agent-based-modelling" data-cmd="skills simulation-agent-based-modelling">Simulation &amp; agent-based modelling</a> <a class="tag" href="#skill-gpu-experiment-sweeps" data-cmd="skills gpu-experiment-sweeps">GPU experiment sweeps</a> <a class="tag" href="#skill-interpretable-explainable-ml" data-cmd="skills interpretable-explainable-ml">Interpretable &amp; explainable ML</a> <a class="tag" href="#skill-data-pipelines" data-cmd="skills data-pipelines">Data pipelines</a> <a class="tag" href="#skill-python" data-cmd="skills python">Python</a></p>
     <div class="hero-cta">
       <a class="cta cta-primary" href="files/cv/VarunRaviVarma_Industry_CV.pdf" download>Download CV</a>
-      <a class="cta" href="files/cv/VRVarma_Academic_CV.pdf" download>Academic CV</a>
-      <a class="cta" href="mailto:varunravivarma@gmail.com">Email me</a>
-      <a class="cta" href="https://www.linkedin.com/in/varun-ravi-varma" target="_blank" rel="noopener">LinkedIn</a>
-      <a class="cta" href="https://github.com/v3rm1" target="_blank" rel="noopener">GitHub</a>
-      <a class="cta" href="de/" hreflang="de" lang="de">Deutsch</a>
+      <a class="cta cta-secondary" href="files/cv/VRVarma_Academic_CV.pdf" download>Academic CV</a>
+      <a class="cta cta-secondary" href="mailto:varunravivarma@gmail.com">Email me</a>
+      <a class="cta cta-secondary" href="https://www.linkedin.com/in/varun-ravi-varma" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="cta cta-secondary" href="https://github.com/v3rm1" target="_blank" rel="noopener">GitHub</a>
+      <a class="cta cta-secondary" href="de/" hreflang="de" lang="de">Deutsch</a>
     </div>
   </header>
   <!-- GENERATED:hero END -->
@@ -692,27 +695,21 @@ Stack: SpaCy, NLTK, GloVe, Rake, Scikit-Learn</p>
       </main>
     </div>
 
-    <!-- Separator between middle and status bar -->
-    <div class="tui-mid-border tui-border-row">
-      <span class="border-left">├──────────────┴</span>
-      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-      <span class="border-right">┤</span>
-    </div>
-
-    <!-- Status bar -->
-    <div class="tui-statusbar">
-      <span class="status-left" id="status-path">~/</span>
-      <span class="status-right">
-        v3rm1 │ Grimstad, NO
-      </span>
-    </div>
-
-    <!-- Bottom border -->
-    <div class="tui-bottom-border tui-border-row">
-      <span class="border-left">└</span>
-      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-      <span class="border-right">┘</span>
-    </div>
+    <!-- Integrated Modern Status Bar -->
+    <footer class="tui-statusbar">
+      <div class="status-left">
+        <span class="status-mode" aria-hidden="true">NORMAL</span>
+        <span class="status-branch" aria-hidden="true"> main</span>
+        <span class="status-path" id="status-path">~/</span>
+      </div>
+      <div class="status-right">
+        <span>v3rm1</span>
+        <span class="status-separator">│</span>
+        <span>Grimstad, NO</span>
+        <span class="status-separator">│</span>
+        <span>UTF-8</span>
+      </div>
+    </footer>
   </div>
 
   <script src="js/data.js"></script>

@@ -144,30 +144,34 @@
     output.appendChild(div);
   }
 
-  // ── Home View (Executive Spotlight & Diagnostics) ──────────────
+  // ── Home View (Executive Spotlight & Capabilities) ───────────
   function renderHome(container) {
     const spotlightDiv = document.createElement("div");
     spotlightDiv.className = "output-block";
     spotlightDiv.innerHTML = `
       <div class="home-spotlight">
         <div class="spotlight-header">
-          <span class="color-magenta bold">┌─ RESEARCH HIGHLIGHTS &amp; CAPABILITIES</span>
+          <div class="spotlight-title">CORE FOCUS &amp; CAPABILITIES</div>
+          <div class="spotlight-subtitle">Flagship research &amp; engineering pillars</div>
         </div>
         <div class="spotlight-grid">
-          <div class="spotlight-card">
-            <div class="card-title color-cyan bold">◆ Hierarchical Multi-Agent RL</div>
-            <div class="card-body">Structured sub-team coordination in Dec-POMDPs. Long-horizon decision-making under partial observability with rigorous evaluation across random seeds.</div>
-            <div class="card-link">${makeClickable("View Project Details ▸", "project marl_coordination", true)}</div>
+          <div class="spotlight-card card-research">
+            <div class="card-badge badge-research">RESEARCH</div>
+            <div class="card-title">Hierarchical Multi-Agent RL</div>
+            <div class="card-body">Designing structured sub-team coordination in Dec-POMDPs. Long-horizon decision-making under partial observability with rigorous statistical evaluation across random seeds.</div>
+            <div class="card-link">${makeClickable("Explore Architecture ▸", "project marl_coordination", true)}</div>
           </div>
-          <div class="spotlight-card">
-            <div class="card-title color-orange bold">◆ GPU Simulation in JAX</div>
-            <div class="card-body">Vectorised, JIT-compiled crisis and agent-based simulation environments. Stepping 10,000s of scenarios concurrently on single GPUs.</div>
-            <div class="card-link">${makeClickable("View Project Details ▸", "project gpu_sim", true)}</div>
+          <div class="spotlight-card card-sim">
+            <div class="card-badge badge-sim">SIMULATION</div>
+            <div class="card-title">GPU Simulation in JAX</div>
+            <div class="card-body">Vectorised, JIT-compiled crisis and agent-based simulation environments. Stepping 10,000s of scenarios concurrently on single GPUs with physics validation.</div>
+            <div class="card-link">${makeClickable("Explore Simulator ▸", "project gpu_sim", true)}</div>
           </div>
-          <div class="spotlight-card">
-            <div class="card-title color-green bold">◆ Production ML &amp; Data Systems</div>
+          <div class="spotlight-card card-systems">
+            <div class="card-badge badge-systems">SYSTEMS</div>
+            <div class="card-title">Production ML &amp; Data Systems</div>
             <div class="card-body">Enterprise experience scaling ML pipelines, cloud architectures (Azure/Databricks), and interpretable models (Tsetlin Machines) from industry to academia.</div>
-            <div class="card-link">${makeClickable("View Career Timeline ▸", "timeline", true)}</div>
+            <div class="card-link">${makeClickable("View Career Track ▸", "timeline", true)}</div>
           </div>
         </div>
       </div>`;
@@ -197,7 +201,7 @@
       statusPath.appendChild(document.createTextNode("/" + args));
     }
     const plainPath = "~/" + (cmd ? [cmd, args].filter(Boolean).join("/") : "");
-    frameTitle.textContent = "─ v3rm1@portfolio:" + plainPath + " ";
+    frameTitle.textContent = "v3rm1@portfolio:" + plainPath;
   }
 
   // ── Commands ───────────────────────────────────────────────────

@@ -131,15 +131,15 @@ function hero() {
     <h1 class="hero-name">${esc(p.name)}</h1>
     <p class="hero-headline">${esc(p.headline)}</p>
     <p class="hero-tagline">${esc(p.tagline)}</p>
-    ${p.availability ? `<p class="hero-availability">● ${esc(p.availability)}</p>` : ""}
+    ${p.availability ? `<div class="hero-availability"><span class="status-pulse"></span><span>${esc(p.availability)}</span></div>` : ""}
     <p class="tags hero-skills">${top}</p>
     <div class="hero-cta">
       <a class="cta cta-primary" href="${esc(p.cv)}" download>Download CV</a>
-      <a class="cta" href="${esc(p.academicCv)}" download>Academic CV</a>
-      <a class="cta" href="mailto:${esc(c.email)}">Email me</a>
-      <a class="cta" href="${esc(c.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>
-      <a class="cta" href="${esc(c.github)}" target="_blank" rel="noopener">GitHub</a>
-      <a class="cta" href="de/" hreflang="de" lang="de">Deutsch</a>
+      <a class="cta cta-secondary" href="${esc(p.academicCv)}" download>Academic CV</a>
+      <a class="cta cta-secondary" href="mailto:${esc(c.email)}">Email me</a>
+      <a class="cta cta-secondary" href="${esc(c.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="cta cta-secondary" href="${esc(c.github)}" target="_blank" rel="noopener">GitHub</a>
+      <a class="cta cta-secondary" href="de/" hreflang="de" lang="de">Deutsch</a>
     </div>
   </header>
   `;
@@ -360,32 +360,29 @@ function germanPage() {
 </head>
 <body>
   <div class="tui-frame">
-    <div class="tui-top-border" aria-hidden="true">
-      <span class="border-title">┌─ v3rm1@portfolio:~/de </span>
-      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-      <span class="border-right">┐</span>
-    </div>
+    <header class="tui-window-titlebar" aria-hidden="true">
+      <div class="window-controls">
+        <span class="window-dot dot-close"></span>
+        <span class="window-dot dot-minimize"></span>
+        <span class="window-dot dot-maximize"></span>
+      </div>
+      <div class="window-title">v3rm1@portfolio:~/de</div>
+      <div class="window-badge">zsh · de</div>
+    </header>
     <div class="tui-middle">
       <main class="tui-main tui-main-full">
         <header class="hero">
           <h1 class="hero-name">${esc(p.name)}</h1>
           <p class="hero-headline">${esc(de.headline)}</p>
           <p class="hero-tagline">${esc(de.tagline)}</p>
-          <p class="hero-availability">● ${esc(de.availability)}</p>
+          ${de.availability ? `<div class="hero-availability"><span class="status-pulse"></span><span>${esc(de.availability)}</span></div>` : ""}
           <div class="hero-cta">
             <a class="cta cta-primary" href="../${esc(p.cv)}" download>Lebenslauf (PDF, Englisch)</a>
-            <a class="cta" href="mailto:${esc(c.email)}">E-Mail</a>
-            <a class="cta" href="${esc(c.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>
-            <a class="cta" href="${esc(c.github)}" target="_blank" rel="noopener">GitHub</a>
+            <a class="cta cta-secondary" href="mailto:${esc(c.email)}">E-Mail</a>
+            <a class="cta cta-secondary" href="${esc(c.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>
+            <a class="cta cta-secondary" href="${esc(c.github)}" target="_blank" rel="noopener">GitHub</a>
+            <a class="cta cta-secondary" href="../" hreflang="en" lang="en">English (Full Site)</a>
           </div>
-          <nav class="hero-navs" aria-label="Abschnitte">
-            <a class="hero-nav" href="#profil">profil</a>
-            <a class="hero-nav" href="#kompetenzen">kompetenzen</a>
-            <a class="hero-nav" href="#werdegang">werdegang</a>
-            <a class="hero-nav" href="#publikationen">publikationen</a>
-            <a class="hero-nav" href="#kontakt">kontakt</a>
-            <a class="hero-nav" href="../" hreflang="en" lang="en">english (full site)</a>
-          </nav>
         </header>
         <div id="static-content">
           <section id="profil">
@@ -423,11 +420,19 @@ function germanPage() {
         </div>
       </main>
     </div>
-    <div class="tui-bottom-border tui-border-row" aria-hidden="true">
-      <span class="border-left">└</span>
-      <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
-      <span class="border-right">┘</span>
-    </div>
+    <footer class="tui-statusbar" aria-hidden="true">
+      <div class="status-left">
+        <span class="status-mode">STATIC</span>
+        <span class="status-path">~/de</span>
+      </div>
+      <div class="status-right">
+        <span>v3rm1</span>
+        <span class="status-separator">│</span>
+        <span>Grimstad, NO</span>
+        <span class="status-separator">│</span>
+        <span>de-DE</span>
+      </div>
+    </footer>
   </div>
   <script src="../js/track.js"></script>
 </body>
