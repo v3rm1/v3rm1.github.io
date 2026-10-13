@@ -121,6 +121,23 @@ def split_hits(hits):
     return groups
 
 
+def daily_page_visits(days, hits):
+    """Visits per day across page paths; events are left out."""
+    per_day = dict.fromkeys(days, 0)
+    for h in hits:
+        if h.get("event"):
+            continue
+        for s in h.get("stats", []):
+            if s["day"] in per_day:
+                per_day[s["day"]] += s.get("daily", 0)
+    return [{"day": d, "visits": v} for d, v in per_day.items()]
+
+
+def page_visits(total):
+    """GoatCounter's total counts events too; visits should not."""
+    return total.get("total", 0) - total.get("total_events", 0)
+
+
 def top(stats):
     return [{"name": s.get("name") or "(direct)", "count": s.get("count", 0)} for s in stats[:TOP]]
 
@@ -132,7 +149,7 @@ def build_report(get, today, days, now=None):
     prev = get("/stats/total", start=prev_start.isoformat(), end=prev_end.isoformat())
     hits = get("/stats/hits", daily="true", limit=100, **span)
     groups = split_hits(hits.get("hits", []))
-    page_visits = {r["path"]: r["visits"] for r in groups["pages"]}
+    by_path = {r["path"]: r["visits"] for r in groups["pages"]}
 
     report = {
         "generated_at": (now or dt.datetime.now(dt.timezone.utc)).isoformat(timespec="seconds"),
@@ -140,14 +157,14 @@ def build_report(get, today, days, now=None):
         "window": dict(span, days=days),
         "previous": {"start": prev_start.isoformat(), "end": prev_end.isoformat()},
         "totals": {
-            "visits": cur.get("total", 0),
+            "visits": page_visits(cur),
             "events": cur.get("total_events", 0),
-            "previous_visits": prev.get("total", 0),
+            "previous_visits": page_visits(prev),
             "previous_events": prev.get("total_events", 0),
-            "change_pct": change_pct(cur.get("total", 0), prev.get("total", 0)),
+            "change_pct": change_pct(page_visits(cur), page_visits(prev)),
         },
-        "daily": [{"day": s["day"], "visits": s.get("daily", 0)} for s in cur.get("stats", [])],
-        "languages": {"en": page_visits.get("/", 0), "de": page_visits.get("/de/", 0)},
+        "daily": daily_page_visits([s["day"] for s in cur.get("stats", [])], hits.get("hits", [])),
+        "languages": {"en": by_path.get("/", 0), "de": by_path.get("/de/", 0)},
         # True when the API had more paths than the 100 fetched.
         "more_paths": bool(hits.get("more")),
     }

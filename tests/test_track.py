@@ -116,6 +116,13 @@ class TrackTest(unittest.TestCase):
         self.click(page, '.navbar a[href$="index.xml"]')
         self.assertEqual(self.events(page), ["rss"])
 
+    def test_index_html_counts_as_folder(self):
+        # The blog listing links to posts as .../index.html.
+        page = self.open(POST + "index.html")
+        self.assertEqual(self.views(page), [POST])
+        page = self.open("/blog/index.html")
+        self.assertEqual(self.views(page), ["/blog/"])
+
     def test_blog_anchor_not_in_path(self):
         page = self.open(POST + "#fig-arc-pipeline")
         self.assertEqual(self.views(page), [POST])

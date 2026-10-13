@@ -81,6 +81,7 @@
     document.head.appendChild(s);
   }
 
-  // Anchors within a page (#fig-1) are not separate pages.
-  if (!pageCountsViews) view(location.pathname);
+  // Anchors within a page (#fig-1) are not separate pages, and
+  // .../index.html is the same page as .../ (the blog links both ways).
+  if (!pageCountsViews) view(location.pathname.replace(/index\.html$/, ""));
 })();

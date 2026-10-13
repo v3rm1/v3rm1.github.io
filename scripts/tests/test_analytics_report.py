@@ -67,7 +67,7 @@ class BuildReportTest(unittest.TestCase):
     def test_totals(self):
         self.assertEqual(
             self.report["totals"],
-            {"visits": 30, "events": 4, "previous_visits": 20, "previous_events": 1, "change_pct": 50.0},
+            {"visits": 26, "events": 4, "previous_visits": 19, "previous_events": 1, "change_pct": 36.8},
         )
         self.assertEqual(self.report["generated_at"], "2026-10-13T07:00:00+00:00")
         self.assertEqual(self.report["window"], {"start": "2026-09-14", "end": "2026-10-13", "days": 30})
@@ -80,7 +80,9 @@ class BuildReportTest(unittest.TestCase):
 
     def test_languages_daily_and_breakdowns(self):
         self.assertEqual(self.report["languages"], {"en": 12, "de": 3})
-        self.assertEqual(self.report["daily"], [{"day": "2026-10-12", "visits": 10}, {"day": "2026-10-13", "visits": 20}])
+        # Summed from page paths only (the cv-industry event is left out),
+        # over every day of the window, including days without visits.
+        self.assertEqual(self.report["daily"], [{"day": "2026-10-12", "visits": 5}, {"day": "2026-10-13", "visits": 10}])
         self.assertEqual(self.report["referrers"], [{"name": "linkedin.com", "count": 6}, {"name": "(direct)", "count": 2}])
         self.assertEqual(self.report["countries"][0], {"name": "Germany", "count": 8})
         self.assertEqual(self.report["sizes"], [{"name": "Phones", "count": 7}])
