@@ -20,10 +20,23 @@
 
 
 
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>In brief
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Large language models get better mostly by absorbing more data, which makes them very good at problems that resemble what they have already seen. The formal theories of intelligence discussed here measure something different: how efficiently a system learns <em>new</em> skills from little experience. This post walks through two such theories (Legg-Hutter universal intelligence and Chollet’s ARC) and argues that the recent shift towards search and verification at inference time moves practice closer to them.</p>
+</div>
+</div>
 <section id="the-parametric-illusion" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="the-parametric-illusion"><span class="header-section-number">1</span> The Parametric Illusion</h2>
 <p>The contemporary machine learning discourse conflates two fundamentally divergent constructs: <strong>crystallised competence</strong> and <strong>general intelligence</strong>.</p>
-<p>By training multi-billion parameter autoregressive models on petabytes of human text, the frontier artificial intelligence industry has engineered extraordinary cultural retrieval engines. When a large language model correctly solves a differential equation or synthesises a Python script, it samples from a high-dimensional interpolation manifold conditioned on trillions of observed human tokens. Nonetheless, when exposed to novel problem topologies that violate its pre-training distribution, the architecture degrades catastrophically. The system lacks a mechanism for genuine hypothesis revision outside its static weights.</p>
+<p>By training multi-billion parameter autoregressive models on petabytes of human text, the frontier artificial intelligence industry has engineered extraordinary cultural retrieval engines. When a large language model correctly solves a differential equation or synthesises a Python script, its behaviour is well described as interpolation over patterns learnt from trillions of observed human tokens. When it faces genuinely novel problems far from its pre-training distribution, its performance often degrades sharply. The system lacks a mechanism for genuine hypothesis revision outside its static weights.</p>
 <p>To elucidate why parametric scaling alone cannot yield Artificial General Intelligence, we must return to foundational principles: <strong>algorithmic information theory</strong>, <strong>formal definitions of universal intelligence</strong>, and the <strong>geometry of inductive search</strong>.</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
@@ -60,35 +73,35 @@ Figure&nbsp;1: Empirical next-token interpolation over web corpora vs universal 
 </section>
 <section id="the-legg-hutter-universal-intelligence-formalism" class="level2" data-number="2">
 <h2 data-number="2" class="anchored" data-anchor-id="the-legg-hutter-universal-intelligence-formalism"><span class="header-section-number">2</span> The Legg-Hutter Universal Intelligence Formalism</h2>
-<p>In 2007, Shane Legg and Marcus Hutter established the first non-anthropocentric, mathematically rigorous measure of general intelligence, synthesising Ray Solomonoff’s algorithmic probability with sequential decision theory.</p>
+<p>In 2007, Shane Legg and Marcus Hutter proposed an influential, non-anthropocentric formal measure of general intelligence <span class="citation" data-cites="legg2007">(Legg and Hutter 2007)</span>, combining Ray Solomonoff’s algorithmic probability <span class="citation" data-cites="solomonoff1964">(Solomonoff 1964)</span> with sequential decision theory.</p>
 <section id="mathematical-formulation" class="level3" data-number="2.1">
 <h3 data-number="2.1" class="anchored" data-anchor-id="mathematical-formulation"><span class="header-section-number">2.1</span> Mathematical Formulation</h3>
-<p>Let <img src="https://latex.codecogs.com/png.latex?E"> denote the set of all computable discrete, stochastic environments endowed with scalar reward signals. Let <img src="https://latex.codecogs.com/png.latex?%5Cpi"> represent an agent policy interacting with environment <img src="https://latex.codecogs.com/png.latex?%5Cmu%20%5Cin%20E"> via alternating sequences of actions <img src="https://latex.codecogs.com/png.latex?a_t%20%5Cin%20%5Cmathcal%7BA%7D">, observations <img src="https://latex.codecogs.com/png.latex?o_t%20%5Cin%20%5Cmathcal%7BO%7D">, and scalar rewards <img src="https://latex.codecogs.com/png.latex?r_t%20%5Cin%20%5Cmathbb%7BR%7D">.</p>
+<p>Let <img src="https://latex.codecogs.com/png.latex?E"> denote the set of computable stochastic environments whose total reward is bounded, <img src="https://latex.codecogs.com/png.latex?%5Csum_%7Bt=1%7D%5E%5Cinfty%20r_t%20%5Cle%201">. Let <img src="https://latex.codecogs.com/png.latex?%5Cpi"> represent an agent policy interacting with environment <img src="https://latex.codecogs.com/png.latex?%5Cmu%20%5Cin%20E"> via alternating sequences of actions <img src="https://latex.codecogs.com/png.latex?a_t%20%5Cin%20%5Cmathcal%7BA%7D">, observations <img src="https://latex.codecogs.com/png.latex?o_t%20%5Cin%20%5Cmathcal%7BO%7D">, and rewards <img src="https://latex.codecogs.com/png.latex?r_t%20%5Cge%200">.</p>
 <p>The <strong>Universal Intelligence</strong> <img src="https://latex.codecogs.com/png.latex?%5CUpsilon(%5Cpi)"> of an agent policy <img src="https://latex.codecogs.com/png.latex?%5Cpi"> is formally defined as:</p>
 <p><img src="https://latex.codecogs.com/png.latex?%5CUpsilon(%5Cpi)%20%5Ctriangleq%20%5Csum_%7B%5Cmu%20%5Cin%20E%7D%202%5E%7B-K(%5Cmu)%7D%20V_%5Cmu%5E%5Cpi"></p>
 <p>where:</p>
 <ul>
-<li><img src="https://latex.codecogs.com/png.latex?V_%5Cmu%5E%5Cpi%20%5Ctriangleq%20%5Cmathbb%7BE%7D_%5Cmu%5E%5Cpi%20%5Cleft%5B%20%5Csum_%7Bt=1%7D%5E%5Cinfty%20%5Cgamma%5Et%20r_t%20%5Cright%5D"> designates the expected cumulative discounted return achieved by policy <img src="https://latex.codecogs.com/png.latex?%5Cpi"> within environment <img src="https://latex.codecogs.com/png.latex?%5Cmu">, governed by temporal discount factor <img src="https://latex.codecogs.com/png.latex?%5Cgamma%20%5Cin%20(0,%201)">.</li>
-<li><img src="https://latex.codecogs.com/png.latex?K(%5Cmu)"> denotes the <strong>prefix Kolmogorov complexity</strong> of environment <img src="https://latex.codecogs.com/png.latex?%5Cmu">—specifically, the length in bits of the shortest self-delimiting binary program that simulates the transition dynamics of <img src="https://latex.codecogs.com/png.latex?%5Cmu"> on a reference universal prefix Turing machine <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BU%7D">.</li>
+<li><img src="https://latex.codecogs.com/png.latex?V_%5Cmu%5E%5Cpi%20%5Ctriangleq%20%5Cmathbb%7BE%7D_%5Cmu%5E%5Cpi%20%5Cleft%5B%20%5Csum_%7Bt=1%7D%5E%5Cinfty%20r_t%20%5Cright%5D"> is the expected total reward achieved by policy <img src="https://latex.codecogs.com/png.latex?%5Cpi"> in environment <img src="https://latex.codecogs.com/png.latex?%5Cmu">. Because rewards in <img src="https://latex.codecogs.com/png.latex?E"> are bounded, the sum converges without a discount factor; Legg and Hutter deliberately avoid one, so that the measure does not fix an arbitrary planning horizon.</li>
+<li><img src="https://latex.codecogs.com/png.latex?K(%5Cmu)"> denotes the <strong>prefix Kolmogorov complexity</strong> of environment <img src="https://latex.codecogs.com/png.latex?%5Cmu"> <span class="citation" data-cites="li2008">(Li and Vitányi 2008)</span>—specifically, the length in bits of the shortest self-delimiting binary program that simulates the transition dynamics of <img src="https://latex.codecogs.com/png.latex?%5Cmu"> on a reference universal prefix Turing machine <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BU%7D">.</li>
 <li><img src="https://latex.codecogs.com/png.latex?2%5E%7B-K(%5Cmu)%7D"> operationalises algorithmic probability (the mathematical formulation of Occam’s razor), assigning exponentially superior a priori weight to compact, lawful causal systems while attenuating ad-hoc, convoluted worlds.</li>
 </ul>
 </section>
 <section id="epistemic-implications" class="level3" data-number="2.2">
 <h3 data-number="2.2" class="anchored" data-anchor-id="epistemic-implications"><span class="header-section-number">2.2</span> Epistemic Implications</h3>
 <ol type="1">
-<li><strong>Domain Invariance:</strong> The agent is not evaluated against an arbitrary empirical benchmark (such as chess, standardised academic examinations, or programming leaderboards), but across the comprehensive topological space of <em>all computable realities</em>.</li>
+<li><strong>Domain Invariance:</strong> The agent is not evaluated against an arbitrary empirical benchmark (such as chess, standardised academic examinations, or programming leaderboards), but across the space of <em>all computable environments</em>.</li>
 <li><strong>The Occam Inductive Bias:</strong> An agent cannot attain high universal intelligence through exhaustive task-specific memorisation. To maximise <img src="https://latex.codecogs.com/png.latex?%5CUpsilon(%5Cpi)">, the agent must excel across fundamentally lawful environments while maintaining robustness in complex stochastic settings.</li>
-<li><strong>The AIXI Horizon:</strong> The theoretical agent policy that maximises <img src="https://latex.codecogs.com/png.latex?%5CUpsilon(%5Cpi)"> is <strong>AIXI</strong> (Hutter, 2005), which unifies Solomonoff induction with Bellman tree optimality:</li>
+<li><strong>The AIXI Horizon:</strong> The theoretical agent that maximises <img src="https://latex.codecogs.com/png.latex?%5CUpsilon(%5Cpi)"> is <strong>AIXI</strong> <span class="citation" data-cites="hutter2005">(Hutter 2005)</span>, which combines Solomonoff induction with expectimax planning up to a horizon <img src="https://latex.codecogs.com/png.latex?m">:</li>
 </ol>
-<p><img src="https://latex.codecogs.com/png.latex?a_t%5E*%20%5Ctriangleq%20%5Carg%5Cmax_%7Ba_t%7D%20%5Csum_%7Bo_t,%20r_t%7D%20%5Ccdots%20%5Cmax_%7Ba_m%7D%20%5Csum_%7Bo_m,%20r_m%7D%20%5Cleft%5B%20%5Csum_%7Bk=t%7D%5Em%20r_k%20%5Cright%5D%20%5Csum_%7Bq:%20%5Cmathcal%7BU%7D(q,%20a_%7B%3Ck%7D)%20=%20o_%7B%3Ck%7D%20r_%7B%3Ck%7D%7D%202%5E%7B-%5Cell(q)%7D"></p>
-<p>where <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BU%7D"> represents a universal prefix Turing machine, <img src="https://latex.codecogs.com/png.latex?q"> is a binary program generating interaction history <img src="https://latex.codecogs.com/png.latex?o_%7B%3Ck%7D%20r_%7B%3Ck%7D"> conditioned on actions <img src="https://latex.codecogs.com/png.latex?a_%7B%3Ck%7D">, and <img src="https://latex.codecogs.com/png.latex?%5Cell(q)"> is its program bit-length.</p>
-<p>Because prefix Kolmogorov complexity is uncomputable (directly reducible to Turing’s Halting Problem), AIXI cannot be directly instantiated in hardware. Nonetheless, it provides the golden asymptotic standard against which all bounded cognitive architectures must be calibrated.</p>
+<p><img src="https://latex.codecogs.com/png.latex?a_t%5E*%20%5Ctriangleq%20%5Carg%5Cmax_%7Ba_t%7D%20%5Csum_%7Bo_t%20r_t%7D%20%5Ccdots%20%5Cmax_%7Ba_m%7D%20%5Csum_%7Bo_m%20r_m%7D%20%5Cleft%5B%20r_t%20+%20%5Ccdots%20+%20r_m%20%5Cright%5D%20%5Csum_%7Bq%20%5C,:%5C,%20%5Cmathcal%7BU%7D(q,%5C,%20a_1%20%5Cldots%20a_m)%20=%20o_1%20r_1%20%5Cldots%20o_m%20r_m%7D%202%5E%7B-%5Cell(q)%7D"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BU%7D"> is a universal prefix Turing machine, the inner sum runs over every program <img src="https://latex.codecogs.com/png.latex?q"> that, given the actions <img src="https://latex.codecogs.com/png.latex?a_1%20%5Cldots%20a_m">, outputs the percepts <img src="https://latex.codecogs.com/png.latex?o_1%20r_1%20%5Cldots%20o_m%20r_m">, and <img src="https://latex.codecogs.com/png.latex?%5Cell(q)"> is the length of <img src="https://latex.codecogs.com/png.latex?q"> in bits.</p>
+<p>Prefix Kolmogorov complexity is uncomputable (computing it would solve the halting problem), and AIXI is not even limit-computable, so it cannot be approximated arbitrarily well with finite computation <span class="citation" data-cites="leike2015">(Leike and Hutter 2015)</span>. It is best read as a theoretical reference point for bounded agents rather than a blueprint.</p>
 <hr>
 </section>
 </section>
 <section id="chollets-arc-intelligence-as-skill-acquisition-efficiency" class="level2" data-number="3">
 <h2 data-number="3" class="anchored" data-anchor-id="chollets-arc-intelligence-as-skill-acquisition-efficiency"><span class="header-section-number">3</span> Chollet’s ARC: Intelligence as Skill Acquisition Efficiency</h2>
-<p>While Legg and Hutter supply the uncomputable theoretical bound, François Chollet (2019) translated algorithmic information theory into a falsifiable, finite measurement framework: the <strong>Abstraction and Reasoning Corpus (ARC)</strong>.</p>
+<p>While Legg and Hutter supply the uncomputable theoretical bound, François Chollet <span class="citation" data-cites="chollet2019">(2019)</span> translated algorithmic information theory into a falsifiable, finite measurement framework: the <strong>Abstraction and Reasoning Corpus (ARC)</strong>.</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-arc-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -98,7 +111,7 @@ Figure&nbsp;1: Empirical next-token interpolation over web corpora vs universal 
 <pre class="mermaid mermaid-js" data-label="fig-arc-pipeline">flowchart LR
     Priors["Core Knowledge Priors: Objectness, Topology, Geometry"] --&gt; SearchEngine["Inductive Program Synthesis Engine"]
     SearchEngine --&gt; NovelTasks["Novel Few-Shot Grid Transformations"]
-    NovelTasks --&gt; Metric["Skill Acquisition Efficiency: Delta Skill / (Priors x Experience)"]
+    NovelTasks --&gt; Metric["Skill-Acquisition Efficiency: Generalisation Difficulty / (Priors + Experience)"]
 </pre>
 </div>
 </div>
@@ -119,12 +132,13 @@ Figure&nbsp;2: ARC evaluation pipeline: grounding novel program induction in cor
 </section>
 <section id="the-measure-of-skill-acquisition-efficiency" class="level3" data-number="3.2">
 <h3 data-number="3.2" class="anchored" data-anchor-id="the-measure-of-skill-acquisition-efficiency"><span class="header-section-number">3.2</span> The Measure of Skill Acquisition Efficiency</h3>
-<p>Formally, Chollet defines intelligence not as an instantaneous capability vector, but as the <em>rate of skill acquisition</em> normalised by prior knowledge and experiential sample complexity:</p>
-<p><img src="https://latex.codecogs.com/png.latex?%5Ctext%7BIntelligence%7D%20%5Ctriangleq%20%5Cfrac%7B%5CDelta%20%5Ctext%7BSkill%7D%7D%7B%5Ctext%7BExperience%7D%20%5Ctimes%20%5Ctext%7BPriors%7D%7D"></p>
+<p>Formally, Chollet defines intelligence not as skill at any one task, but as <em>skill-acquisition efficiency</em>: how much generalisation a system achieves relative to the prior knowledge and experience it needed. Stripped of its weighting terms, his definition averages over a scope of tasks <img src="https://latex.codecogs.com/png.latex?T">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Ctext%7BIntelligence%7D%20%5Cpropto%20%5Coperatorname*%7BAvg%7D_%7BT%7D%20%5Cleft%5B%20%5Cfrac%7B%5Ctext%7BGD%7D_T%7D%7BP_T%20+%20E_T%7D%20%5Cright%5D"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?%5Ctext%7BGD%7D_T"> is the <em>generalisation difficulty</em> of reaching a threshold skill on task <img src="https://latex.codecogs.com/png.latex?T">, and <img src="https://latex.codecogs.com/png.latex?P_T"> and <img src="https://latex.codecogs.com/png.latex?E_T"> are the priors and experience the system used, all measured in bits of algorithmic information. The full definition also weights each task by its value and averages over learning curricula. Note that priors and experience are <em>added</em>: a system can only be credited for generalisation it did not get for free.</p>
 <p>In ARC, tasks are deliberately curated to eliminate linguistic and cultural retrieval shortcuts:</p>
 <ul>
 <li>Tasks demand inductive inference over compact discrete 2D grid transformations.</li>
-<li>Solutions require synthesising short latent programs grounded exclusively in human-innate <strong>Core Knowledge Priors</strong>:
+<li>Solutions require synthesising short latent programs grounded exclusively in human-innate <strong>Core Knowledge Priors</strong> <span class="citation" data-cites="spelke2007">(Spelke and Kinzler 2007)</span>:
 <ul>
 <li><em>Objectness</em> (cohesion, persistence, boundaries).</li>
 <li><em>Goal-directed agency</em> (intentional state modifications).</li>
@@ -139,7 +153,7 @@ Figure&nbsp;2: ARC evaluation pipeline: grounding novel program induction in cor
 <section id="intelligence-as-a-multi-tier-search-ontology" class="level2" data-number="4">
 <h2 data-number="4" class="anchored" data-anchor-id="intelligence-as-a-multi-tier-search-ontology"><span class="header-section-number">4</span> Intelligence as a Multi-Tier Search Ontology</h2>
 <p>If intelligence cannot be reduced to static token interpolation, and if uncomputable Solomonoff induction cannot be executed directly on silicon, how do physical agents realise adaptive capability?</p>
-<p>Intelligence is fundamentally <strong>structured search across hierarchical manifolds</strong>. Rather than executing intractable Monte Carlo exploration across unconstrained state spaces, intelligent architectures compress the search problem through four distinct ontological tiers:</p>
+<p>My working hypothesis is that intelligence is best understood as <strong>structured search across hierarchical representations</strong>. Rather than exploring unconstrained state spaces exhaustively, capable agents compress the search problem at four levels:</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-four-tier-search" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -148,7 +162,7 @@ Figure&nbsp;2: ARC evaluation pipeline: grounding novel program induction in cor
 <div>
 <pre class="mermaid mermaid-js" data-label="fig-four-tier-search">flowchart TD
     L4["Tier 4: Meta-Search &amp; Algorithmic Synthesis: Synthesising Search Procedures"]
-    L3["Tier 3: State-Abstraction Manifolds: Lie Group Symmetries &amp; Equivariance"]
+    L3["Tier 3: State Abstraction: Symmetries &amp; Equivariance"]
     L2["Tier 2: Heuristic &amp; Value Surfaces: Gradient Guidance &amp; Basin Steering"]
     L1["Tier 1: Direct State Navigation: Trajectory Execution in World Dynamics"]
 
@@ -209,20 +223,20 @@ Figure&nbsp;3: Four-tier computational search hierarchy from direct navigation t
 </tr>
 </tbody>
 </table>
-<p>At Tier 3, discovering invariance under spatial translation, rotation, and permutations collapses the effective volume of combinatorial state spaces by orders of magnitude. At Tier 4, the architecture avoids static heuristics entirely, actively generating and validating verification routines at inference time.</p>
+<p>At Tier 3, discovering invariance under translation, rotation or permutation shrinks the effective state space: quotienting by a symmetry group <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BG%7D"> that acts freely divides the number of distinct states by <img src="https://latex.codecogs.com/png.latex?%7C%5Cmathcal%7BG%7D%7C">. At Tier 4, the architecture avoids static heuristics entirely, actively generating and validating verification routines at inference time.</p>
 </section>
-<section id="the-thermodynamic-correspondence" class="level3" data-number="4.2">
-<h3 data-number="4.2" class="anchored" data-anchor-id="the-thermodynamic-correspondence"><span class="header-section-number">4.2</span> The Thermodynamic Correspondence</h3>
-<p>There exists a rigorous structural connection between state space compression in intelligent search and non-equilibrium thermodynamics. Under Landauer’s Principle, the erasure of information and the contraction of high-entropy probability distributions require fundamental thermodynamic dissipation:</p>
-<p><img src="https://latex.codecogs.com/png.latex?%5CDelta%20S%20%5Cge%20-k_B%20%5Cln%202%20%5Ccdot%20%5CDelta%20I"></p>
-<p>An intelligent agent is fundamentally a dissipative physical system that expends thermodynamic work to compress combinatorial state uncertainty into compact, lawful causal representations.</p>
+<section id="a-thermodynamic-analogy" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="a-thermodynamic-analogy"><span class="header-section-number">4.2</span> A Thermodynamic Analogy</h3>
+<p>There is a suggestive analogy between compressing uncertainty in search and thermodynamics. Landauer’s principle <span class="citation" data-cites="landauer1961">(Landauer 1961)</span> states that erasing information has an unavoidable energy cost: erasing <img src="https://latex.codecogs.com/png.latex?N"> bits at temperature <img src="https://latex.codecogs.com/png.latex?T"> dissipates at least</p>
+<p><img src="https://latex.codecogs.com/png.latex?Q%20%5Cge%20N%20%5C,%20k_B%20T%20%5Cln%202"></p>
+<p>of heat into the environment. Seen this way, an agent that narrows a wide space of hypotheses down to a compact causal model is a physical system paying, at least in principle, an energy cost for discarding the alternatives. In practice this bound is far below the energy that real hardware uses, so it is a conceptual lens rather than a practical constraint.</p>
 <hr>
 </section>
 </section>
 <section id="the-architectural-phase-transition-test-time-compute" class="level2" data-number="5">
 <h2 data-number="5" class="anchored" data-anchor-id="the-architectural-phase-transition-test-time-compute"><span class="header-section-number">5</span> The Architectural Phase Transition: Test-Time Compute</h2>
-<p>The limitations of pure pre-training scaling are now mathematically and empirically manifest. The marginal returns of ingesting additional petabytes of web text are attenuating rapidly as available human cultural tokens exhaust their useful variance.</p>
-<p>The emerging paradigm—characterised by inference-time reasoning architectures such as OpenAI o1/o3 and DeepSeek-R1—marks an explicit return to algorithmic search:</p>
+<p>There are growing signs that pre-training scaling alone is running into limits. The stock of high-quality human-generated text is finite, and projections suggest frontier training runs will exhaust it within years <span class="citation" data-cites="villalobos2024">(Villalobos et al. 2024)</span>.</p>
+<p>The emerging paradigm of inference-time reasoning models, such as OpenAI o1/o3 <span class="citation" data-cites="openai2024o1">(OpenAI 2024)</span> and DeepSeek-R1 <span class="citation" data-cites="deepseek2025r1">(DeepSeek-AI 2025)</span>, marks an explicit return to algorithmic search:</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-phase-transition" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -234,7 +248,7 @@ Figure&nbsp;3: Four-tier computational search hierarchy from direct navigation t
     Bottleneck --&gt; InferenceShift["Inference-Time Scaling: Dynamic Search Flops"]
     InferenceShift --&gt; MCTS["Tree Search &amp; Branch Pruning"]
     InferenceShift --&gt; FormalVerifiers["Deterministic Compilers &amp; Math Verifiers"]
-    FormalVerifiers --&gt; Convergence["Approximating Algorithmic Probability on Silicon"]
+    FormalVerifiers --&gt; Convergence["Bounded Approximations of Algorithmic Induction"]
 </pre>
 </div>
 </div>
@@ -247,17 +261,17 @@ Figure&nbsp;4: The architectural phase transition: decoupling compute from stati
 </div>
 <section id="decoupling-compute-from-static-parameter-counts" class="level3" data-number="5.1">
 <h3 data-number="5.1" class="anchored" data-anchor-id="decoupling-compute-from-static-parameter-counts"><span class="header-section-number">5.1</span> Decoupling Compute from Static Parameter Counts</h3>
-<p>In classical autoregressive inference, generating each token consumes a fixed compute budget proportional to model parameter count:</p>
+<p>In classical autoregressive inference, generating each token consumes a roughly fixed compute budget proportional to model parameter count (ignoring attention over the context):</p>
 <p><img src="https://latex.codecogs.com/png.latex?%5Ctext%7BCompute%7D_%7B%5Ctext%7Bstep%7D%7D%20=%20%5Cmathcal%7BO%7D(%7C%5Ctheta%7C)"></p>
 <p>By permitting models to execute variable-length reasoning traces, architectures trade test-time computational work for search depth. The system generates competing hypotheses, evaluates intermediate steps, and backtracks upon encountering formal contradictions.</p>
 </section>
 <section id="deterministic-verification-vs-preference-approximation" class="level3" data-number="5.2">
 <h3 data-number="5.2" class="anchored" data-anchor-id="deterministic-verification-vs-preference-approximation"><span class="header-section-number">5.2</span> Deterministic Verification vs Preference Approximation</h3>
-<p>Reinforcement Learning from Human Feedback (RLHF) optimizes against a soft neural reward model, which is perpetually susceptible to reward hacking and sycophancy. Conversely, contemporary reasoning frameworks employ deterministic ground-truth verifiers (code execution sandboxes, formal theorem provers, symbolic equivalence checkers). This mitigates reward hacking and aligns model optimization directly with rigorous deductive consistency.</p>
+<p>Reinforcement Learning from Human Feedback (RLHF) optimises against a learnt neural reward model, which is susceptible to reward hacking and sycophancy. Conversely, contemporary reasoning frameworks employ deterministic ground-truth verifiers (code execution sandboxes, formal theorem provers, symbolic equivalence checkers). In domains where such verifiers exist, this mitigates reward hacking and aligns model optimisation directly with deductive consistency.</p>
 </section>
 <section id="approximating-algorithmic-induction" class="level3" data-number="5.3">
 <h3 data-number="5.3" class="anchored" data-anchor-id="approximating-algorithmic-induction"><span class="header-section-number">5.3</span> Approximating Algorithmic Induction</h3>
-<p>By employing deep neural networks as generative proposal distributions over actions and coupling them with rigorous search algorithms (such as Monte Carlo Tree Search) and deterministic verification, modern systems begin to approximate Solomonoff induction within bounded polynomial time.</p>
+<p>By using deep neural networks as proposal distributions and coupling them with search algorithms (such as Monte Carlo Tree Search) and deterministic verification, modern systems can be read as crude, resource-bounded approximations of the inductive search that Solomonoff induction idealises.</p>
 <hr>
 </section>
 </section>
@@ -283,7 +297,7 @@ Figure&nbsp;4: The architectural phase transition: decoupling compute from stati
 <td style="text-align: left;"><strong>Objective Function</strong></td>
 <td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cmin_%5Ctheta%20%5Cmathbb%7BE%7D%5B-%5Cln%20P_%5Ctheta(x_t%20%5Cmid%20x_%7B%3Ct%7D)%5D"></td>
 <td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cmax_%5Cpi%20%5Csum_%7B%5Cmu%7D%202%5E%7B-K(%5Cmu)%7D%20V_%5Cmu%5E%5Cpi"></td>
-<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cmax%20%5Cfrac%7B%5CDelta%20%5Ctext%7BSkill%7D%7D%7B%5Ctext%7BExperience%7D%20%5Ctimes%20%5Ctext%7BPriors%7D%7D"></td>
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cmax%20%5Coperatorname*%7BAvg%7D_T%20%5Cfrac%7B%5Ctext%7BGD%7D_T%7D%7BP_T%20+%20E_T%7D"></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>Primary Mechanism</strong></td>
@@ -298,10 +312,10 @@ Figure&nbsp;4: The architectural phase transition: decoupling compute from stati
 <td style="text-align: left;">Novel tasks under core spatial priors</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>Computational Class</strong></td>
-<td style="text-align: left;">Bounded feed-forward (<img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BP%7D">)</td>
-<td style="text-align: left;">Non-computable (<img src="https://latex.codecogs.com/png.latex?%5CSigma_1%5E0">)</td>
-<td style="text-align: left;">Bounded resource-rational search (<img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BNP%7D">)</td>
+<td style="text-align: left;"><strong>Computational Character</strong></td>
+<td style="text-align: left;">Fixed compute per token, <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BO%7D(%5Clvert%5Ctheta%5Crvert)"></td>
+<td style="text-align: left;">Incomputable, not even limit-computable</td>
+<td style="text-align: left;">Resource-bounded search, exponential in the worst case</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>Failure Mode</strong></td>
@@ -319,6 +333,44 @@ Figure&nbsp;4: The architectural phase transition: decoupling compute from stati
 <p><strong>Intelligence is not the magnitude of parametric memory stored within static network weights. It is the computational efficiency with which an agent constructs, traverses, and formally verifies causal models across unfamiliar environment manifolds.</strong></p>
 </blockquote>
 <p>The frontier of artificial intelligence research is shifting decisively from passive token ingestion toward dynamic, verified computation. The ultimate measure of our architectures will not be the volume of historical tokens they can reproduce, but their capacity to discover minimal programs that master unencountered worlds.</p>
+</section>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-chollet2019" class="csl-entry">
+Chollet, François. 2019. <em>On the Measure of Intelligence</em>. <a href="https://arxiv.org/abs/1911.01547">https://arxiv.org/abs/1911.01547</a>.
+</div>
+<div id="ref-deepseek2025r1" class="csl-entry">
+DeepSeek-AI. 2025. <em><span>DeepSeek-R1</span>: Incentivizing Reasoning Capability in <span>LLMs</span> via Reinforcement Learning</em>. <a href="https://arxiv.org/abs/2501.12948">https://arxiv.org/abs/2501.12948</a>.
+</div>
+<div id="ref-hutter2005" class="csl-entry">
+Hutter, Marcus. 2005. <em>Universal Artificial Intelligence: Sequential Decisions Based on Algorithmic Probability</em>. Texts in Theoretical Computer Science. Springer. <a href="https://doi.org/10.1007/b138233">https://doi.org/10.1007/b138233</a>.
+</div>
+<div id="ref-landauer1961" class="csl-entry">
+Landauer, Rolf. 1961. <span>“Irreversibility and Heat Generation in the Computing Process.”</span> <em>IBM Journal of Research and Development</em> 5 (3): 183–91. <a href="https://doi.org/10.1147/rd.53.0183">https://doi.org/10.1147/rd.53.0183</a>.
+</div>
+<div id="ref-legg2007" class="csl-entry">
+Legg, Shane, and Marcus Hutter. 2007. <span>“Universal Intelligence: A Definition of Machine Intelligence.”</span> <em>Minds and Machines</em> 17 (4): 391–444. <a href="https://doi.org/10.1007/s11023-007-9079-x">https://doi.org/10.1007/s11023-007-9079-x</a>.
+</div>
+<div id="ref-leike2015" class="csl-entry">
+Leike, Jan, and Marcus Hutter. 2015. <span>“On the Computability of <span>AIXI</span>.”</span> <em>Proceedings of the 31st Conference on Uncertainty in Artificial Intelligence (UAI)</em>. <a href="https://arxiv.org/abs/1510.05572">https://arxiv.org/abs/1510.05572</a>.
+</div>
+<div id="ref-li2008" class="csl-entry">
+Li, Ming, and Paul Vitányi. 2008. <em>An Introduction to <span>Kolmogorov</span> Complexity and Its Applications</em>. 3rd ed. Texts in Computer Science. Springer. <a href="https://doi.org/10.1007/978-0-387-49820-1">https://doi.org/10.1007/978-0-387-49820-1</a>.
+</div>
+<div id="ref-openai2024o1" class="csl-entry">
+OpenAI. 2024. <em>Learning to Reason with <span>LLMs</span></em>. <a href="https://openai.com/index/learning-to-reason-with-llms/">https://openai.com/index/learning-to-reason-with-llms/</a>.
+</div>
+<div id="ref-solomonoff1964" class="csl-entry">
+Solomonoff, Ray J. 1964. <span>“A Formal Theory of Inductive Inference. <span>Part I</span>.”</span> <em>Information and Control</em> 7 (1): 1–22. <a href="https://doi.org/10.1016/S0019-9958(64)90223-2">https://doi.org/10.1016/S0019-9958(64)90223-2</a>.
+</div>
+<div id="ref-spelke2007" class="csl-entry">
+Spelke, Elizabeth S., and Katherine D. Kinzler. 2007. <span>“Core Knowledge.”</span> <em>Developmental Science</em> 10 (1): 89–96. <a href="https://doi.org/10.1111/j.1467-7687.2007.00569.x">https://doi.org/10.1111/j.1467-7687.2007.00569.x</a>.
+</div>
+<div id="ref-villalobos2024" class="csl-entry">
+Villalobos, Pablo, Anson Ho, Jaime Sevilla, Tamay Besiroglu, Lennart Heim, and Marius Hobbhahn. 2024. <span>“Will We Run Out of Data? <span>Limits</span> of <span>LLM</span> Scaling Based on Human-Generated Data.”</span> <em>Proceedings of the 41st International Conference on Machine Learning (ICML)</em>. <a href="https://arxiv.org/abs/2211.04325">https://arxiv.org/abs/2211.04325</a>.
+</div>
+</div>
 
 
 </section>

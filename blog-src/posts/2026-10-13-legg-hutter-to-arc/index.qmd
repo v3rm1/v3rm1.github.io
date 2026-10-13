@@ -7,15 +7,27 @@ categories: [theory-of-intelligence, algorithmic-information-theory, reinforceme
 draft: false
 toc: true
 number-sections: true
+bibliography: references.bib
 ---
+
+::: {.callout-note appearance="simple"}
+## In brief
+Large language models get better mostly by absorbing more data, which makes
+them very good at problems that resemble what they have already seen. The
+formal theories of intelligence discussed here measure something different:
+how efficiently a system learns *new* skills from little experience. This post
+walks through two such theories (Legg-Hutter universal intelligence and
+Chollet's ARC) and argues that the recent shift towards search and
+verification at inference time moves practice closer to them.
+:::
 
 ## The Parametric Illusion
 
 The contemporary machine learning discourse conflates two fundamentally divergent constructs: **crystallised competence** and **general intelligence**.
 
 By training multi-billion parameter autoregressive models on petabytes of human text, the frontier artificial intelligence industry has engineered extraordinary cultural retrieval engines.
-When a large language model correctly solves a differential equation or synthesises a Python script, it samples from a high-dimensional interpolation manifold conditioned on trillions of observed human tokens.
-Nonetheless, when exposed to novel problem topologies that violate its pre-training distribution, the architecture degrades catastrophically.
+When a large language model correctly solves a differential equation or synthesises a Python script, its behaviour is well described as interpolation over patterns learnt from trillions of observed human tokens.
+When it faces genuinely novel problems far from its pre-training distribution, its performance often degrades sharply.
 The system lacks a mechanism for genuine hypothesis revision outside its static weights.
 
 To elucidate why parametric scaling alone cannot yield Artificial General Intelligence, we must return to foundational principles: **algorithmic information theory**, **formal definitions of universal intelligence**, and the **geometry of inductive search**.
@@ -44,11 +56,11 @@ flowchart TD
 
 ## The Legg-Hutter Universal Intelligence Formalism
 
-In 2007, Shane Legg and Marcus Hutter established the first non-anthropocentric, mathematically rigorous measure of general intelligence, synthesising Ray Solomonoff's algorithmic probability with sequential decision theory.
+In 2007, Shane Legg and Marcus Hutter proposed an influential, non-anthropocentric formal measure of general intelligence [@legg2007], combining Ray Solomonoff's algorithmic probability [@solomonoff1964] with sequential decision theory.
 
 ### Mathematical Formulation
-Let $E$ denote the set of all computable discrete, stochastic environments endowed with scalar reward signals.
-Let $\pi$ represent an agent policy interacting with environment $\mu \in E$ via alternating sequences of actions $a_t \in \mathcal{A}$, observations $o_t \in \mathcal{O}$, and scalar rewards $r_t \in \mathbb{R}$.
+Let $E$ denote the set of computable stochastic environments whose total reward is bounded, $\sum_{t=1}^\infty r_t \le 1$.
+Let $\pi$ represent an agent policy interacting with environment $\mu \in E$ via alternating sequences of actions $a_t \in \mathcal{A}$, observations $o_t \in \mathcal{O}$, and rewards $r_t \ge 0$.
 
 The **Universal Intelligence** $\Upsilon(\pi)$ of an agent policy $\pi$ is formally defined as:
 
@@ -56,27 +68,27 @@ $$\Upsilon(\pi) \triangleq \sum_{\mu \in E} 2^{-K(\mu)} V_\mu^\pi$$
 
 where:
 
-- $V_\mu^\pi \triangleq \mathbb{E}_\mu^\pi \left[ \sum_{t=1}^\infty \gamma^t r_t \right]$ designates the expected cumulative discounted return achieved by policy $\pi$ within environment $\mu$, governed by temporal discount factor $\gamma \in (0, 1)$.
-- $K(\mu)$ denotes the **prefix Kolmogorov complexity** of environment $\mu$—specifically, the length in bits of the shortest self-delimiting binary program that simulates the transition dynamics of $\mu$ on a reference universal prefix Turing machine $\mathcal{U}$.
+- $V_\mu^\pi \triangleq \mathbb{E}_\mu^\pi \left[ \sum_{t=1}^\infty r_t \right]$ is the expected total reward achieved by policy $\pi$ in environment $\mu$. Because rewards in $E$ are bounded, the sum converges without a discount factor; Legg and Hutter deliberately avoid one, so that the measure does not fix an arbitrary planning horizon.
+- $K(\mu)$ denotes the **prefix Kolmogorov complexity** of environment $\mu$ [@li2008]—specifically, the length in bits of the shortest self-delimiting binary program that simulates the transition dynamics of $\mu$ on a reference universal prefix Turing machine $\mathcal{U}$.
 - $2^{-K(\mu)}$ operationalises algorithmic probability (the mathematical formulation of Occam's razor), assigning exponentially superior a priori weight to compact, lawful causal systems while attenuating ad-hoc, convoluted worlds.
 
 ### Epistemic Implications
-1. **Domain Invariance:** The agent is not evaluated against an arbitrary empirical benchmark (such as chess, standardised academic examinations, or programming leaderboards), but across the comprehensive topological space of *all computable realities*.
+1. **Domain Invariance:** The agent is not evaluated against an arbitrary empirical benchmark (such as chess, standardised academic examinations, or programming leaderboards), but across the space of *all computable environments*.
 2. **The Occam Inductive Bias:** An agent cannot attain high universal intelligence through exhaustive task-specific memorisation. To maximise $\Upsilon(\pi)$, the agent must excel across fundamentally lawful environments while maintaining robustness in complex stochastic settings.
-3. **The AIXI Horizon:** The theoretical agent policy that maximises $\Upsilon(\pi)$ is **AIXI** (Hutter, 2005), which unifies Solomonoff induction with Bellman tree optimality:
+3. **The AIXI Horizon:** The theoretical agent that maximises $\Upsilon(\pi)$ is **AIXI** [@hutter2005], which combines Solomonoff induction with expectimax planning up to a horizon $m$:
 
-$$a_t^* \triangleq \arg\max_{a_t} \sum_{o_t, r_t} \cdots \max_{a_m} \sum_{o_m, r_m} \left[ \sum_{k=t}^m r_k \right] \sum_{q: \mathcal{U}(q, a_{<k}) = o_{<k} r_{<k}} 2^{-\ell(q)}$$
+$$a_t^* \triangleq \arg\max_{a_t} \sum_{o_t r_t} \cdots \max_{a_m} \sum_{o_m r_m} \left[ r_t + \cdots + r_m \right] \sum_{q \,:\, \mathcal{U}(q,\, a_1 \ldots a_m) = o_1 r_1 \ldots o_m r_m} 2^{-\ell(q)}$$
 
-where $\mathcal{U}$ represents a universal prefix Turing machine, $q$ is a binary program generating interaction history $o_{<k} r_{<k}$ conditioned on actions $a_{<k}$, and $\ell(q)$ is its program bit-length.
+where $\mathcal{U}$ is a universal prefix Turing machine, the inner sum runs over every program $q$ that, given the actions $a_1 \ldots a_m$, outputs the percepts $o_1 r_1 \ldots o_m r_m$, and $\ell(q)$ is the length of $q$ in bits.
 
-Because prefix Kolmogorov complexity is uncomputable (directly reducible to Turing's Halting Problem), AIXI cannot be directly instantiated in hardware.
-Nonetheless, it provides the golden asymptotic standard against which all bounded cognitive architectures must be calibrated.
+Prefix Kolmogorov complexity is uncomputable (computing it would solve the halting problem), and AIXI is not even limit-computable, so it cannot be approximated arbitrarily well with finite computation [@leike2015].
+It is best read as a theoretical reference point for bounded agents rather than a blueprint.
 
 ---
 
 ## Chollet’s ARC: Intelligence as Skill Acquisition Efficiency
 
-While Legg and Hutter supply the uncomputable theoretical bound, François Chollet (2019) translated algorithmic information theory into a falsifiable, finite measurement framework: the **Abstraction and Reasoning Corpus (ARC)**.
+While Legg and Hutter supply the uncomputable theoretical bound, François Chollet [-@chollet2019] translated algorithmic information theory into a falsifiable, finite measurement framework: the **Abstraction and Reasoning Corpus (ARC)**.
 
 ```{mermaid}
 %%| label: fig-arc-pipeline
@@ -84,7 +96,7 @@ While Legg and Hutter supply the uncomputable theoretical bound, François Choll
 flowchart LR
     Priors["Core Knowledge Priors: Objectness, Topology, Geometry"] --> SearchEngine["Inductive Program Synthesis Engine"]
     SearchEngine --> NovelTasks["Novel Few-Shot Grid Transformations"]
-    NovelTasks --> Metric["Skill Acquisition Efficiency: Delta Skill / (Priors x Experience)"]
+    NovelTasks --> Metric["Skill-Acquisition Efficiency: Generalisation Difficulty / (Priors + Experience)"]
 ```
 
 ### Deconstructing Crystallised Competence
@@ -94,14 +106,19 @@ Chollet delineates a vital dichotomy between *crystallised competence* and *flui
 - **Fluid Intelligence:** The capacity to synthesise novel behavioural programs in response to unfamiliar environments using minimal experience.
 
 ### The Measure of Skill Acquisition Efficiency
-Formally, Chollet defines intelligence not as an instantaneous capability vector, but as the *rate of skill acquisition* normalised by prior knowledge and experiential sample complexity:
+Formally, Chollet defines intelligence not as skill at any one task, but as *skill-acquisition efficiency*: how much generalisation a system achieves relative to the prior knowledge and experience it needed.
+Stripped of its weighting terms, his definition averages over a scope of tasks $T$:
 
-$$\text{Intelligence} \triangleq \frac{\Delta \text{Skill}}{\text{Experience} \times \text{Priors}}$$
+$$\text{Intelligence} \propto \operatorname*{Avg}_{T} \left[ \frac{\text{GD}_T}{P_T + E_T} \right]$$
+
+where $\text{GD}_T$ is the *generalisation difficulty* of reaching a threshold skill on task $T$, and $P_T$ and $E_T$ are the priors and experience the system used, all measured in bits of algorithmic information.
+The full definition also weights each task by its value and averages over learning curricula.
+Note that priors and experience are *added*: a system can only be credited for generalisation it did not get for free.
 
 In ARC, tasks are deliberately curated to eliminate linguistic and cultural retrieval shortcuts:
 
 - Tasks demand inductive inference over compact discrete 2D grid transformations.
-- Solutions require synthesising short latent programs grounded exclusively in human-innate **Core Knowledge Priors**:
+- Solutions require synthesising short latent programs grounded exclusively in human-innate **Core Knowledge Priors** [@spelke2007]:
   - *Objectness* (cohesion, persistence, boundaries).
   - *Goal-directed agency* (intentional state modifications).
   - *Elementary geometry and topology* (symmetry, translation, containment).
@@ -114,15 +131,15 @@ In ARC, tasks are deliberately curated to eliminate linguistic and cultural retr
 
 If intelligence cannot be reduced to static token interpolation, and if uncomputable Solomonoff induction cannot be executed directly on silicon, how do physical agents realise adaptive capability?
 
-Intelligence is fundamentally **structured search across hierarchical manifolds**.
-Rather than executing intractable Monte Carlo exploration across unconstrained state spaces, intelligent architectures compress the search problem through four distinct ontological tiers:
+My working hypothesis is that intelligence is best understood as **structured search across hierarchical representations**.
+Rather than exploring unconstrained state spaces exhaustively, capable agents compress the search problem at four levels:
 
 ```{mermaid}
 %%| label: fig-four-tier-search
 %%| fig-cap: "Four-tier computational search hierarchy from direct navigation to algorithmic meta-search."
 flowchart TD
     L4["Tier 4: Meta-Search & Algorithmic Synthesis: Synthesising Search Procedures"]
-    L3["Tier 3: State-Abstraction Manifolds: Lie Group Symmetries & Equivariance"]
+    L3["Tier 3: State Abstraction: Symmetries & Equivariance"]
     L2["Tier 2: Heuristic & Value Surfaces: Gradient Guidance & Basin Steering"]
     L1["Tier 1: Direct State Navigation: Trajectory Execution in World Dynamics"]
 
@@ -140,25 +157,27 @@ flowchart TD
 | **Tier 3: State-Abstraction Manifolds** | Geometric volume contraction | Factoring symmetries $\mathcal{S}_{\text{comp}} = \mathcal{S}_{\text{raw}} / \mathcal{G}_{\text{symmetry}}$ | Group-equivariant representations, latent world models |
 | **Tier 4: Meta-Search & Program Synthesis** | Algorithm discovery | Searching over the space of search algorithms $\pi_{\text{search}} \in \Pi$ | Test-time tree search, Monte Carlo Tree Search, self-refining verification |
 
-At Tier 3, discovering invariance under spatial translation, rotation, and permutations collapses the effective volume of combinatorial state spaces by orders of magnitude.
+At Tier 3, discovering invariance under translation, rotation or permutation shrinks the effective state space: quotienting by a symmetry group $\mathcal{G}$ that acts freely divides the number of distinct states by $|\mathcal{G}|$.
 At Tier 4, the architecture avoids static heuristics entirely, actively generating and validating verification routines at inference time.
 
-### The Thermodynamic Correspondence
-There exists a rigorous structural connection between state space compression in intelligent search and non-equilibrium thermodynamics.
-Under Landauer’s Principle, the erasure of information and the contraction of high-entropy probability distributions require fundamental thermodynamic dissipation:
+### A Thermodynamic Analogy
+There is a suggestive analogy between compressing uncertainty in search and thermodynamics.
+Landauer's principle [@landauer1961] states that erasing information has an unavoidable energy cost: erasing $N$ bits at temperature $T$ dissipates at least
 
-$$\Delta S \ge -k_B \ln 2 \cdot \Delta I$$
+$$Q \ge N \, k_B T \ln 2$$
 
-An intelligent agent is fundamentally a dissipative physical system that expends thermodynamic work to compress combinatorial state uncertainty into compact, lawful causal representations.
+of heat into the environment.
+Seen this way, an agent that narrows a wide space of hypotheses down to a compact causal model is a physical system paying, at least in principle, an energy cost for discarding the alternatives.
+In practice this bound is far below the energy that real hardware uses, so it is a conceptual lens rather than a practical constraint.
 
 ---
 
 ## The Architectural Phase Transition: Test-Time Compute
 
-The limitations of pure pre-training scaling are now mathematically and empirically manifest.
-The marginal returns of ingesting additional petabytes of web text are attenuating rapidly as available human cultural tokens exhaust their useful variance.
+There are growing signs that pre-training scaling alone is running into limits.
+The stock of high-quality human-generated text is finite, and projections suggest frontier training runs will exhaust it within years [@villalobos2024].
 
-The emerging paradigm—characterised by inference-time reasoning architectures such as OpenAI o1/o3 and DeepSeek-R1—marks an explicit return to algorithmic search:
+The emerging paradigm of inference-time reasoning models, such as OpenAI o1/o3 [@openai2024o1] and DeepSeek-R1 [@deepseek2025r1], marks an explicit return to algorithmic search:
 
 ```{mermaid}
 %%| label: fig-phase-transition
@@ -168,11 +187,11 @@ flowchart LR
     Bottleneck --> InferenceShift["Inference-Time Scaling: Dynamic Search Flops"]
     InferenceShift --> MCTS["Tree Search & Branch Pruning"]
     InferenceShift --> FormalVerifiers["Deterministic Compilers & Math Verifiers"]
-    FormalVerifiers --> Convergence["Approximating Algorithmic Probability on Silicon"]
+    FormalVerifiers --> Convergence["Bounded Approximations of Algorithmic Induction"]
 ```
 
 ### Decoupling Compute from Static Parameter Counts
-In classical autoregressive inference, generating each token consumes a fixed compute budget proportional to model parameter count:
+In classical autoregressive inference, generating each token consumes a roughly fixed compute budget proportional to model parameter count (ignoring attention over the context):
 
 $$\text{Compute}_{\text{step}} = \mathcal{O}(|\theta|)$$
 
@@ -180,12 +199,12 @@ By permitting models to execute variable-length reasoning traces, architectures 
 The system generates competing hypotheses, evaluates intermediate steps, and backtracks upon encountering formal contradictions.
 
 ### Deterministic Verification vs Preference Approximation
-Reinforcement Learning from Human Feedback (RLHF) optimizes against a soft neural reward model, which is perpetually susceptible to reward hacking and sycophancy.
+Reinforcement Learning from Human Feedback (RLHF) optimises against a learnt neural reward model, which is susceptible to reward hacking and sycophancy.
 Conversely, contemporary reasoning frameworks employ deterministic ground-truth verifiers (code execution sandboxes, formal theorem provers, symbolic equivalence checkers).
-This mitigates reward hacking and aligns model optimization directly with rigorous deductive consistency.
+In domains where such verifiers exist, this mitigates reward hacking and aligns model optimisation directly with deductive consistency.
 
 ### Approximating Algorithmic Induction
-By employing deep neural networks as generative proposal distributions over actions and coupling them with rigorous search algorithms (such as Monte Carlo Tree Search) and deterministic verification, modern systems begin to approximate Solomonoff induction within bounded polynomial time.
+By using deep neural networks as proposal distributions and coupling them with search algorithms (such as Monte Carlo Tree Search) and deterministic verification, modern systems can be read as crude, resource-bounded approximations of the inductive search that Solomonoff induction idealises.
 
 ---
 
@@ -193,10 +212,10 @@ By employing deep neural networks as generative proposal distributions over acti
 
 | Dimension | Pure Autoregressive LLM | Universal Intelligence (AIXI) | ARC / Search-Centric Agent |
 | :--- | :--- | :--- | :--- |
-| **Objective Function** | $\min_\theta \mathbb{E}[-\ln P_\theta(x_t \mid x_{<t})]$ | $\max_\pi \sum_{\mu} 2^{-K(\mu)} V_\mu^\pi$ | $\max \frac{\Delta \text{Skill}}{\text{Experience} \times \text{Priors}}$ |
+| **Objective Function** | $\min_\theta \mathbb{E}[-\ln P_\theta(x_t \mid x_{<t})]$ | $\max_\pi \sum_{\mu} 2^{-K(\mu)} V_\mu^\pi$ | $\max \operatorname*{Avg}_T \frac{\text{GD}_T}{P_T + E_T}$ |
 | **Primary Mechanism** | High-dimensional interpolation | Infinite-horizon Bayesian induction | Inductive program synthesis & search |
 | **Generalisation Scope** | Distributional neighbourhood | All computable environments | Novel tasks under core spatial priors |
-| **Computational Class** | Bounded feed-forward ($\mathcal{P}$) | Non-computable ($\Sigma_1^0$) | Bounded resource-rational search ($\mathcal{NP}$) |
+| **Computational Character** | Fixed compute per token, $\mathcal{O}(\lvert\theta\rvert)$ | Incomputable, not even limit-computable | Resource-bounded search, exponential in the worst case |
 | **Failure Mode** | Hallucination under out-of-distribution shifts | Physically uninstantiable | Combinatorial explosion without heuristics |
 
 ---
@@ -207,3 +226,8 @@ By employing deep neural networks as generative proposal distributions over acti
 
 The frontier of artificial intelligence research is shifting decisively from passive token ingestion toward dynamic, verified computation.
 The ultimate measure of our architectures will not be the volume of historical tokens they can reproduce, but their capacity to discover minimal programs that master unencountered worlds.
+
+## References {.unnumbered}
+
+::: {#refs}
+:::
