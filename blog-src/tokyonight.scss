@@ -1,0 +1,116 @@
+/*-- scss:defaults --*/
+// Tokyo Night (Night), matching the main site (css/terminal.css).
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap");
+
+$bg: #1a1b26;
+$bg-dark: #16161e;
+$bg-highlight: #292e42;
+$gutter: #3b4261;
+// Lifted from Tokyo Night's #737aa2 to reach 4.5:1 contrast on $bg.
+$comment: #7a82ab;
+$fg: #c0caf5;
+$fg-dark: #a9b1d6;
+$green: #9ece6a;
+$magenta: #bb9af7;
+$blue: #7aa2f7;
+$orange: #ff9e64;
+$cyan: #7dcfff;
+
+$body-bg: $bg;
+$body-color: $fg;
+$primary: $magenta;
+$secondary: $gutter;
+$success: $green;
+$info: $cyan;
+$warning: $orange;
+$link-color: $blue;
+$text-muted: $comment;
+$border-color: $gutter;
+$code-color: $orange;
+$code-block-bg: $bg-dark;
+$navbar-bg: $bg-dark;
+$navbar-fg: $fg;
+$navbar-hl: $green;
+$footer-bg: $bg-dark;
+
+// Diagrams take their colours from these once no Mermaid theme is set.
+// The font matches the one Mermaid measures labels with, so text fits
+// its boxes.
+$mermaid-bg-color: $bg;
+$mermaid-fg-color: $fg;
+$mermaid-fg-color--lighter: $gutter;
+$mermaid-fg-color--lightest: $bg-dark;
+$mermaid-node-bg-color: $bg-highlight;
+$mermaid-node-fg-color: $blue;
+$mermaid-edge-color: $comment;
+$mermaid-label-bg-color: $bg;
+$mermaid-label-fg-color: $fg;
+$mermaid-font-family: "trebuchet ms", verdana, arial, sans-serif;
+
+$font-family-monospace: "Fira Code", "JetBrains Mono", Consolas, monospace;
+$headings-font-family: $font-family-monospace;
+$headings-color: $magenta;
+
+/*-- scss:rules --*/
+.navbar-brand, .navbar .nav-link {
+  font-family: $font-family-monospace;
+}
+
+.navbar-brand::before {
+  content: "> ";
+  color: $green;
+}
+
+.quarto-listing .listing-title, .quarto-title .title {
+  color: $magenta;
+}
+
+.listing-date, .listing-categories .listing-category {
+  color: $comment;
+}
+
+a {
+  text-decoration-color: rgba($blue, 0.4);
+}
+
+// Diagrams render after the page loads; hide their source until then.
+pre.mermaid-js {
+  visibility: hidden;
+}
+
+// Mermaid's own stylesheet paints edge labels light grey, which beats the
+// variables above and leaves pale text on a pale box.
+svg.mermaid-js .edgeLabel,
+svg.mermaid-js .edgeLabel p,
+svg.mermaid-js .labelBkg {
+  background-color: $bg !important;
+}
+
+// The full title truncates on phones; show the short handle instead.
+@media (max-width: 575.98px) {
+  .navbar-title {
+    font-size: 0;
+  }
+
+  .navbar-title::after {
+    content: "v3rm1/blog";
+    font-size: 1.25rem;
+  }
+}
+
+// Wide display maths and tables scroll inside their own box instead of
+// widening the whole page on narrow screens.
+.math.display {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+@media (max-width: 767.98px) {
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}

@@ -349,6 +349,7 @@ function germanPage() {
   <link rel="alternate" hreflang="de" href="${p.url}de/">
   <link rel="alternate" hreflang="x-default" href="${p.url}">
   <link rel="icon" type="image/svg+xml" href="../images/favicon.svg">
+  <meta name="theme-color" content="#16161e">
   <meta property="og:title" content="${esc(p.name)} — KI-Forscher">
   <meta property="og:description" content="${esc(de.tagline)}">
   <meta property="og:type" content="website">

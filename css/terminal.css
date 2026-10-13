@@ -1,21 +1,20 @@
-/* Catppuccin Mocha palette */
+/* Tokyo Night (Night) palette */
 :root {
-  --base: #1e1e2e;
-  --mantle: #181825;
-  --surface0: #313244;
-  --surface1: #45475a;
-  --overlay0: #6c7086;
-  --text: #cdd6f4;
-  --subtext0: #a6adc8;
-  --green: #a6e3a1;
-  --mauve: #cba6f7;
-  --blue: #89b4fa;
-  --peach: #fab387;
-  --red: #f38ba8;
-  --teal: #94e2d5;
-  --pink: #f5c2e7;
-  --yellow: #f9e2af;
-  --lavender: #b4befe;
+  --bg: #1a1b26;
+  --bg-dark: #16161e;
+  --bg-highlight: #292e42;
+  --gutter: #3b4261;
+  /* Lifted from Tokyo Night's #737aa2 to reach 4.5:1 contrast on --bg. */
+  --comment: #7a82ab;
+  --fg: #c0caf5;
+  --fg-dark: #a9b1d6;
+  --green: #9ece6a;
+  --magenta: #bb9af7;
+  --blue: #7aa2f7;
+  --orange: #ff9e64;
+  --red: #f7768e;
+  --cyan: #7dcfff;
+  --purple: #9d7cd8;
 
   --sidebar-width: 16ch;
 }
@@ -28,9 +27,9 @@
 
 html, body {
   height: 100%;
-  background: var(--mantle);
+  background: var(--bg-dark);
   font-family: 'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
-  color: var(--text);
+  color: var(--fg);
   overflow: hidden;
   font-size: 16px;
   line-height: 1.5;
@@ -43,13 +42,13 @@ html, body {
   height: 100vh;
   max-width: 1000px;
   margin: 0 auto;
-  background: var(--base);
+  background: var(--bg);
 }
 
 /* ── Top border ────────────────────────────────────── */
 .tui-top-border {
   display: flex;
-  color: var(--overlay0);
+  color: var(--comment);
   line-height: 1;
   white-space: nowrap;
   user-select: none;
@@ -71,7 +70,7 @@ html, body {
 .tui-top-border .border-fill {
   flex: 1;
   overflow: hidden;
-  color: var(--overlay0);
+  color: var(--comment);
 }
 
 .tui-top-border .border-right {
@@ -90,16 +89,16 @@ html, body {
 .tui-sidebar {
   width: var(--sidebar-width);
   flex-shrink: 0;
-  background: var(--base);
+  background: var(--bg);
   padding: 4px 0;
   overflow-y: auto;
-  border-left: 1px solid var(--overlay0);
-  border-right: 1px solid var(--overlay0);
+  border-left: 1px solid var(--comment);
+  border-right: 1px solid var(--comment);
 }
 
 .sidebar-header {
   padding: 2px 8px 4px 6px;
-  color: var(--overlay0);
+  color: var(--comment);
   font-size: 13px;
   letter-spacing: 1px;
   user-select: none;
@@ -114,7 +113,7 @@ html, body {
   border: none;
   font: inherit;
   text-align: left;
-  color: var(--teal);
+  color: var(--cyan);
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.1s, color 0.1s;
@@ -126,26 +125,26 @@ html, body {
 
 @media (hover: hover) {
   .sidebar-item:hover {
-    background: var(--surface0);
-    color: var(--text);
+    background: var(--bg-highlight);
+    color: var(--fg);
   }
 }
 
 .sidebar-item:focus-visible,
 .clickable:focus-visible {
-  outline: 1px solid var(--mauve);
+  outline: 1px solid var(--magenta);
   outline-offset: -1px;
 }
 
 .sidebar-item.active {
-  background: var(--surface0);
-  color: var(--mauve);
+  background: var(--bg-highlight);
+  color: var(--magenta);
   font-weight: 700;
 }
 
 .sidebar-item.active::after {
   content: ' ◂';
-  color: var(--mauve);
+  color: var(--magenta);
 }
 
 /* ── Main terminal panel ──────────────────────────── */
@@ -155,7 +154,7 @@ html, body {
   padding: 4px 12px;
   min-width: 0;
   scroll-behavior: smooth;
-  border-right: 1px solid var(--overlay0);
+  border-right: 1px solid var(--comment);
 }
 
 .tui-main::-webkit-scrollbar {
@@ -163,18 +162,18 @@ html, body {
 }
 
 .tui-main::-webkit-scrollbar-track {
-  background: var(--base);
+  background: var(--bg);
 }
 
 .tui-main::-webkit-scrollbar-thumb {
-  background: var(--surface1);
+  background: var(--gutter);
   border-radius: 4px;
 }
 
 /* ── Mid border (separator) ───────────────────────── */
 .tui-mid-border {
   display: flex;
-  color: var(--overlay0);
+  color: var(--comment);
   line-height: 1;
   white-space: nowrap;
   user-select: none;
@@ -199,29 +198,29 @@ html, body {
   display: flex;
   justify-content: space-between;
   padding: 2px 8px;
-  background: var(--surface0);
-  color: var(--subtext0);
+  background: var(--bg-highlight);
+  color: var(--fg-dark);
   font-size: 15px;
   white-space: nowrap;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-  border-left: 1px solid var(--overlay0);
-  border-right: 1px solid var(--overlay0);
+  border-left: 1px solid var(--comment);
+  border-right: 1px solid var(--comment);
 }
 
 .status-left {
-  color: var(--teal);
+  color: var(--cyan);
 }
 
 .status-right {
-  color: var(--overlay0);
+  color: var(--comment);
 }
 
 /* ── Bottom border ────────────────────────────────── */
 .tui-bottom-border {
   display: flex;
-  color: var(--overlay0);
+  color: var(--comment);
   line-height: 1;
   white-space: nowrap;
   user-select: none;
@@ -269,13 +268,13 @@ html, body {
 
 /* ── Color utility classes ────────────────────────── */
 .color-green { color: var(--green); }
-.color-purple { color: var(--mauve); }
-.color-cyan { color: var(--teal); }
-.color-orange { color: var(--peach); }
+.color-purple { color: var(--magenta); }
+.color-cyan { color: var(--cyan); }
+.color-orange { color: var(--orange); }
 .color-red { color: var(--red); }
-.color-comment { color: var(--overlay0); }
-.color-pink { color: var(--pink); }
-.color-fg { color: var(--text); }
+.color-comment { color: var(--comment); }
+.color-pink { color: var(--purple); }
+.color-fg { color: var(--fg); }
 .color-blue { color: var(--blue); }
 .bold { font-weight: 700; }
 
@@ -284,9 +283,9 @@ html, body {
   padding: 0;
   background: none;
   border: none;
-  border-bottom: 1px dashed var(--teal);
+  border-bottom: 1px dashed var(--cyan);
   font: inherit;
-  color: var(--teal);
+  color: var(--cyan);
   cursor: pointer;
   text-align: left;
   transition: color 0.15s;
@@ -294,7 +293,7 @@ html, body {
 
 @media (hover: hover) {
   .clickable:hover {
-    color: var(--text);
+    color: var(--fg);
   }
 }
 
@@ -308,19 +307,19 @@ a.ext-link {
 
 @media (hover: hover) {
   a.ext-link:hover {
-    color: var(--text);
+    color: var(--fg);
   }
 }
 
 /* ── Separator ────────────────────────────────────── */
 .separator {
-  color: var(--overlay0);
+  color: var(--comment);
   margin: 6px 0;
 }
 
 /* ── Boot text ────────────────────────────────────── */
 .boot-tag {
-  color: var(--overlay0);
+  color: var(--comment);
 }
 
 .boot-ok {
@@ -332,13 +331,13 @@ a.ext-link {
 .hero {
   padding: 12px 4px 14px;
   margin-bottom: 8px;
-  border-bottom: 1px dashed var(--surface1);
+  border-bottom: 1px dashed var(--gutter);
 }
 
 .hero-name {
   font-size: 1.75rem;
   line-height: 1.2;
-  color: var(--mauve);
+  color: var(--magenta);
 }
 
 .hero-name::before {
@@ -348,14 +347,14 @@ a.ext-link {
 
 .hero-headline {
   margin-top: 4px;
-  color: var(--peach);
+  color: var(--orange);
   font-weight: 700;
 }
 
 .hero-tagline {
   margin-top: 8px;
   max-width: 70ch;
-  color: var(--subtext0);
+  color: var(--fg-dark);
 }
 
 .hero-availability {
@@ -372,29 +371,29 @@ a.ext-link {
 
 .cta {
   padding: 4px 12px;
-  border: 1px solid var(--teal);
-  color: var(--teal);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
   text-decoration: none;
   transition: background 0.15s, color 0.15s;
 }
 
 .cta:hover,
 .cta:focus-visible {
-  background: var(--teal);
-  color: var(--base);
+  background: var(--cyan);
+  color: var(--bg);
 }
 
 .cta-primary {
   background: var(--green);
   border-color: var(--green);
-  color: var(--base);
+  color: var(--bg);
   font-weight: 700;
 }
 
 .cta-primary:hover,
 .cta-primary:focus-visible {
-  background: var(--text);
-  border-color: var(--text);
+  background: var(--fg);
+  border-color: var(--fg);
 }
 
 .hero-navs {
@@ -405,7 +404,7 @@ a.ext-link {
 }
 
 .hero-nav {
-  color: var(--overlay0);
+  color: var(--comment);
   text-decoration: none;
 }
 
@@ -415,7 +414,7 @@ a.ext-link {
 
 .hero-nav:hover,
 .hero-nav:focus-visible {
-  color: var(--teal);
+  color: var(--cyan);
 }
 
 /* ── Skill tags (hero and static content) ──────────── */
@@ -428,9 +427,9 @@ a.ext-link {
 
 .tag {
   padding: 0 8px;
-  border: 1px solid var(--surface1);
+  border: 1px solid var(--gutter);
   border-radius: 3px;
-  color: var(--subtext0);
+  color: var(--fg-dark);
   font-size: 0.85em;
   text-decoration: none;
   white-space: nowrap;
@@ -438,8 +437,8 @@ a.ext-link {
 
 .tag:hover,
 .tag:focus-visible {
-  border-color: var(--teal);
-  color: var(--teal);
+  border-color: var(--cyan);
+  color: var(--cyan);
 }
 
 .hero-skills {
@@ -456,20 +455,20 @@ html.js #static-content {
 }
 
 #static-content h2 {
-  color: var(--mauve);
+  color: var(--magenta);
   font-size: 1.1rem;
-  border-bottom: 1px solid var(--surface1);
+  border-bottom: 1px solid var(--gutter);
   margin-bottom: 8px;
 }
 
 #static-content h3 {
-  color: var(--peach);
+  color: var(--orange);
   font-size: 1rem;
   margin-top: 12px;
 }
 
 #static-content h4 {
-  color: var(--teal);
+  color: var(--cyan);
   font-size: 1rem;
   margin-top: 8px;
 }
@@ -480,7 +479,7 @@ html.js #static-content {
 }
 
 #static-content dt {
-  color: var(--teal);
+  color: var(--cyan);
   margin-top: 4px;
 }
 
@@ -504,7 +503,7 @@ html.js #static-content {
 
 /* Pages without the command sidebar (de/) need the left frame line. */
 .tui-main-full {
-  border-left: 1px solid var(--overlay0);
+  border-left: 1px solid var(--comment);
 }
 
 /* ── Responsive: narrow screens ───────────────────── */
@@ -533,7 +532,7 @@ html.js #static-content {
     padding: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    border-bottom: 1px solid var(--overlay0);
+    border-bottom: 1px solid var(--comment);
     scrollbar-width: none;
   }
 
@@ -566,7 +565,7 @@ html.js #static-content {
   .sidebar-item {
     width: auto;
     padding: 0 10px;
-    border-right: 1px solid var(--surface1);
+    border-right: 1px solid var(--gutter);
   }
 
   .sidebar-item::before {
@@ -578,7 +577,7 @@ html.js #static-content {
   }
 
   .tui-main {
-    border-left: 1px solid var(--overlay0);
+    border-left: 1px solid var(--comment);
   }
 
   .tui-top-border .border-left {

@@ -403,7 +403,7 @@
       '                          <span class="color-orange">Role:</span>    <span class="color-fg">PhD Researcher / AI Engineer</span>',
       '                          <span class="color-orange">Focus:</span>   <span class="color-fg">Multi-Agent RL, Interpretability</span>',
       '                          <span class="color-orange">Lang:</span>    <span class="color-fg">Python, C++, Julia</span>',
-      '                          <span class="color-orange">Theme:</span>   <span class="color-fg">Catppuccin Mocha</span>',
+      '                          <span class="color-orange">Theme:</span>   <span class="color-fg">Tokyo Night</span>',
       '',
       '                          <span class="color-red">██</span><span class="color-orange">██</span><span class="color-green">██</span><span class="color-cyan">██</span><span class="color-blue">██</span><span class="color-purple">██</span><span class="color-pink">██</span>',
     ];

@@ -28,12 +28,13 @@ website:
 
 format:
   html:
-    theme: [darkly, catppuccin.scss]
+    theme: [darkly, tokyonight.scss]
     toc: true
     code-copy: true
     link-external-newwindow: true
-    mermaid:
-      theme: dark
+    # Tints the browser bar on phones to match the navbar.
+    include-in-header:
+      text: '<meta name="theme-color" content="#16161e">'
 
 execute:
   # Code cells run once locally; results are stored in _freeze/ and reused,
