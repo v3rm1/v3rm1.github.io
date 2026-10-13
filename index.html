@@ -146,6 +146,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/terminal.css">
   <link rel="alternate" type="application/rss+xml" title="Varun Ravi Varma — Blog" href="blog/index.xml">
+  <script>
+    (function () {
+      var t = localStorage.getItem("theme");
+      if (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+        t = "light";
+      }
+      if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+    })();
+  </script>
 </head>
 <body>
   <div class="tui-frame">
@@ -157,7 +166,10 @@
         <span class="window-dot dot-maximize"></span>
       </div>
       <div class="window-title" id="frame-title">v3rm1@portfolio:~/</div>
-      <div class="window-badge" aria-hidden="true">zsh · main</div>
+      <div class="window-right">
+        <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark/light theme" title="Toggle theme">◐</button>
+        <div class="window-badge" aria-hidden="true">zsh · main</div>
+      </div>
     </header>
 
     <!-- Middle: sidebar + main -->

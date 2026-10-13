@@ -357,6 +357,15 @@ function germanPage() {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/terminal.css">
+  <script>
+    (function () {
+      var t = localStorage.getItem("theme");
+      if (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+        t = "light";
+      }
+      if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+    })();
+  </script>
 </head>
 <body>
   <div class="tui-frame">
@@ -367,7 +376,10 @@ function germanPage() {
         <span class="window-dot dot-maximize"></span>
       </div>
       <div class="window-title">v3rm1@portfolio:~/de</div>
-      <div class="window-badge">zsh · de</div>
+      <div class="window-right">
+        <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Theme umschalten" title="Theme umschalten">◐</button>
+        <div class="window-badge">zsh · de</div>
+      </div>
     </header>
     <div class="tui-middle">
       <main class="tui-main tui-main-full">

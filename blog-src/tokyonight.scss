@@ -67,6 +67,77 @@ html, body {
   font-size: 15px !important;
   line-height: 1.6 !important;
   color: $fg !important;
+  background-color: $bg !important;
+}
+
+// ── Tokyo Night (Day / Light) Theme for Blog ─────────────────────
+[data-theme="light"] {
+  body {
+    background-color: #e1e2e7 !important;
+    color: #343b58 !important;
+  }
+
+  main.content, .page-columns .content {
+    color: #343b58 !important;
+  }
+
+  .navbar {
+    background-color: #d5d6db !important;
+    border-bottom: 1px solid #b4b5ba !important;
+  }
+
+  .navbar-brand {
+    color: #7847bd !important;
+  }
+
+  .navbar .nav-link {
+    color: #343b58 !important;
+  }
+
+  .quarto-title .title, .listing-title {
+    color: #7847bd !important;
+  }
+
+  h2, h3, h4 {
+    color: #2e53a4 !important;
+  }
+
+  .listing-description, p, li {
+    color: #343b58 !important;
+  }
+
+  .callout {
+    background-color: #d5d6db !important;
+    border-color: #b4b5ba !important;
+  }
+
+  div.sourceCode {
+    background-color: #d5d6db !important;
+    border-color: #b4b5ba !important;
+  }
+
+  .quarto-category, .listing-category {
+    background: #d5d6db !important;
+    border-color: #b4b5ba !important;
+    color: #4f5b82 !important;
+  }
+
+  .quarto-listing input.search {
+    background-color: #d5d6db !important;
+    border-color: #b4b5ba !important;
+    color: #343b58 !important;
+  }
+
+  #TOC {
+    border-left-color: #b4b5ba;
+    a { color: #6172b0; }
+  }
+
+  .theme-toggle-btn {
+    background: #d5d6db !important;
+    border-color: #b4b5ba !important;
+    color: #343b58 !important;
+  }
 }
 
 main.content, .page-columns .content {

@@ -36,8 +36,18 @@ format:
     link-external-newwindow: true
     # Tints the browser bar on phones to match the navbar.
     include-in-header:
-      text: '<meta name="theme-color" content="#16161e">'
-    # Page views and link events (GoatCounter), plus reading progress bar.
+      text: |
+        <meta name="theme-color" content="#16161e">
+        <script>
+          (function () {
+            var t = localStorage.getItem("theme");
+            if (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+              t = "light";
+            }
+            if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+          })();
+        </script>
+    # Page views and link events (GoatCounter), plus reading progress bar and theme toggle.
     include-after-body:
       text: |
         <div id="reading-progress"></div>
@@ -50,6 +60,27 @@ format:
             var el = document.getElementById("reading-progress");
             if (el) el.style.width = p + "%";
           });
+          // Add theme toggle button to navbar
+          (function () {
+            var nav = document.querySelector(".navbar-nav.navbar-nav-scroll.ms-auto");
+            if (nav) {
+              var li = document.createElement("li");
+              li.className = "nav-item";
+              li.innerHTML = '<button type="button" id="blog-theme-toggle" class="nav-link theme-toggle-btn" style="background:none;border:none;cursor:pointer;" aria-label="Toggle theme">◐</button>';
+              nav.appendChild(li);
+              document.getElementById("blog-theme-toggle").addEventListener("click", function () {
+                var cur = document.documentElement.getAttribute("data-theme");
+                var next = cur === "light" ? "dark" : "light";
+                if (next === "light") {
+                  document.documentElement.setAttribute("data-theme", "light");
+                  localStorage.setItem("theme", "light");
+                } else {
+                  document.documentElement.removeAttribute("data-theme");
+                  localStorage.setItem("theme", "dark");
+                }
+              });
+            }
+          })();
           (function () {
             var s = document.createElement("script");
             s.src = "/js/track.js";

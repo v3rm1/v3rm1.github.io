@@ -1,4 +1,4 @@
-/* Tokyo Night (Night) palette */
+/* Tokyo Night (Night / Dark) default palette */
 :root {
   --bg: #1a1b26;
   --bg-dark: #16161e;
@@ -15,6 +15,28 @@
   --red: #f7768e;
   --cyan: #7dcfff;
   --purple: #9d7cd8;
+  --theme-toggle-bg: #24283b;
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Tokyo Night (Day / Light) palette */
+[data-theme="light"] {
+  --bg: #e1e2e7;
+  --bg-dark: #d5d6db;
+  --bg-highlight: #c8c9ce;
+  --gutter: #b4b5ba;
+  --comment: #6172b0;
+  --fg: #343b58;
+  --fg-dark: #4f5b82;
+  --green: #485e30;
+  --magenta: #7847bd;
+  --blue: #2e53a4;
+  --orange: #964e00;
+  --red: #c62354;
+  --cyan: #006080;
+  --purple: #7847bd;
+  --theme-toggle-bg: #e1e2e7;
+  --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 * {
@@ -89,6 +111,33 @@ html, body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.window-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-toggle-btn {
+  background: var(--bg-highlight);
+  border: 1px solid var(--gutter);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: var(--bg);
 }
 
 .window-badge {

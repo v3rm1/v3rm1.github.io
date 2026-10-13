@@ -734,6 +734,21 @@
       return;
     }
 
+    const themeToggle = e.target.closest("#theme-toggle");
+    if (themeToggle) {
+      e.preventDefault();
+      const current = document.documentElement.getAttribute("data-theme");
+      const next = current === "light" ? "dark" : "light";
+      if (next === "light") {
+        document.documentElement.setAttribute("data-theme", "light");
+        localStorage.setItem("theme", "light");
+      } else {
+        document.documentElement.removeAttribute("data-theme");
+        localStorage.setItem("theme", "dark");
+      }
+      return;
+    }
+
     const el = e.target.closest("[data-cmd]");
     if (!el) return;
     e.preventDefault();
