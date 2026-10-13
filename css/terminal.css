@@ -877,12 +877,17 @@ a.ext-link {
 }
 
 /* ── Publications Cards ───────────────────────────── */
+.pub-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .pub-card {
   background: var(--bg-dark);
   border: 1px solid var(--gutter);
   border-radius: 6px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
+  padding: 10px 14px;
   transition: all 0.2s ease;
 }
 
@@ -892,32 +897,39 @@ a.ext-link {
 
 .pub-header {
   display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pub-title-wrap {
+  display: flex;
   align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
+  gap: 8px;
+  flex: 1;
 }
 
 .pub-index {
   color: var(--cyan);
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 
 .pub-title {
   color: var(--fg);
   font-weight: 700;
-  font-size: 0.98rem;
-  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.35;
 }
 
 .pub-meta {
   display: flex;
-  gap: 14px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
-  font-size: 0.84rem;
-  margin-bottom: 8px;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
 }
 
 .pub-venue {
@@ -930,9 +942,9 @@ a.ext-link {
 
 .pub-desc {
   color: var(--fg-dark);
-  font-size: 0.87rem;
-  line-height: 1.5;
-  margin-bottom: 10px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin-bottom: 6px;
 }
 
 .pub-footer {
@@ -947,8 +959,8 @@ a.ext-link {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--gutter);
 }
 
@@ -957,8 +969,8 @@ a.ext-link {
   border: 1px solid var(--gutter);
   color: var(--comment);
   font: inherit;
-  font-size: 0.84rem;
-  padding: 4px 10px;
+  font-size: 0.82rem;
+  padding: 3px 8px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s;
@@ -980,8 +992,8 @@ a.ext-link {
   background: var(--bg-dark);
   border: 1px solid var(--gutter);
   border-radius: 6px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
+  padding: 11px 14px;
+  margin-bottom: 9px;
   transition: all 0.2s ease;
 }
 
@@ -996,17 +1008,17 @@ a.ext-link {
   align-items: baseline;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .project-card-title {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.96rem;
   color: var(--cyan);
 }
 
 .project-card-status {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--orange);
   background: rgba(255, 158, 100, 0.1);
   padding: 1px 6px;
@@ -1014,10 +1026,10 @@ a.ext-link {
 }
 
 .project-card-desc {
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   color: var(--fg-dark);
-  line-height: 1.5;
-  margin-bottom: 10px;
+  line-height: 1.45;
+  margin-bottom: 8px;
 }
 
 .project-card-footer {
@@ -1032,8 +1044,8 @@ a.ext-link {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 20px;
-  padding-top: 12px;
+  margin-top: 14px;
+  padding-top: 10px;
   border-top: 1px solid var(--gutter);
   flex-wrap: wrap;
   gap: 10px;
@@ -1041,14 +1053,14 @@ a.ext-link {
 
 /* ── Connected Vertical Timeline ──────────────────── */
 .timeline-rail {
-  margin: 16px 0;
+  margin: 10px 0;
   display: flex;
   flex-direction: column;
 }
 
 .timeline-step {
   display: grid;
-  grid-template-columns: 24px 1fr;
+  grid-template-columns: 22px 1fr;
   position: relative;
 }
 
@@ -1060,7 +1072,7 @@ a.ext-link {
 
 .timeline-glyph {
   color: var(--cyan);
-  font-size: 1rem;
+  font-size: 0.95rem;
   line-height: 1.2;
 }
 
@@ -1072,25 +1084,33 @@ a.ext-link {
 }
 
 .timeline-content {
-  padding-bottom: 16px;
-  padding-left: 8px;
+  padding-bottom: 10px;
+  padding-left: 6px;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .timeline-role {
   font-weight: 700;
   color: var(--fg);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 
 .timeline-org {
   color: var(--blue);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  margin-top: 1px;
 }
 
 .timeline-date {
   color: var(--comment);
-  font-size: 0.82rem;
-  margin-top: 2px;
+  font-size: 0.78rem;
 }
 
 /* ── BibTeX Drawer & Copy Buttons ─────────────────── */

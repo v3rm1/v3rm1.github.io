@@ -493,9 +493,11 @@
             ${!isLast ? '<span class="timeline-connector"></span>' : ""}
           </div>
           <div class="timeline-content">
-            <div class="timeline-role"><span class="color-cyan">${marker}</span> ${escapeHtml(t.title)}</div>
+            <div class="timeline-header">
+              <span class="timeline-role"><span class="color-cyan">${marker}</span> ${escapeHtml(t.title)}</span>
+              <span class="timeline-date">${escapeHtml(t.when)}</span>
+            </div>
             <div class="timeline-org">${escapeHtml(t.org)}</div>
-            <div class="timeline-date">${escapeHtml(t.when)}</div>
           </div>
         </div>`;
     }
@@ -568,19 +570,22 @@
   };
 
   commands.publications = function () {
+    let listHtml = '<div class="pub-grid">';
     for (let i = 0; i < DATA.publications.length; i++) {
       const p = DATA.publications[i];
       const bib = BIBTEX[i] || "";
-      let pubHtml = `
+      listHtml += `
         <div class="pub-card">
           <div class="pub-header">
-            <span class="pub-index">#${i + 1}</span>
-            <span class="pub-title">${escapeHtml(p.title)}</span>
+            <div class="pub-title-wrap">
+              <span class="pub-index">#${i + 1}</span>
+              <span class="pub-title">${escapeHtml(p.title)}</span>
+            </div>
             <button type="button" class="bibtex-toggle-btn" data-bibtex-idx="${i}">BibTeX</button>
           </div>
           <div class="pub-meta">
             <span class="pub-venue">${escapeHtml(p.venue)}, ${escapeHtml(String(p.year))}</span>
-            ${p.doi ? `<span class="pub-doi">DOI: ${makeExtLink(p.doi, "https://doi.org/" + p.doi)}</span>` : ""}
+            ${p.doi ? `<span class="pub-doi">· ${makeExtLink("DOI: " + p.doi, "https://doi.org/" + p.doi)}</span>` : ""}
           </div>
           <div class="pub-desc">${escapeHtml(p.description)}</div>
           <div class="pub-footer">
@@ -591,8 +596,9 @@
             <pre class="bibtex-code">${escapeHtml(bib)}</pre>
           </div>
         </div>`;
-      appendBlock(pubHtml);
     }
+    listHtml += '</div>';
+    appendBlock(listHtml);
   };
 
   commands.blog = function () {
