@@ -41,20 +41,13 @@ Run it by hand: `python3 scripts/analytics_report.py` (options: `--days N`, `--o
 
 Replace the key: `security add-generic-password -U -s goatcounter-api -a v3rm1 -w '<key>'`.
 
-### Daily refresh
+### Refreshing
 
-Install once (runs at 07:00 and at login):
+Run the script by hand whenever you want fresh numbers; the card warns when its data is
+more than 48 hours old.
 
-```
-cp scripts/io.github.v3rm1.analytics.plist ~/Library/LaunchAgents/
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/io.github.v3rm1.analytics.plist
-```
-
-Run now: `launchctl kickstart gui/$(id -u)/io.github.v3rm1.analytics`.
-Log: `~/Library/Logs/portfolio-analytics.log`.
-Remove: `launchctl bootout gui/$(id -u)/io.github.v3rm1.analytics`.
-
-The card warns when its data is more than 48 hours old; check the log first.
+There is no scheduled job: macOS blocks background jobs from `~/Documents`, where both this
+script and the vault live, unless the Python interpreter is given Full Disk Access.
 
 ## Tests
 
