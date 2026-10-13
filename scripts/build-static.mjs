@@ -436,6 +436,7 @@ function germanPage() {
       <span class="border-right">┘</span>
     </div>
   </div>
+  <script src="../js/track.js"></script>
 </body>
 </html>
 `;

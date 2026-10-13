@@ -44,6 +44,7 @@
   let booting = false;
 
   async function boot() {
+    trackView("", "");
     booting = true;
     document.addEventListener("pointerdown", skipBootHandler);
     for (const line of bootLines) {
@@ -435,6 +436,12 @@
     return cmd ? "#" + cmd.trim().split(/\s+/).join("/") : "";
   }
 
+  // Pane views for analytics (js/track.js); absent when tracking is off.
+  function trackView(cmd, args) {
+    const path = "/" + cmdToHash([cmd, args].filter(Boolean).join(" "));
+    if (window.track) window.track.view(path);
+  }
+
   function render(raw) {
     const parts = raw.trim().split(/\s+/);
     let cmd = parts[0].toLowerCase();
@@ -455,6 +462,7 @@
     statusPath.textContent = path;
     frameTitle.textContent = "─ v3rm1@portfolio:" + path + " ";
     scrollToTop();
+    trackView(cmd, args);
   }
 
   function navigate(cmd) {
