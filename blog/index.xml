@@ -32,13 +32,15 @@
 <div aria-describedby="fig-empirical-vs-formal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div>
 <pre class="mermaid mermaid-js" data-label="fig-empirical-vs-formal">flowchart TD
-    subgraph Empirical ["Empirical Frontier Paradigm: Statistical Interpolation"]
+    subgraph Empirical ["Empirical paradigm"]
+        direction TB
         Data["Trillions of Observed Human Tokens"] --&gt; Loss["Causal Next-Token Cross-Entropy Loss"]
         Loss --&gt; Memorisation["Crystallised Static Weights: Interpolation Manifold"]
         Memorisation -. "Distribution Shift" .-&gt; OOD["Out-of-Distribution Collapse"]
     end
 
-    subgraph Formal ["Algorithmic Information Paradigm: Universal Induction"]
+    subgraph Formal ["Algorithmic paradigm"]
+        direction TB
         EnvSpace["Space of All Computable Environments E"] --&gt; Occam["Occam Algorithmic Prior: 2^{-K(mu)}"]
         Occam --&gt; Universal["Legg-Hutter Universal Intelligence: Upsilon(pi)"]
         Universal --&gt; Fluid["Skill Acquisition Efficiency: ARC Formalism"]
@@ -317,7 +319,6 @@ Figure&nbsp;4: The architectural phase transition: decoupling compute from stati
 <p><strong>Intelligence is not the magnitude of parametric memory stored within static network weights. It is the computational efficiency with which an agent constructs, traverses, and formally verifies causal models across unfamiliar environment manifolds.</strong></p>
 </blockquote>
 <p>The frontier of artificial intelligence research is shifting decisively from passive token ingestion toward dynamic, verified computation. The ultimate measure of our architectures will not be the volume of historical tokens they can reproduce, but their capacity to discover minimal programs that master unencountered worlds.</p>
-
 
 
 </section>

@@ -7,7 +7,6 @@ categories: [theory-of-intelligence, algorithmic-information-theory, reinforceme
 draft: false
 toc: true
 number-sections: true
-math: true
 ---
 
 ## The Parametric Illusion
@@ -25,13 +24,15 @@ To elucidate why parametric scaling alone cannot yield Artificial General Intell
 %%| label: fig-empirical-vs-formal
 %%| fig-cap: "Empirical next-token interpolation over web corpora vs universal algorithmic induction under Occam's prior."
 flowchart TD
-    subgraph Empirical ["Empirical Frontier Paradigm: Statistical Interpolation"]
+    subgraph Empirical ["Empirical paradigm"]
+        direction TB
         Data["Trillions of Observed Human Tokens"] --> Loss["Causal Next-Token Cross-Entropy Loss"]
         Loss --> Memorisation["Crystallised Static Weights: Interpolation Manifold"]
         Memorisation -. "Distribution Shift" .-> OOD["Out-of-Distribution Collapse"]
     end
 
-    subgraph Formal ["Algorithmic Information Paradigm: Universal Induction"]
+    subgraph Formal ["Algorithmic paradigm"]
+        direction TB
         EnvSpace["Space of All Computable Environments E"] --> Occam["Occam Algorithmic Prior: 2^{-K(mu)}"]
         Occam --> Universal["Legg-Hutter Universal Intelligence: Upsilon(pi)"]
         Universal --> Fluid["Skill Acquisition Efficiency: ARC Formalism"]

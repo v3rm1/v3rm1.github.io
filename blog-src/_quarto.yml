@@ -32,6 +32,8 @@ format:
     toc: true
     code-copy: true
     link-external-newwindow: true
+    mermaid:
+      theme: dark
 
 execute:
   # Code cells run once locally; results are stored in _freeze/ and reused,
