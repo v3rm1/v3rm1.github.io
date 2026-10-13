@@ -191,25 +191,55 @@ p, li, dl {
   transition: width 0.08s linear;
 }
 
-// ── Navbar ───────────────────────────────────────────────────────
+// ── Navbar (Terminal Window Titlebar Alignment) ──────────────────
 .navbar {
   border-bottom: 1px solid $gutter !important;
   background-color: $bg-dark !important;
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+
+  .container-fluid {
+    padding: 0 !important;
+  }
 }
 
 .navbar-brand, .navbar .nav-link {
   font-family: $font-family-monospace;
+  font-size: 0.85rem !important;
 }
 
 .navbar-brand {
-  color: $magenta !important;
-  font-weight: 700;
+  color: $blue !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px;
 }
 
+// Emulate terminal macOS window controls before the brand
 .navbar-brand::before {
-  content: "v3rm1@portfolio:~/blog$ ";
+  content: "● ● ●  v3rm1@portfolio:~/blog$ ";
   color: $green;
   font-weight: 400;
+  letter-spacing: 2px;
+}
+
+.navbar-nav .nav-link {
+  color: $comment !important;
+  padding: 4px 8px !important;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: $cyan !important;
+    background-color: $bg-highlight;
+  }
 }
 
 .quarto-listing .listing-title, .quarto-title .title {
