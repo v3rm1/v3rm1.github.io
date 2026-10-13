@@ -1,0 +1,39 @@
+project:
+  type: website
+  output-dir: ../blog
+
+website:
+  title: "Varun Ravi Varma — Blog"
+  description: "Notes on reinforcement learning, multi-agent systems and interpretable AI."
+  site-url: https://v3rm1.github.io/blog/
+  favicon: favicon.svg
+  open-graph: true
+  twitter-card: true
+  navbar:
+    left:
+      - text: "~/home"
+        href: https://v3rm1.github.io/
+      - text: "blog"
+        href: index.qmd
+    right:
+      - icon: rss
+        href: index.xml
+        aria-label: RSS feed
+      - icon: github
+        href: https://github.com/v3rm1
+        aria-label: GitHub
+      - icon: linkedin
+        href: https://www.linkedin.com/in/varun-ravi-varma
+        aria-label: LinkedIn
+
+format:
+  html:
+    theme: [darkly, catppuccin.scss]
+    toc: true
+    code-copy: true
+    link-external-newwindow: true
+
+execute:
+  # Code cells run once locally; results are stored in _freeze/ and reused,
+  # so re-rendering never needs the experiment environment.
+  freeze: auto

@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Varun Ravi Varma">
+<meta name="dcterms.date" content="2026-10-13">
+<meta name="description" content="A formal critique of parametric next-token scaling through the lens of algorithmic information theory (Legg-Hutter, AIXI), Chollet’s ARC skill acquisition efficiency, and multi-tier search ontologies.">
+
+<title>From Legg-Hutter to ARC: What Are We Actually Optimising? – Varun Ravi Varma — Blog</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-19954d71dda9073188f2520a411f1fcd.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-a91d519892eb70e3218c91586fb66547.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <meta property="og:title" content="From Legg-Hutter to ARC: What Are We Actually Optimising? – Varun Ravi Varma — Blog">
+<meta property="og:description" content="A formal critique of parametric next-token scaling through the lens of algorithmic information theory (Legg-Hutter, AIXI), Chollet’s ARC skill acquisition efficiency, and multi-tier search ontologies.">
+<meta property="og:site_name" content="Varun Ravi Varma — Blog">
+<meta name="twitter:title" content="From Legg-Hutter to ARC: What Are We Actually Optimising? – Varun Ravi Varma — Blog">
+<meta name="twitter:description" content="A formal critique of parametric next-token scaling through the lens of algorithmic information theory (Legg-Hutter, AIXI), Chollet’s ARC skill acquisition efficiency, and multi-tier search ontologies.">
+<meta name="twitter:card" content="summary">
+</head><body class="nav-fixed quarto-light">true
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+
+
+
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Varun Ravi Varma — Blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://v3rm1.github.io/"> 
+<span class="menu-text">~/home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">blog</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/v3rm1"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/varun-ravi-varma"> <i class="bi bi-linkedin" role="img" aria-label="LinkedIn">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-parametric-illusion" id="toc-the-parametric-illusion" class="nav-link active" data-scroll-target="#the-parametric-illusion"><span class="header-section-number">1</span> The Parametric Illusion</a></li>
+  <li><a href="#the-legg-hutter-universal-intelligence-formalism" id="toc-the-legg-hutter-universal-intelligence-formalism" class="nav-link" data-scroll-target="#the-legg-hutter-universal-intelligence-formalism"><span class="header-section-number">2</span> The Legg-Hutter Universal Intelligence Formalism</a>
+  <ul class="collapse">
+  <li><a href="#mathematical-formulation" id="toc-mathematical-formulation" class="nav-link" data-scroll-target="#mathematical-formulation"><span class="header-section-number">2.1</span> Mathematical Formulation</a></li>
+  <li><a href="#epistemic-implications" id="toc-epistemic-implications" class="nav-link" data-scroll-target="#epistemic-implications"><span class="header-section-number">2.2</span> Epistemic Implications</a></li>
+  </ul></li>
+  <li><a href="#chollets-arc-intelligence-as-skill-acquisition-efficiency" id="toc-chollets-arc-intelligence-as-skill-acquisition-efficiency" class="nav-link" data-scroll-target="#chollets-arc-intelligence-as-skill-acquisition-efficiency"><span class="header-section-number">3</span> Chollet’s ARC: Intelligence as Skill Acquisition Efficiency</a>
+  <ul class="collapse">
+  <li><a href="#deconstructing-crystallised-competence" id="toc-deconstructing-crystallised-competence" class="nav-link" data-scroll-target="#deconstructing-crystallised-competence"><span class="header-section-number">3.1</span> Deconstructing Crystallised Competence</a></li>
+  <li><a href="#the-measure-of-skill-acquisition-efficiency" id="toc-the-measure-of-skill-acquisition-efficiency" class="nav-link" data-scroll-target="#the-measure-of-skill-acquisition-efficiency"><span class="header-section-number">3.2</span> The Measure of Skill Acquisition Efficiency</a></li>
+  </ul></li>
+  <li><a href="#intelligence-as-a-multi-tier-search-ontology" id="toc-intelligence-as-a-multi-tier-search-ontology" class="nav-link" data-scroll-target="#intelligence-as-a-multi-tier-search-ontology"><span class="header-section-number">4</span> Intelligence as a Multi-Tier Search Ontology</a>
+  <ul class="collapse">
+  <li><a href="#the-four-tier-search-hierarchy" id="toc-the-four-tier-search-hierarchy" class="nav-link" data-scroll-target="#the-four-tier-search-hierarchy"><span class="header-section-number">4.1</span> The Four-Tier Search Hierarchy</a></li>
+  <li><a href="#the-thermodynamic-correspondence" id="toc-the-thermodynamic-correspondence" class="nav-link" data-scroll-target="#the-thermodynamic-correspondence"><span class="header-section-number">4.2</span> The Thermodynamic Correspondence</a></li>
+  </ul></li>
+  <li><a href="#the-architectural-phase-transition-test-time-compute" id="toc-the-architectural-phase-transition-test-time-compute" class="nav-link" data-scroll-target="#the-architectural-phase-transition-test-time-compute"><span class="header-section-number">5</span> The Architectural Phase Transition: Test-Time Compute</a>
+  <ul class="collapse">
+  <li><a href="#decoupling-compute-from-static-parameter-counts" id="toc-decoupling-compute-from-static-parameter-counts" class="nav-link" data-scroll-target="#decoupling-compute-from-static-parameter-counts"><span class="header-section-number">5.1</span> Decoupling Compute from Static Parameter Counts</a></li>
+  <li><a href="#deterministic-verification-vs-preference-approximation" id="toc-deterministic-verification-vs-preference-approximation" class="nav-link" data-scroll-target="#deterministic-verification-vs-preference-approximation"><span class="header-section-number">5.2</span> Deterministic Verification vs Preference Approximation</a></li>
+  <li><a href="#approximating-algorithmic-induction" id="toc-approximating-algorithmic-induction" class="nav-link" data-scroll-target="#approximating-algorithmic-induction"><span class="header-section-number">5.3</span> Approximating Algorithmic Induction</a></li>
+  </ul></li>
+  <li><a href="#architectural-comparison" id="toc-architectural-comparison" class="nav-link" data-scroll-target="#architectural-comparison"><span class="header-section-number">6</span> Architectural Comparison</a></li>
+  <li><a href="#concluding-synthesis" id="toc-concluding-synthesis" class="nav-link" data-scroll-target="#concluding-synthesis"><span class="header-section-number">7</span> Concluding Synthesis</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">From Legg-Hutter to ARC: What Are We Actually Optimising?</h1>
+<p class="subtitle lead">Moving beyond next-token compression toward algorithmic information theory, skill acquisition efficiency, and structured search across latent manifolds.</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">theory-of-intelligence</div>
+    <div class="quarto-category">algorithmic-information-theory</div>
+    <div class="quarto-category">reinforcement-learning</div>
+    <div class="quarto-category">reasoning</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A formal critique of parametric next-token scaling through the lens of algorithmic information theory (Legg-Hutter, AIXI), Chollet’s ARC skill acquisition efficiency, and multi-tier search ontologies.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Varun Ravi Varma </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 13, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-parametric-illusion" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="the-parametric-illusion"><span class="header-section-number">1</span> The Parametric Illusion</h2>
+<p>The contemporary machine learning discourse conflates two fundamentally divergent constructs: <strong>crystallised competence</strong> and <strong>general intelligence</strong>.</p>
+<p>By training multi-billion parameter autoregressive models on petabytes of human text, the frontier artificial intelligence industry has engineered extraordinary cultural retrieval engines. When a large language model correctly solves a differential equation or synthesises a Python script, it samples from a high-dimensional interpolation manifold conditioned on trillions of observed human tokens. Nonetheless, when exposed to novel problem topologies that violate its pre-training distribution, the architecture degrades catastrophically. The system lacks a mechanism for genuine hypothesis revision outside its static weights.</p>
+<p>To elucidate why parametric scaling alone cannot yield Artificial General Intelligence, we must return to foundational principles: <strong>algorithmic information theory</strong>, <strong>formal definitions of universal intelligence</strong>, and the <strong>geometry of inductive search</strong>.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-empirical-vs-formal" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-empirical-vs-formal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-empirical-vs-formal">flowchart TD
+    subgraph Empirical ["Empirical Frontier Paradigm: Statistical Interpolation"]
+        Data["Trillions of Observed Human Tokens"] --&gt; Loss["Causal Next-Token Cross-Entropy Loss"]
+        Loss --&gt; Memorisation["Crystallised Static Weights: Interpolation Manifold"]
+        Memorisation -. "Distribution Shift" .-&gt; OOD["Out-of-Distribution Collapse"]
+    end
+
+    subgraph Formal ["Algorithmic Information Paradigm: Universal Induction"]
+        EnvSpace["Space of All Computable Environments E"] --&gt; Occam["Occam Algorithmic Prior: 2^{-K(mu)}"]
+        Occam --&gt; Universal["Legg-Hutter Universal Intelligence: Upsilon(pi)"]
+        Universal --&gt; Fluid["Skill Acquisition Efficiency: ARC Formalism"]
+        Fluid --&gt; Search["Test-Time Verification &amp; Structured Search"]
+    end
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-empirical-vs-formal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Empirical next-token interpolation over web corpora vs universal algorithmic induction under Occam’s prior.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="the-legg-hutter-universal-intelligence-formalism" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="the-legg-hutter-universal-intelligence-formalism"><span class="header-section-number">2</span> The Legg-Hutter Universal Intelligence Formalism</h2>
+<p>In 2007, Shane Legg and Marcus Hutter established the first non-anthropocentric, mathematically rigorous measure of general intelligence, synthesising Ray Solomonoff’s algorithmic probability with sequential decision theory.</p>
+<section id="mathematical-formulation" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="mathematical-formulation"><span class="header-section-number">2.1</span> Mathematical Formulation</h3>
+<p>Let <span class="math inline">\(E\)</span> denote the set of all computable discrete, stochastic environments endowed with scalar reward signals. Let <span class="math inline">\(\pi\)</span> represent an agent policy interacting with environment <span class="math inline">\(\mu \in E\)</span> via alternating sequences of actions <span class="math inline">\(a_t \in \mathcal{A}\)</span>, observations <span class="math inline">\(o_t \in \mathcal{O}\)</span>, and scalar rewards <span class="math inline">\(r_t \in \mathbb{R}\)</span>.</p>
+<p>The <strong>Universal Intelligence</strong> <span class="math inline">\(\Upsilon(\pi)\)</span> of an agent policy <span class="math inline">\(\pi\)</span> is formally defined as:</p>
+<p><span class="math display">\[\Upsilon(\pi) \triangleq \sum_{\mu \in E} 2^{-K(\mu)} V_\mu^\pi\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(V_\mu^\pi \triangleq \mathbb{E}_\mu^\pi \left[ \sum_{t=1}^\infty \gamma^t r_t \right]\)</span> designates the expected cumulative discounted return achieved by policy <span class="math inline">\(\pi\)</span> within environment <span class="math inline">\(\mu\)</span>, governed by temporal discount factor <span class="math inline">\(\gamma \in (0, 1)\)</span>.</li>
+<li><span class="math inline">\(K(\mu)\)</span> denotes the <strong>prefix Kolmogorov complexity</strong> of environment <span class="math inline">\(\mu\)</span>—specifically, the length in bits of the shortest self-delimiting binary program that simulates the transition dynamics of <span class="math inline">\(\mu\)</span> on a reference universal prefix Turing machine <span class="math inline">\(\mathcal{U}\)</span>.</li>
+<li><span class="math inline">\(2^{-K(\mu)}\)</span> operationalises algorithmic probability (the mathematical formulation of Occam’s razor), assigning exponentially superior a priori weight to compact, lawful causal systems while attenuating ad-hoc, convoluted worlds.</li>
+</ul>
+</section>
+<section id="epistemic-implications" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="epistemic-implications"><span class="header-section-number">2.2</span> Epistemic Implications</h3>
+<ol type="1">
+<li><strong>Domain Invariance:</strong> The agent is not evaluated against an arbitrary empirical benchmark (such as chess, standardised academic examinations, or programming leaderboards), but across the comprehensive topological space of <em>all computable realities</em>.</li>
+<li><strong>The Occam Inductive Bias:</strong> An agent cannot attain high universal intelligence through exhaustive task-specific memorisation. To maximise <span class="math inline">\(\Upsilon(\pi)\)</span>, the agent must excel across fundamentally lawful environments while maintaining robustness in complex stochastic settings.</li>
+<li><strong>The AIXI Horizon:</strong> The theoretical agent policy that maximises <span class="math inline">\(\Upsilon(\pi)\)</span> is <strong>AIXI</strong> (Hutter, 2005), which unifies Solomonoff induction with Bellman tree optimality:</li>
+</ol>
+<p><span class="math display">\[a_t^* \triangleq \arg\max_{a_t} \sum_{o_t, r_t} \cdots \max_{a_m} \sum_{o_m, r_m} \left[ \sum_{k=t}^m r_k \right] \sum_{q: \mathcal{U}(q, a_{&lt;k}) = o_{&lt;k} r_{&lt;k}} 2^{-\ell(q)}\]</span></p>
+<p>where <span class="math inline">\(\mathcal{U}\)</span> represents a universal prefix Turing machine, <span class="math inline">\(q\)</span> is a binary program generating interaction history <span class="math inline">\(o_{&lt;k} r_{&lt;k}\)</span> conditioned on actions <span class="math inline">\(a_{&lt;k}\)</span>, and <span class="math inline">\(\ell(q)\)</span> is its program bit-length.</p>
+<p>Because prefix Kolmogorov complexity is uncomputable (directly reducible to Turing’s Halting Problem), AIXI cannot be directly instantiated in hardware. Nonetheless, it provides the golden asymptotic standard against which all bounded cognitive architectures must be calibrated.</p>
+<hr>
+</section>
+</section>
+<section id="chollets-arc-intelligence-as-skill-acquisition-efficiency" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="chollets-arc-intelligence-as-skill-acquisition-efficiency"><span class="header-section-number">3</span> Chollet’s ARC: Intelligence as Skill Acquisition Efficiency</h2>
+<p>While Legg and Hutter supply the uncomputable theoretical bound, François Chollet (2019) translated algorithmic information theory into a falsifiable, finite measurement framework: the <strong>Abstraction and Reasoning Corpus (ARC)</strong>.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-arc-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-arc-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-arc-pipeline">flowchart LR
+    Priors["Core Knowledge Priors: Objectness, Topology, Geometry"] --&gt; SearchEngine["Inductive Program Synthesis Engine"]
+    SearchEngine --&gt; NovelTasks["Novel Few-Shot Grid Transformations"]
+    NovelTasks --&gt; Metric["Skill Acquisition Efficiency: Delta Skill / (Priors x Experience)"]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-arc-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: ARC evaluation pipeline: grounding novel program induction in core spatial and relational priors.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="deconstructing-crystallised-competence" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="deconstructing-crystallised-competence"><span class="header-section-number">3.1</span> Deconstructing Crystallised Competence</h3>
+<p>Chollet delineates a vital dichotomy between <em>crystallised competence</em> and <em>fluid intelligence</em>:</p>
+<ul>
+<li><strong>Crystallised Competence:</strong> Static execution of learned behaviour over familiar distributions. A specialised system mastering Go or chess exhibits immense capability, yet zero fluid intelligence if it cannot generalise when the rules undergo minor topological perturbation.</li>
+<li><strong>Fluid Intelligence:</strong> The capacity to synthesise novel behavioural programs in response to unfamiliar environments using minimal experience.</li>
+</ul>
+</section>
+<section id="the-measure-of-skill-acquisition-efficiency" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="the-measure-of-skill-acquisition-efficiency"><span class="header-section-number">3.2</span> The Measure of Skill Acquisition Efficiency</h3>
+<p>Formally, Chollet defines intelligence not as an instantaneous capability vector, but as the <em>rate of skill acquisition</em> normalised by prior knowledge and experiential sample complexity:</p>
+<p><span class="math display">\[\text{Intelligence} \triangleq \frac{\Delta \text{Skill}}{\text{Experience} \times \text{Priors}}\]</span></p>
+<p>In ARC, tasks are deliberately curated to eliminate linguistic and cultural retrieval shortcuts:</p>
+<ul>
+<li>Tasks demand inductive inference over compact discrete 2D grid transformations.</li>
+<li>Solutions require synthesising short latent programs grounded exclusively in human-innate <strong>Core Knowledge Priors</strong>:
+<ul>
+<li><em>Objectness</em> (cohesion, persistence, boundaries).</li>
+<li><em>Goal-directed agency</em> (intentional state modifications).</li>
+<li><em>Elementary geometry and topology</em> (symmetry, translation, containment).</li>
+<li><em>Basic arithmetic</em> (counting, parity, ordering).</li>
+</ul></li>
+<li>Because test tasks present previously unencountered transformation rules, high performance cannot be secured via memorised parametric interpolation across pre-training corpora.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="intelligence-as-a-multi-tier-search-ontology" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="intelligence-as-a-multi-tier-search-ontology"><span class="header-section-number">4</span> Intelligence as a Multi-Tier Search Ontology</h2>
+<p>If intelligence cannot be reduced to static token interpolation, and if uncomputable Solomonoff induction cannot be executed directly on silicon, how do physical agents realise adaptive capability?</p>
+<p>Intelligence is fundamentally <strong>structured search across hierarchical manifolds</strong>. Rather than executing intractable Monte Carlo exploration across unconstrained state spaces, intelligent architectures compress the search problem through four distinct ontological tiers:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-four-tier-search" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-four-tier-search-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-four-tier-search">flowchart TD
+    L4["Tier 4: Meta-Search &amp; Algorithmic Synthesis: Synthesising Search Procedures"]
+    L3["Tier 3: State-Abstraction Manifolds: Lie Group Symmetries &amp; Equivariance"]
+    L2["Tier 2: Heuristic &amp; Value Surfaces: Gradient Guidance &amp; Basin Steering"]
+    L1["Tier 1: Direct State Navigation: Trajectory Execution in World Dynamics"]
+
+    L4 --&gt; L3
+    L3 --&gt; L2
+    L2 --&gt; L1
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-four-tier-search-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Four-tier computational search hierarchy from direct navigation to algorithmic meta-search.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="the-four-tier-search-hierarchy" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="the-four-tier-search-hierarchy"><span class="header-section-number">4.1</span> The Four-Tier Search Hierarchy</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Tier</th>
+<th style="text-align: left;">Conceptual Role</th>
+<th style="text-align: left;">Mathematical Mechanism</th>
+<th style="text-align: left;">Operational Instantiation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Tier 1: Direct State Navigation</strong></td>
+<td style="text-align: left;">Environmental interaction</td>
+<td style="text-align: left;">Traversal of state transitions <span class="math inline">\((s_t \xrightarrow{a_t} s_{t+1})\)</span></td>
+<td style="text-align: left;">Execution of primitive motor or linguistic actions</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Tier 2: Heuristic &amp; Value Surfaces</strong></td>
+<td style="text-align: left;">Pruning combinatorial branching</td>
+<td style="text-align: left;">Scalar potential surfaces <span class="math inline">\(V(s), Q(s, a)\)</span> steering local search</td>
+<td style="text-align: left;">Critic networks, Bellman value estimators</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Tier 3: State-Abstraction Manifolds</strong></td>
+<td style="text-align: left;">Geometric volume contraction</td>
+<td style="text-align: left;">Factoring symmetries <span class="math inline">\(\mathcal{S}_{\text{comp}} = \mathcal{S}_{\text{raw}} / \mathcal{G}_{\text{symmetry}}\)</span></td>
+<td style="text-align: left;">Group-equivariant representations, latent world models</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Tier 4: Meta-Search &amp; Program Synthesis</strong></td>
+<td style="text-align: left;">Algorithm discovery</td>
+<td style="text-align: left;">Searching over the space of search algorithms <span class="math inline">\(\pi_{\text{search}} \in \Pi\)</span></td>
+<td style="text-align: left;">Test-time tree search, Monte Carlo Tree Search, self-refining verification</td>
+</tr>
+</tbody>
+</table>
+<p>At Tier 3, discovering invariance under spatial translation, rotation, and permutations collapses the effective volume of combinatorial state spaces by orders of magnitude. At Tier 4, the architecture avoids static heuristics entirely, actively generating and validating verification routines at inference time.</p>
+</section>
+<section id="the-thermodynamic-correspondence" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="the-thermodynamic-correspondence"><span class="header-section-number">4.2</span> The Thermodynamic Correspondence</h3>
+<p>There exists a rigorous structural connection between state space compression in intelligent search and non-equilibrium thermodynamics. Under Landauer’s Principle, the erasure of information and the contraction of high-entropy probability distributions require fundamental thermodynamic dissipation:</p>
+<p><span class="math display">\[\Delta S \ge -k_B \ln 2 \cdot \Delta I\]</span></p>
+<p>An intelligent agent is fundamentally a dissipative physical system that expends thermodynamic work to compress combinatorial state uncertainty into compact, lawful causal representations.</p>
+<hr>
+</section>
+</section>
+<section id="the-architectural-phase-transition-test-time-compute" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="the-architectural-phase-transition-test-time-compute"><span class="header-section-number">5</span> The Architectural Phase Transition: Test-Time Compute</h2>
+<p>The limitations of pure pre-training scaling are now mathematically and empirically manifest. The marginal returns of ingesting additional petabytes of web text are attenuating rapidly as available human cultural tokens exhaust their useful variance.</p>
+<p>The emerging paradigm—characterised by inference-time reasoning architectures such as OpenAI o1/o3 and DeepSeek-R1—marks an explicit return to algorithmic search:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-phase-transition" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-phase-transition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-phase-transition">flowchart LR
+    Parametric["Pre-Training Scaling: Fixed O(1) Feed-Forward Step"] --&gt; Bottleneck{"Marginal Diminishing Returns"}
+    Bottleneck --&gt; InferenceShift["Inference-Time Scaling: Dynamic Search Flops"]
+    InferenceShift --&gt; MCTS["Tree Search &amp; Branch Pruning"]
+    InferenceShift --&gt; FormalVerifiers["Deterministic Compilers &amp; Math Verifiers"]
+    FormalVerifiers --&gt; Convergence["Approximating Algorithmic Probability on Silicon"]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-phase-transition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: The architectural phase transition: decoupling compute from static parameter counts through inference-time search.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="decoupling-compute-from-static-parameter-counts" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="decoupling-compute-from-static-parameter-counts"><span class="header-section-number">5.1</span> Decoupling Compute from Static Parameter Counts</h3>
+<p>In classical autoregressive inference, generating each token consumes a fixed compute budget proportional to model parameter count:</p>
+<p><span class="math display">\[\text{Compute}_{\text{step}} = \mathcal{O}(|\theta|)\]</span></p>
+<p>By permitting models to execute variable-length reasoning traces, architectures trade test-time computational work for search depth. The system generates competing hypotheses, evaluates intermediate steps, and backtracks upon encountering formal contradictions.</p>
+</section>
+<section id="deterministic-verification-vs-preference-approximation" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="deterministic-verification-vs-preference-approximation"><span class="header-section-number">5.2</span> Deterministic Verification vs Preference Approximation</h3>
+<p>Reinforcement Learning from Human Feedback (RLHF) optimizes against a soft neural reward model, which is perpetually susceptible to reward hacking and sycophancy. Conversely, contemporary reasoning frameworks employ deterministic ground-truth verifiers (code execution sandboxes, formal theorem provers, symbolic equivalence checkers). This mitigates reward hacking and aligns model optimization directly with rigorous deductive consistency.</p>
+</section>
+<section id="approximating-algorithmic-induction" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="approximating-algorithmic-induction"><span class="header-section-number">5.3</span> Approximating Algorithmic Induction</h3>
+<p>By employing deep neural networks as generative proposal distributions over actions and coupling them with rigorous search algorithms (such as Monte Carlo Tree Search) and deterministic verification, modern systems begin to approximate Solomonoff induction within bounded polynomial time.</p>
+<hr>
+</section>
+</section>
+<section id="architectural-comparison" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="architectural-comparison"><span class="header-section-number">6</span> Architectural Comparison</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Dimension</th>
+<th style="text-align: left;">Pure Autoregressive LLM</th>
+<th style="text-align: left;">Universal Intelligence (AIXI)</th>
+<th style="text-align: left;">ARC / Search-Centric Agent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Objective Function</strong></td>
+<td style="text-align: left;"><span class="math inline">\(\min_\theta \mathbb{E}[-\ln P_\theta(x_t \mid x_{&lt;t})]\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\max_\pi \sum_{\mu} 2^{-K(\mu)} V_\mu^\pi\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(\max \frac{\Delta \text{Skill}}{\text{Experience} \times \text{Priors}}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Primary Mechanism</strong></td>
+<td style="text-align: left;">High-dimensional interpolation</td>
+<td style="text-align: left;">Infinite-horizon Bayesian induction</td>
+<td style="text-align: left;">Inductive program synthesis &amp; search</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Generalisation Scope</strong></td>
+<td style="text-align: left;">Distributional neighbourhood</td>
+<td style="text-align: left;">All computable environments</td>
+<td style="text-align: left;">Novel tasks under core spatial priors</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Computational Class</strong></td>
+<td style="text-align: left;">Bounded feed-forward (<span class="math inline">\(\mathcal{P}\)</span>)</td>
+<td style="text-align: left;">Non-computable (<span class="math inline">\(\Sigma_1^0\)</span>)</td>
+<td style="text-align: left;">Bounded resource-rational search (<span class="math inline">\(\mathcal{NP}\)</span>)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Failure Mode</strong></td>
+<td style="text-align: left;">Hallucination under out-of-distribution shifts</td>
+<td style="text-align: left;">Physically uninstantiable</td>
+<td style="text-align: left;">Combinatorial explosion without heuristics</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="concluding-synthesis" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="concluding-synthesis"><span class="header-section-number">7</span> Concluding Synthesis</h2>
+<blockquote class="blockquote">
+<p><strong>Intelligence is not the magnitude of parametric memory stored within static network weights. It is the computational efficiency with which an agent constructs, traverses, and formally verifies causal models across unfamiliar environment manifolds.</strong></p>
+</blockquote>
+<p>The frontier of artificial intelligence research is shifting decisively from passive token ingestion toward dynamic, verified computation. The ultimate measure of our architectures will not be the volume of historical tokens they can reproduce, but their capacity to discover minimal programs that master unencountered worlds.</p>
+
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/v3rm1\.github\.io\/blog\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

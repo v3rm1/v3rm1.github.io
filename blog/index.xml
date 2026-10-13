@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Varun Ravi Varma — Blog</title>
+<link>https://v3rm1.github.io/blog/</link>
+<atom:link href="https://v3rm1.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
+<description>Notes on reinforcement learning, multi-agent systems and interpretable AI.</description>
+<generator>quarto-1.10.19</generator>
+<lastBuildDate>Mon, 12 Oct 2026 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>JAX vs PyTorch in High-Throughput MARL: Why Multi-Processing Fails</title>
+  <dc:creator>Varun Ravi Varma</dc:creator>
+  <link>https://v3rm1.github.io/blog/posts/2026-10-13-jax-vs-pytorch-marl/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="the-simulation-bottleneck-in-multi-agent-rl" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="the-simulation-bottleneck-in-multi-agent-rl"><span class="header-section-number">1</span> The Simulation Bottleneck in Multi-Agent RL</h2>
+<p>In single-agent reinforcement learning, step simulation latency is often masked by large neural network forward passes. In Multi-Agent Reinforcement Learning (MARL)—particularly in complex spatio-temporal environments like wildfire propagation, multi-robot coordination, and emergency response—the inverse holds true:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Ctext%7BTotal%20Training%20Time%7D%20%5Capprox%20T_%7B%5Ctext%7Bsim%7D%7D%20%5Ctimes%20N_%7B%5Ctext%7Bsteps%7D%7D%20%5Cgg%20T_%7B%5Ctext%7Btrain%7D%7D"></p>
+<p>The classical PyTorch paradigm distributes environment instances across CPU cores using Python’s <code>multiprocessing</code> or Ray workers:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-pytorch-bottleneck" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pytorch-bottleneck-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-pytorch-bottleneck">flowchart TD
+    subgraph PyTorch [Classical PyTorch + CPU Worker Pool]
+        CPU1[CPU Core 1: Env 1] --&gt; IPC1[Inter-Process Communication]
+        CPU2[CPU Core 2: Env 2] --&gt; IPC2[Inter-Process Communication]
+        CPU3[CPU Core 3: Env 3] --&gt; IPC3[Inter-Process Communication]
+        IPC1 &amp; IPC2 &amp; IPC3 --&gt; HostRAM[Host CPU RAM]
+        HostRAM --&gt;|PCIe Transfer Bottleneck| GPU[GPU: Neural Network Batched Forward Pass]
+        GPU --&gt;|PCIe Transfer: Actions| HostRAM
+        HostRAM --&gt; CPU1 &amp; CPU2 &amp; CPU3
+    end
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pytorch-bottleneck-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: The classical PyTorch environment runner architecture with CPU IPC and PCIe host-to-device bottlenecks.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="the-three-silent-killers-of-cpu-marl" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="the-three-silent-killers-of-cpu-marl"><span class="header-section-number">1.1</span> The Three Silent Killers of CPU MARL:</h3>
+<ol type="1">
+<li><strong>Python Global Interpreter Lock (GIL) &amp; IPC Serialization:</strong> Passing state dictionaries and action tensors across processes requires <code>pickle</code> serialization and operating system IPC socket overhead.</li>
+<li><strong>The PCIe Host-to-Device Chokepoint:</strong> Every single environment step requires moving observations across the PCIe bus from CPU RAM to GPU High-Bandwidth Memory (HBM), followed by transferring action tensors back to CPU host.</li>
+<li><strong>CPU-GPU Synchronization Bubbles:</strong> The GPU sits idle waiting for the slowest CPU worker thread to complete its step transition (straggler effect).</li>
+</ol>
+<hr>
+</section>
+</section>
+<section id="the-jax-paradigm-compiling-the-world-onto-gpu" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="the-jax-paradigm-compiling-the-world-onto-gpu"><span class="header-section-number">2</span> The JAX Paradigm: Compiling the World onto GPU</h2>
+<p>JAX fundamentally alters this execution model by transforming both the environment dynamics and the policy optimization into a unified, pure functional computational graph compiled directly to GPU machine code via XLA (Accelerated Linear Algebra).</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-jax-vectorised" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-jax-vectorised-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-jax-vectorised">flowchart LR
+    subgraph JAX [JAX Hardware-Vectorised Execution]
+        GPU_Env[10,000 Concurrent Env States] --&gt;|Zero Memory Copy / In-SRAM| GPU_Pol[Policy Forward Pass]
+        GPU_Pol --&gt;|vmap + jit Execution| GPU_Env
+    end
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-jax-vectorised-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: JAX hardware-vectorised execution: zero-copy in-SRAM tensor transitions across thousands of parallel environments.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="functional-purity-stateless-transitions" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="functional-purity-stateless-transitions"><span class="header-section-number">2.1</span> Functional Purity &amp; Stateless Transitions</h3>
+<p>In JAX, an environment is not an object holding mutable internal state (<code>env.step(action)</code>). Instead, it is a pure function mapping a static environment state and action tensor to the subsequent state:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Ctext%7Bstep%7D:%20(S_t,%20A_t,%20%5Ctext%7BPRNGKey%7D)%20%5Cmapsto%20(S_%7Bt+1%7D,%20R_t,%20D_t,%20%5Ctext%7BInfo%7D)"></p>
+<p>Because the step function has no side effects, it can be trivially parallelised across thousands of environments using vectorising map (<code>vmap</code>):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> jax</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> jax.numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> jnp</span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Single environment step function</span></span>
+<span id="cb1-5"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> env_step(state, action, rng):</span>
+<span id="cb1-6">    ...</span>
+<span id="cb1-7">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> next_state, reward, done</span>
+<span id="cb1-8"></span>
+<span id="cb1-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Automatically vectorised across N=10,000 parallel instances</span></span>
+<span id="cb1-10">batch_env_step <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> jax.vmap(env_step, in_axes<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>))</span>
+<span id="cb1-11"></span>
+<span id="cb1-12"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Compiled into fused GPU CUDA kernels via XLA</span></span>
+<span id="cb1-13">jitted_step <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> jax.jit(batch_env_step)</span></code></pre></div></div>
+</section>
+<section id="elimination-of-pcie-transfers" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="elimination-of-pcie-transfers"><span class="header-section-number">2.2</span> Elimination of PCIe Transfers</h3>
+<p>With the environment living directly in GPU VRAM:</p>
+<ul>
+<li>Observations never touch the PCIe bus or host RAM.</li>
+<li>Rollouts remain in high-bandwidth memory (HBM) from initialization to policy update.</li>
+<li>Memory transfers occur at HBM bandwidth speeds (<img src="https://latex.codecogs.com/png.latex?2.0%5Ctext%7B%20to%20%7D%203.35%5Ctext%7B%20TB/s%7D"> on modern H100/H200 architectures) rather than PCIe bandwidth limits (<img src="https://latex.codecogs.com/png.latex?%5Capprox%2064%5Ctext%7B%20GB/s%7D"> over PCIe 4.0/5.0).</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="empirical-realities-the-throughput-gap" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="empirical-realities-the-throughput-gap"><span class="header-section-number">3</span> Empirical Realities: The Throughput Gap</h2>
+<p>Benchmarking vectorised crisis simulation dynamics (such as Rothermel surface fire equations combined with Helbing crowd panic forces) highlights the order-of-magnitude performance divergence:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 21%">
+<col style="width: 17%">
+<col style="width: 21%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Architecture</th>
+<th style="text-align: center;">Concurrent Environments</th>
+<th style="text-align: left;">Hardware</th>
+<th style="text-align: center;">Transitions per Second (SPS)</th>
+<th style="text-align: center;">Time for 100M Steps</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>PyTorch + SubprocVecEnv</strong></td>
+<td style="text-align: center;">64</td>
+<td style="text-align: left;">64 CPU Cores + 1× A100</td>
+<td style="text-align: center;"><img src="https://latex.codecogs.com/png.latex?%5Capprox%202,400%5Ctext%7B%20steps/s%7D"></td>
+<td style="text-align: center;"><img src="https://latex.codecogs.com/png.latex?%5Csim%2011.5%5Ctext%7B%20hours%7D"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Ray Distributed Cluster</strong></td>
+<td style="text-align: center;">256</td>
+<td style="text-align: left;">4× Nodes (128 Cores) + 2× A100</td>
+<td style="text-align: center;"><img src="https://latex.codecogs.com/png.latex?%5Capprox%208,900%5Ctext%7B%20steps/s%7D"></td>
+<td style="text-align: center;"><img src="https://latex.codecogs.com/png.latex?%5Csim%203.1%5Ctext%7B%20hours%7D"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>JAX Native (<code>vmap</code> + <code>jit</code>)</strong></td>
+<td style="text-align: center;">10,000</td>
+<td style="text-align: left;">Single 1× A100 / H200</td>
+<td style="text-align: center;"><strong><img src="https://latex.codecogs.com/png.latex?%3E110,000%5Ctext%7B%20steps/s%7D"></strong></td>
+<td style="text-align: center;"><strong><img src="https://latex.codecogs.com/png.latex?%5Csim%2015%5Ctext%7B%20minutes%7D"></strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="pitfalls-architectural-constraints" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="pitfalls-architectural-constraints"><span class="header-section-number">4</span> Pitfalls &amp; Architectural Constraints</h2>
+<p>While the throughput acceleration is dramatic, the functional paradigm enforces strict architectural constraints:</p>
+<ol type="1">
+<li><strong>Static Array Shapes:</strong> JAX requires statically known array shapes at compile time. Dynamic agent death/spawning requires fixed-capacity masking arrays:</li>
+</ol>
+<p><img src="https://latex.codecogs.com/png.latex?%5Ctext%7BMasked%20Computation:%20%7D%20%5Cmathbf%7By%7D%20=%20%5Cmathbf%7Bx%7D%20%5Codot%20%5Cmathbf%7Bm%7D_%7B%5Ctext%7Bactive%7D%7D,%20%5Cquad%20%5Cmathbf%7Bm%7D_%7B%5Ctext%7Bactive%7D%7D%20%5Cin%20%5C%7B0,%201%5C%7D%5EN"></p>
+<ol start="2" type="1">
+<li><strong>Branching Divergence:</strong> Dynamic Python control flow (<code>if/else</code>) inside inner simulation loops causes costly recompilation or branch serialisation. Branching must be refactored into <code>jax.lax.select</code> or <code>jax.lax.switch</code>.</li>
+<li><strong>Lack of Mature External Simulators:</strong> If your environment relies on proprietary C++ engines or physics packages that cannot be rewritten in tensor algebra (e.g.&nbsp;legacy CARLA, Unreal Engine), JAX cannot vectorize the underlying dynamics.</li>
+</ol>
+<hr>
+</section>
+<section id="takeaways-for-ai-systems-practitioners" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="takeaways-for-ai-systems-practitioners"><span class="header-section-number">5</span> Takeaways for AI Systems Practitioners</h2>
+<ul>
+<li>For custom discrete/continuous mathematical models, building the simulator natively in JAX reduces experimentation feedback loops from days to minutes.</li>
+<li>Modern MARL breakthroughs (such as SMAX, JaxMARL, and ERLS) prove that scalable multi-agent exploration is fundamentally bounded by environment step throughput, not gradient computation.</li>
+</ul>
+
+
+
+</section>
+
+ ]]></description>
+  <category>marl</category>
+  <category>systems</category>
+  <category>jax</category>
+  <category>pytorch</category>
+  <category>gpu</category>
+  <category>simulation</category>
+  <guid>https://v3rm1.github.io/blog/posts/2026-10-13-jax-vs-pytorch-marl/</guid>
+  <pubDate>Mon, 12 Oct 2026 22:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>From Legg-Hutter to ARC: What Are We Actually Optimising?</title>
+  <dc:creator>Varun Ravi Varma</dc:creator>
+  <link>https://v3rm1.github.io/blog/posts/2026-10-13-legg-hutter-to-arc/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="the-parametric-illusion" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="the-parametric-illusion"><span class="header-section-number">1</span> The Parametric Illusion</h2>
+<p>The contemporary machine learning discourse conflates two fundamentally divergent constructs: <strong>crystallised competence</strong> and <strong>general intelligence</strong>.</p>
+<p>By training multi-billion parameter autoregressive models on petabytes of human text, the frontier artificial intelligence industry has engineered extraordinary cultural retrieval engines. When a large language model correctly solves a differential equation or synthesises a Python script, it samples from a high-dimensional interpolation manifold conditioned on trillions of observed human tokens. Nonetheless, when exposed to novel problem topologies that violate its pre-training distribution, the architecture degrades catastrophically. The system lacks a mechanism for genuine hypothesis revision outside its static weights.</p>
+<p>To elucidate why parametric scaling alone cannot yield Artificial General Intelligence, we must return to foundational principles: <strong>algorithmic information theory</strong>, <strong>formal definitions of universal intelligence</strong>, and the <strong>geometry of inductive search</strong>.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-empirical-vs-formal" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-empirical-vs-formal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-empirical-vs-formal">flowchart TD
+    subgraph Empirical ["Empirical Frontier Paradigm: Statistical Interpolation"]
+        Data["Trillions of Observed Human Tokens"] --&gt; Loss["Causal Next-Token Cross-Entropy Loss"]
+        Loss --&gt; Memorisation["Crystallised Static Weights: Interpolation Manifold"]
+        Memorisation -. "Distribution Shift" .-&gt; OOD["Out-of-Distribution Collapse"]
+    end
+
+    subgraph Formal ["Algorithmic Information Paradigm: Universal Induction"]
+        EnvSpace["Space of All Computable Environments E"] --&gt; Occam["Occam Algorithmic Prior: 2^{-K(mu)}"]
+        Occam --&gt; Universal["Legg-Hutter Universal Intelligence: Upsilon(pi)"]
+        Universal --&gt; Fluid["Skill Acquisition Efficiency: ARC Formalism"]
+        Fluid --&gt; Search["Test-Time Verification &amp; Structured Search"]
+    end
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-empirical-vs-formal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Empirical next-token interpolation over web corpora vs universal algorithmic induction under Occam’s prior.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="the-legg-hutter-universal-intelligence-formalism" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="the-legg-hutter-universal-intelligence-formalism"><span class="header-section-number">2</span> The Legg-Hutter Universal Intelligence Formalism</h2>
+<p>In 2007, Shane Legg and Marcus Hutter established the first non-anthropocentric, mathematically rigorous measure of general intelligence, synthesising Ray Solomonoff’s algorithmic probability with sequential decision theory.</p>
+<section id="mathematical-formulation" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="mathematical-formulation"><span class="header-section-number">2.1</span> Mathematical Formulation</h3>
+<p>Let <img src="https://latex.codecogs.com/png.latex?E"> denote the set of all computable discrete, stochastic environments endowed with scalar reward signals. Let <img src="https://latex.codecogs.com/png.latex?%5Cpi"> represent an agent policy interacting with environment <img src="https://latex.codecogs.com/png.latex?%5Cmu%20%5Cin%20E"> via alternating sequences of actions <img src="https://latex.codecogs.com/png.latex?a_t%20%5Cin%20%5Cmathcal%7BA%7D">, observations <img src="https://latex.codecogs.com/png.latex?o_t%20%5Cin%20%5Cmathcal%7BO%7D">, and scalar rewards <img src="https://latex.codecogs.com/png.latex?r_t%20%5Cin%20%5Cmathbb%7BR%7D">.</p>
+<p>The <strong>Universal Intelligence</strong> <img src="https://latex.codecogs.com/png.latex?%5CUpsilon(%5Cpi)"> of an agent policy <img src="https://latex.codecogs.com/png.latex?%5Cpi"> is formally defined as:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5CUpsilon(%5Cpi)%20%5Ctriangleq%20%5Csum_%7B%5Cmu%20%5Cin%20E%7D%202%5E%7B-K(%5Cmu)%7D%20V_%5Cmu%5E%5Cpi"></p>
+<p>where:</p>
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?V_%5Cmu%5E%5Cpi%20%5Ctriangleq%20%5Cmathbb%7BE%7D_%5Cmu%5E%5Cpi%20%5Cleft%5B%20%5Csum_%7Bt=1%7D%5E%5Cinfty%20%5Cgamma%5Et%20r_t%20%5Cright%5D"> designates the expected cumulative discounted return achieved by policy <img src="https://latex.codecogs.com/png.latex?%5Cpi"> within environment <img src="https://latex.codecogs.com/png.latex?%5Cmu">, governed by temporal discount factor <img src="https://latex.codecogs.com/png.latex?%5Cgamma%20%5Cin%20(0,%201)">.</li>
+<li><img src="https://latex.codecogs.com/png.latex?K(%5Cmu)"> denotes the <strong>prefix Kolmogorov complexity</strong> of environment <img src="https://latex.codecogs.com/png.latex?%5Cmu">—specifically, the length in bits of the shortest self-delimiting binary program that simulates the transition dynamics of <img src="https://latex.codecogs.com/png.latex?%5Cmu"> on a reference universal prefix Turing machine <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BU%7D">.</li>
+<li><img src="https://latex.codecogs.com/png.latex?2%5E%7B-K(%5Cmu)%7D"> operationalises algorithmic probability (the mathematical formulation of Occam’s razor), assigning exponentially superior a priori weight to compact, lawful causal systems while attenuating ad-hoc, convoluted worlds.</li>
+</ul>
+</section>
+<section id="epistemic-implications" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="epistemic-implications"><span class="header-section-number">2.2</span> Epistemic Implications</h3>
+<ol type="1">
+<li><strong>Domain Invariance:</strong> The agent is not evaluated against an arbitrary empirical benchmark (such as chess, standardised academic examinations, or programming leaderboards), but across the comprehensive topological space of <em>all computable realities</em>.</li>
+<li><strong>The Occam Inductive Bias:</strong> An agent cannot attain high universal intelligence through exhaustive task-specific memorisation. To maximise <img src="https://latex.codecogs.com/png.latex?%5CUpsilon(%5Cpi)">, the agent must excel across fundamentally lawful environments while maintaining robustness in complex stochastic settings.</li>
+<li><strong>The AIXI Horizon:</strong> The theoretical agent policy that maximises <img src="https://latex.codecogs.com/png.latex?%5CUpsilon(%5Cpi)"> is <strong>AIXI</strong> (Hutter, 2005), which unifies Solomonoff induction with Bellman tree optimality:</li>
+</ol>
+<p><img src="https://latex.codecogs.com/png.latex?a_t%5E*%20%5Ctriangleq%20%5Carg%5Cmax_%7Ba_t%7D%20%5Csum_%7Bo_t,%20r_t%7D%20%5Ccdots%20%5Cmax_%7Ba_m%7D%20%5Csum_%7Bo_m,%20r_m%7D%20%5Cleft%5B%20%5Csum_%7Bk=t%7D%5Em%20r_k%20%5Cright%5D%20%5Csum_%7Bq:%20%5Cmathcal%7BU%7D(q,%20a_%7B%3Ck%7D)%20=%20o_%7B%3Ck%7D%20r_%7B%3Ck%7D%7D%202%5E%7B-%5Cell(q)%7D"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BU%7D"> represents a universal prefix Turing machine, <img src="https://latex.codecogs.com/png.latex?q"> is a binary program generating interaction history <img src="https://latex.codecogs.com/png.latex?o_%7B%3Ck%7D%20r_%7B%3Ck%7D"> conditioned on actions <img src="https://latex.codecogs.com/png.latex?a_%7B%3Ck%7D">, and <img src="https://latex.codecogs.com/png.latex?%5Cell(q)"> is its program bit-length.</p>
+<p>Because prefix Kolmogorov complexity is uncomputable (directly reducible to Turing’s Halting Problem), AIXI cannot be directly instantiated in hardware. Nonetheless, it provides the golden asymptotic standard against which all bounded cognitive architectures must be calibrated.</p>
+<hr>
+</section>
+</section>
+<section id="chollets-arc-intelligence-as-skill-acquisition-efficiency" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="chollets-arc-intelligence-as-skill-acquisition-efficiency"><span class="header-section-number">3</span> Chollet’s ARC: Intelligence as Skill Acquisition Efficiency</h2>
+<p>While Legg and Hutter supply the uncomputable theoretical bound, François Chollet (2019) translated algorithmic information theory into a falsifiable, finite measurement framework: the <strong>Abstraction and Reasoning Corpus (ARC)</strong>.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-arc-pipeline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-arc-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-arc-pipeline">flowchart LR
+    Priors["Core Knowledge Priors: Objectness, Topology, Geometry"] --&gt; SearchEngine["Inductive Program Synthesis Engine"]
+    SearchEngine --&gt; NovelTasks["Novel Few-Shot Grid Transformations"]
+    NovelTasks --&gt; Metric["Skill Acquisition Efficiency: Delta Skill / (Priors x Experience)"]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-arc-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: ARC evaluation pipeline: grounding novel program induction in core spatial and relational priors.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="deconstructing-crystallised-competence" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="deconstructing-crystallised-competence"><span class="header-section-number">3.1</span> Deconstructing Crystallised Competence</h3>
+<p>Chollet delineates a vital dichotomy between <em>crystallised competence</em> and <em>fluid intelligence</em>:</p>
+<ul>
+<li><strong>Crystallised Competence:</strong> Static execution of learned behaviour over familiar distributions. A specialised system mastering Go or chess exhibits immense capability, yet zero fluid intelligence if it cannot generalise when the rules undergo minor topological perturbation.</li>
+<li><strong>Fluid Intelligence:</strong> The capacity to synthesise novel behavioural programs in response to unfamiliar environments using minimal experience.</li>
+</ul>
+</section>
+<section id="the-measure-of-skill-acquisition-efficiency" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="the-measure-of-skill-acquisition-efficiency"><span class="header-section-number">3.2</span> The Measure of Skill Acquisition Efficiency</h3>
+<p>Formally, Chollet defines intelligence not as an instantaneous capability vector, but as the <em>rate of skill acquisition</em> normalised by prior knowledge and experiential sample complexity:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Ctext%7BIntelligence%7D%20%5Ctriangleq%20%5Cfrac%7B%5CDelta%20%5Ctext%7BSkill%7D%7D%7B%5Ctext%7BExperience%7D%20%5Ctimes%20%5Ctext%7BPriors%7D%7D"></p>
+<p>In ARC, tasks are deliberately curated to eliminate linguistic and cultural retrieval shortcuts:</p>
+<ul>
+<li>Tasks demand inductive inference over compact discrete 2D grid transformations.</li>
+<li>Solutions require synthesising short latent programs grounded exclusively in human-innate <strong>Core Knowledge Priors</strong>:
+<ul>
+<li><em>Objectness</em> (cohesion, persistence, boundaries).</li>
+<li><em>Goal-directed agency</em> (intentional state modifications).</li>
+<li><em>Elementary geometry and topology</em> (symmetry, translation, containment).</li>
+<li><em>Basic arithmetic</em> (counting, parity, ordering).</li>
+</ul></li>
+<li>Because test tasks present previously unencountered transformation rules, high performance cannot be secured via memorised parametric interpolation across pre-training corpora.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="intelligence-as-a-multi-tier-search-ontology" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="intelligence-as-a-multi-tier-search-ontology"><span class="header-section-number">4</span> Intelligence as a Multi-Tier Search Ontology</h2>
+<p>If intelligence cannot be reduced to static token interpolation, and if uncomputable Solomonoff induction cannot be executed directly on silicon, how do physical agents realise adaptive capability?</p>
+<p>Intelligence is fundamentally <strong>structured search across hierarchical manifolds</strong>. Rather than executing intractable Monte Carlo exploration across unconstrained state spaces, intelligent architectures compress the search problem through four distinct ontological tiers:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-four-tier-search" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-four-tier-search-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-four-tier-search">flowchart TD
+    L4["Tier 4: Meta-Search &amp; Algorithmic Synthesis: Synthesising Search Procedures"]
+    L3["Tier 3: State-Abstraction Manifolds: Lie Group Symmetries &amp; Equivariance"]
+    L2["Tier 2: Heuristic &amp; Value Surfaces: Gradient Guidance &amp; Basin Steering"]
+    L1["Tier 1: Direct State Navigation: Trajectory Execution in World Dynamics"]
+
+    L4 --&gt; L3
+    L3 --&gt; L2
+    L2 --&gt; L1
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-four-tier-search-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Four-tier computational search hierarchy from direct navigation to algorithmic meta-search.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="the-four-tier-search-hierarchy" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="the-four-tier-search-hierarchy"><span class="header-section-number">4.1</span> The Four-Tier Search Hierarchy</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Tier</th>
+<th style="text-align: left;">Conceptual Role</th>
+<th style="text-align: left;">Mathematical Mechanism</th>
+<th style="text-align: left;">Operational Instantiation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Tier 1: Direct State Navigation</strong></td>
+<td style="text-align: left;">Environmental interaction</td>
+<td style="text-align: left;">Traversal of state transitions <img src="https://latex.codecogs.com/png.latex?(s_t%20%5Cxrightarrow%7Ba_t%7D%20s_%7Bt+1%7D)"></td>
+<td style="text-align: left;">Execution of primitive motor or linguistic actions</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Tier 2: Heuristic &amp; Value Surfaces</strong></td>
+<td style="text-align: left;">Pruning combinatorial branching</td>
+<td style="text-align: left;">Scalar potential surfaces <img src="https://latex.codecogs.com/png.latex?V(s),%20Q(s,%20a)"> steering local search</td>
+<td style="text-align: left;">Critic networks, Bellman value estimators</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Tier 3: State-Abstraction Manifolds</strong></td>
+<td style="text-align: left;">Geometric volume contraction</td>
+<td style="text-align: left;">Factoring symmetries <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BS%7D_%7B%5Ctext%7Bcomp%7D%7D%20=%20%5Cmathcal%7BS%7D_%7B%5Ctext%7Braw%7D%7D%20/%20%5Cmathcal%7BG%7D_%7B%5Ctext%7Bsymmetry%7D%7D"></td>
+<td style="text-align: left;">Group-equivariant representations, latent world models</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Tier 4: Meta-Search &amp; Program Synthesis</strong></td>
+<td style="text-align: left;">Algorithm discovery</td>
+<td style="text-align: left;">Searching over the space of search algorithms <img src="https://latex.codecogs.com/png.latex?%5Cpi_%7B%5Ctext%7Bsearch%7D%7D%20%5Cin%20%5CPi"></td>
+<td style="text-align: left;">Test-time tree search, Monte Carlo Tree Search, self-refining verification</td>
+</tr>
+</tbody>
+</table>
+<p>At Tier 3, discovering invariance under spatial translation, rotation, and permutations collapses the effective volume of combinatorial state spaces by orders of magnitude. At Tier 4, the architecture avoids static heuristics entirely, actively generating and validating verification routines at inference time.</p>
+</section>
+<section id="the-thermodynamic-correspondence" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="the-thermodynamic-correspondence"><span class="header-section-number">4.2</span> The Thermodynamic Correspondence</h3>
+<p>There exists a rigorous structural connection between state space compression in intelligent search and non-equilibrium thermodynamics. Under Landauer’s Principle, the erasure of information and the contraction of high-entropy probability distributions require fundamental thermodynamic dissipation:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5CDelta%20S%20%5Cge%20-k_B%20%5Cln%202%20%5Ccdot%20%5CDelta%20I"></p>
+<p>An intelligent agent is fundamentally a dissipative physical system that expends thermodynamic work to compress combinatorial state uncertainty into compact, lawful causal representations.</p>
+<hr>
+</section>
+</section>
+<section id="the-architectural-phase-transition-test-time-compute" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="the-architectural-phase-transition-test-time-compute"><span class="header-section-number">5</span> The Architectural Phase Transition: Test-Time Compute</h2>
+<p>The limitations of pure pre-training scaling are now mathematically and empirically manifest. The marginal returns of ingesting additional petabytes of web text are attenuating rapidly as available human cultural tokens exhaust their useful variance.</p>
+<p>The emerging paradigm—characterised by inference-time reasoning architectures such as OpenAI o1/o3 and DeepSeek-R1—marks an explicit return to algorithmic search:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-phase-transition" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-phase-transition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-phase-transition">flowchart LR
+    Parametric["Pre-Training Scaling: Fixed O(1) Feed-Forward Step"] --&gt; Bottleneck{"Marginal Diminishing Returns"}
+    Bottleneck --&gt; InferenceShift["Inference-Time Scaling: Dynamic Search Flops"]
+    InferenceShift --&gt; MCTS["Tree Search &amp; Branch Pruning"]
+    InferenceShift --&gt; FormalVerifiers["Deterministic Compilers &amp; Math Verifiers"]
+    FormalVerifiers --&gt; Convergence["Approximating Algorithmic Probability on Silicon"]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-phase-transition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: The architectural phase transition: decoupling compute from static parameter counts through inference-time search.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="decoupling-compute-from-static-parameter-counts" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="decoupling-compute-from-static-parameter-counts"><span class="header-section-number">5.1</span> Decoupling Compute from Static Parameter Counts</h3>
+<p>In classical autoregressive inference, generating each token consumes a fixed compute budget proportional to model parameter count:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Ctext%7BCompute%7D_%7B%5Ctext%7Bstep%7D%7D%20=%20%5Cmathcal%7BO%7D(%7C%5Ctheta%7C)"></p>
+<p>By permitting models to execute variable-length reasoning traces, architectures trade test-time computational work for search depth. The system generates competing hypotheses, evaluates intermediate steps, and backtracks upon encountering formal contradictions.</p>
+</section>
+<section id="deterministic-verification-vs-preference-approximation" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="deterministic-verification-vs-preference-approximation"><span class="header-section-number">5.2</span> Deterministic Verification vs Preference Approximation</h3>
+<p>Reinforcement Learning from Human Feedback (RLHF) optimizes against a soft neural reward model, which is perpetually susceptible to reward hacking and sycophancy. Conversely, contemporary reasoning frameworks employ deterministic ground-truth verifiers (code execution sandboxes, formal theorem provers, symbolic equivalence checkers). This mitigates reward hacking and aligns model optimization directly with rigorous deductive consistency.</p>
+</section>
+<section id="approximating-algorithmic-induction" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="approximating-algorithmic-induction"><span class="header-section-number">5.3</span> Approximating Algorithmic Induction</h3>
+<p>By employing deep neural networks as generative proposal distributions over actions and coupling them with rigorous search algorithms (such as Monte Carlo Tree Search) and deterministic verification, modern systems begin to approximate Solomonoff induction within bounded polynomial time.</p>
+<hr>
+</section>
+</section>
+<section id="architectural-comparison" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="architectural-comparison"><span class="header-section-number">6</span> Architectural Comparison</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Dimension</th>
+<th style="text-align: left;">Pure Autoregressive LLM</th>
+<th style="text-align: left;">Universal Intelligence (AIXI)</th>
+<th style="text-align: left;">ARC / Search-Centric Agent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Objective Function</strong></td>
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cmin_%5Ctheta%20%5Cmathbb%7BE%7D%5B-%5Cln%20P_%5Ctheta(x_t%20%5Cmid%20x_%7B%3Ct%7D)%5D"></td>
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cmax_%5Cpi%20%5Csum_%7B%5Cmu%7D%202%5E%7B-K(%5Cmu)%7D%20V_%5Cmu%5E%5Cpi"></td>
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cmax%20%5Cfrac%7B%5CDelta%20%5Ctext%7BSkill%7D%7D%7B%5Ctext%7BExperience%7D%20%5Ctimes%20%5Ctext%7BPriors%7D%7D"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Primary Mechanism</strong></td>
+<td style="text-align: left;">High-dimensional interpolation</td>
+<td style="text-align: left;">Infinite-horizon Bayesian induction</td>
+<td style="text-align: left;">Inductive program synthesis &amp; search</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Generalisation Scope</strong></td>
+<td style="text-align: left;">Distributional neighbourhood</td>
+<td style="text-align: left;">All computable environments</td>
+<td style="text-align: left;">Novel tasks under core spatial priors</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Computational Class</strong></td>
+<td style="text-align: left;">Bounded feed-forward (<img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BP%7D">)</td>
+<td style="text-align: left;">Non-computable (<img src="https://latex.codecogs.com/png.latex?%5CSigma_1%5E0">)</td>
+<td style="text-align: left;">Bounded resource-rational search (<img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BNP%7D">)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Failure Mode</strong></td>
+<td style="text-align: left;">Hallucination under out-of-distribution shifts</td>
+<td style="text-align: left;">Physically uninstantiable</td>
+<td style="text-align: left;">Combinatorial explosion without heuristics</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="concluding-synthesis" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="concluding-synthesis"><span class="header-section-number">7</span> Concluding Synthesis</h2>
+<blockquote class="blockquote">
+<p><strong>Intelligence is not the magnitude of parametric memory stored within static network weights. It is the computational efficiency with which an agent constructs, traverses, and formally verifies causal models across unfamiliar environment manifolds.</strong></p>
+</blockquote>
+<p>The frontier of artificial intelligence research is shifting decisively from passive token ingestion toward dynamic, verified computation. The ultimate measure of our architectures will not be the volume of historical tokens they can reproduce, but their capacity to discover minimal programs that master unencountered worlds.</p>
+
+
+
+</section>
+
+ ]]></description>
+  <category>theory-of-intelligence</category>
+  <category>algorithmic-information-theory</category>
+  <category>reinforcement-learning</category>
+  <category>reasoning</category>
+  <guid>https://v3rm1.github.io/blog/posts/2026-10-13-legg-hutter-to-arc/</guid>
+  <pubDate>Mon, 12 Oct 2026 22:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>
