@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Refreshes the Obsidian portfolio analytics JSON. Install: docs/analytics.md -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>io.github.v3rm1.analytics</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/varunv/Documents/projects/portfolio/scripts/analytics_report.py</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>7</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/varunv/Library/Logs/portfolio-analytics.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/varunv/Library/Logs/portfolio-analytics.log</string>
+</dict>
+</plist>
