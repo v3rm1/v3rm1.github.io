@@ -547,6 +547,16 @@ a.ext-link {
   background: var(--bg);
 }
 
+/* ── View Transitions ─────────────────────────────── */
+#output {
+  animation: viewFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes viewFadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* ── Home Executive Spotlight ─────────────────────── */
 .home-spotlight {
   margin-top: 4px;
@@ -639,6 +649,247 @@ a.ext-link {
 
 .card-link {
   font-size: 0.86rem;
+}
+
+/* ── Metrics Dashboard Visualisation ──────────────── */
+.metrics-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.metric-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 6px;
+  padding: 12px 14px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+  border-color: var(--magenta);
+  background: var(--bg-highlight);
+  transform: translateY(-1px);
+}
+
+.metric-num {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--cyan);
+  font-family: inherit;
+  letter-spacing: -0.3px;
+}
+
+.metric-label {
+  font-size: 0.76rem;
+  color: var(--comment);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+/* ── Capability Bars Visualisation ────────────────── */
+.skills-viz-box {
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.viz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 0.82rem;
+}
+
+.viz-title {
+  color: var(--magenta);
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  font-size: 0.85rem;
+}
+
+.viz-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.viz-bar-row {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.viz-bar-label {
+  font-size: 0.84rem;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+.viz-bar-track {
+  height: 6px;
+  background: var(--bg-highlight);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.viz-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.skill-group-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.skill-group-title {
+  color: var(--orange);
+  font-weight: 700;
+  font-size: 0.92rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skill-group-count {
+  font-size: 0.75rem;
+  color: var(--comment);
+  font-weight: 400;
+}
+
+/* ── Project Detail Hero Card ─────────────────────── */
+.project-detail-hero {
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 6px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+
+.project-detail-header {
+  margin-bottom: 12px;
+}
+
+.project-detail-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.project-detail-title {
+  color: var(--fg);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.project-detail-body {
+  color: var(--fg-dark);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-bottom: 16px;
+}
+
+.project-detail-meta {
+  border-top: 1px solid var(--gutter);
+  padding-top: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detail-meta-label {
+  color: var(--comment);
+  font-size: 0.85rem;
+}
+
+.project-detail-actions {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--gutter);
+}
+
+/* ── Publications Cards ───────────────────────────── */
+.pub-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.pub-card:hover {
+  border-color: var(--cyan);
+}
+
+.pub-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.pub-index {
+  color: var(--cyan);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.pub-title {
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 0.98rem;
+  flex: 1;
+}
+
+.pub-meta {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+  margin-bottom: 8px;
+}
+
+.pub-venue {
+  color: var(--orange);
+}
+
+.pub-doi {
+  color: var(--blue);
+}
+
+.pub-desc {
+  color: var(--fg-dark);
+  font-size: 0.87rem;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.pub-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 /* ── Projects Navigation & Cards ──────────────────── */

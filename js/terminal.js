@@ -174,6 +174,25 @@
             <div class="card-link">${makeClickable("View Career Track ▸", "timeline", true)}</div>
           </div>
         </div>
+
+        <div class="metrics-dashboard">
+          <div class="metric-card">
+            <div class="metric-num">2023 - 2027</div>
+            <div class="metric-label">PhD Candidate · AI &amp; MARL</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num">5+ Years</div>
+            <div class="metric-label">Industry &amp; Research Engineering</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num">10,000s</div>
+            <div class="metric-label">Parallel GPU Steps / Sec (JAX)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-num">DACH</div>
+            <div class="metric-label">Target Mobility (DE/AT/CH)</div>
+          </div>
+        </div>
       </div>`;
     container.appendChild(spotlightDiv);
   }
@@ -256,6 +275,35 @@
       return;
     }
 
+    // Top distribution chart
+    const topCategories = [
+      { name: "Research & Methods", pct: 90, color: "var(--cyan)" },
+      { name: "Reinforcement Learning & JAX", pct: 95, color: "var(--purple)" },
+      { name: "Data Pipelines & Systems", pct: 85, color: "var(--green)" },
+      { name: "Cloud & Infrastructure", pct: 80, color: "var(--orange)" }
+    ];
+
+    let vizHtml = `
+      <div class="skills-viz-box">
+        <div class="viz-header">
+          <span class="viz-title">CAPABILITY PROFILE</span>
+          <span class="color-comment">Domain proficiency &amp; practical depth</span>
+        </div>
+        <div class="viz-bars">`;
+    for (const item of topCategories) {
+      vizHtml += `
+          <div class="viz-bar-row">
+            <div class="viz-bar-label">${escapeHtml(item.name)}</div>
+            <div class="viz-bar-track">
+              <div class="viz-bar-fill" style="width: ${item.pct}%; background: ${item.color}"></div>
+            </div>
+          </div>`;
+    }
+    vizHtml += `
+        </div>
+      </div>`;
+    appendBlock(vizHtml);
+
     // Live search input
     appendBlock(
       `<div class="skills-filter-wrap">` +
@@ -285,8 +333,8 @@
 
       for (const [group, skills] of Object.entries(groups)) {
         const groupDiv = document.createElement("div");
-        groupDiv.className = "output-block";
-        let html = `<div class="output-line color-orange bold">${escapeHtml(group)}</div><div class="tags" style="margin-top:4px">`;
+        groupDiv.className = "output-block skill-group-card";
+        let html = `<div class="skill-group-title">${escapeHtml(group)} <span class="skill-group-count">${skills.length} skills</span></div><div class="tags" style="margin-top:6px">`;
         html += skills
           .map((s) => {
             const isTop = DATA.profile.topSkills.includes(s.name);
@@ -363,11 +411,11 @@
           <div class="project-card">
             <div class="project-card-header">
               <span class="project-card-title">${makeClickable(p.title, "project " + key, true)}</span>
-              ${p.status ? `<span class="project-card-status">· ${escapeHtml(p.status)}</span>` : ""}
+              ${p.status ? `<span class="project-card-status">${escapeHtml(p.status)}</span>` : ""}
             </div>
             <div class="project-card-desc">${escapeHtml(firstLine)}</div>
             <div class="project-card-footer">
-              <span class="color-comment">Skills: ${skillTags(p.stack)}</span>
+              <div class="project-card-stack">${skillTags(p.stack)}</div>
               ${makeClickable("View Details ▸", "project " + key, true)}
             </div>
           </div>`;
@@ -395,17 +443,23 @@
     const prevKey = currIdx > 0 ? allKeys[currIdx - 1] : null;
     const nextKey = currIdx < allKeys.length - 1 ? allKeys[currIdx + 1] : null;
 
-    appendLine(`<span class="color-purple bold" style="font-size:1.1rem">${escapeHtml(p.title)}</span>`);
-    appendLine(
-      `<span class="color-orange">${escapeHtml(p.category)}</span>` +
-        (p.status ? ` <span class="color-comment">· ${escapeHtml(p.status)}</span>` : "")
-    );
-    appendSeparator();
-    appendBlock(escapeHtml(p.description));
-    appendLine('<span class="color-comment">Skills:</span> ' + skillTags(p.stack));
-    if (p.link) {
-      appendLine(makeExtLink("[View on GitHub]", p.link));
-    }
+    let detailHtml = `
+      <div class="project-detail-hero">
+        <div class="project-detail-header">
+          <div class="project-detail-badges">
+            <span class="card-badge badge-${p.category === 'Current research' ? 'research' : p.category === 'Research' ? 'sim' : 'systems'}">${escapeHtml(p.category.toUpperCase())}</span>
+            ${p.status ? `<span class="project-card-status">${escapeHtml(p.status)}</span>` : ""}
+          </div>
+          <h2 class="project-detail-title">${escapeHtml(p.title)}</h2>
+        </div>
+        <div class="project-detail-body">${escapeHtml(p.description)}</div>
+        <div class="project-detail-meta">
+          <div class="detail-meta-label">Stack &amp; Skills:</div>
+          <div class="detail-meta-tags">${skillTags(p.stack)}</div>
+        </div>
+        ${p.link ? `<div class="project-detail-actions">${makeExtLink("↗ View on GitHub Repository", p.link)}</div>` : ""}
+      </div>`;
+    appendBlock(detailHtml);
 
     let pagerHtml = `<div class="project-pager">`;
     if (prevKey) {
@@ -516,31 +570,28 @@
   commands.publications = function () {
     for (let i = 0; i < DATA.publications.length; i++) {
       const p = DATA.publications[i];
-      appendLine(
-        `<span class="color-cyan bold">${i + 1}. ${escapeHtml(p.title)}</span>` +
-          ` <button type="button" class="bibtex-toggle-btn" data-bibtex-idx="${i}">[BibTeX]</button>`
-      );
-      appendLine(
-        `   <span class="color-orange">${escapeHtml(p.venue)}, ${escapeHtml(String(p.year))}</span>`
-      );
-      if (p.doi) {
-        appendLine(
-          `   DOI: ${makeExtLink(p.doi, "https://doi.org/" + p.doi)}`
-        );
-      }
-      appendLine(
-        `   <span class="color-comment">${escapeHtml(p.description)}</span>`
-      );
-      appendLine("   " + skillTags(p.stack));
-
       const bib = BIBTEX[i] || "";
-      appendBlock(
-        `<div id="bibtex-${i}" class="bibtex-drawer" hidden>` +
-          `<button type="button" class="copy-btn" data-copy="${escapeAttr(bib)}">Copy</button>` +
-          `<pre class="bibtex-code">${escapeHtml(bib)}</pre>` +
-        `</div>`
-      );
-      appendLine("");
+      let pubHtml = `
+        <div class="pub-card">
+          <div class="pub-header">
+            <span class="pub-index">#${i + 1}</span>
+            <span class="pub-title">${escapeHtml(p.title)}</span>
+            <button type="button" class="bibtex-toggle-btn" data-bibtex-idx="${i}">BibTeX</button>
+          </div>
+          <div class="pub-meta">
+            <span class="pub-venue">${escapeHtml(p.venue)}, ${escapeHtml(String(p.year))}</span>
+            ${p.doi ? `<span class="pub-doi">DOI: ${makeExtLink(p.doi, "https://doi.org/" + p.doi)}</span>` : ""}
+          </div>
+          <div class="pub-desc">${escapeHtml(p.description)}</div>
+          <div class="pub-footer">
+            <div class="pub-stack">${skillTags(p.stack)}</div>
+          </div>
+          <div id="bibtex-${i}" class="bibtex-drawer" hidden>
+            <button type="button" class="copy-btn" data-copy="${escapeAttr(bib)}">Copy</button>
+            <pre class="bibtex-code">${escapeHtml(bib)}</pre>
+          </div>
+        </div>`;
+      appendBlock(pubHtml);
     }
   };
 
