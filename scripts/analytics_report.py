@@ -94,6 +94,12 @@ def windows(today, days):
     return (start, today), (prev_start, prev_end)
 
 
+def end_of(day):
+    """GoatCounter reads a bare end date as midnight at its start, which
+    would drop that day; ask for its last second instead."""
+    return day.isoformat() + "T23:59:59Z"
+
+
 def change_pct(now, before):
     if not before:
         return None
@@ -144,9 +150,9 @@ def top(stats):
 
 def build_report(get, today, days, now=None):
     (start, end), (prev_start, prev_end) = windows(today, days)
-    span = {"start": start.isoformat(), "end": end.isoformat()}
+    span = {"start": start.isoformat(), "end": end_of(end)}
     cur = get("/stats/total", **span)
-    prev = get("/stats/total", start=prev_start.isoformat(), end=prev_end.isoformat())
+    prev = get("/stats/total", start=prev_start.isoformat(), end=end_of(prev_end))
     hits = get("/stats/hits", daily="true", limit=100, **span)
     groups = split_hits(hits.get("hits", []))
     by_path = {r["path"]: r["visits"] for r in groups["pages"]}
@@ -154,7 +160,7 @@ def build_report(get, today, days, now=None):
     report = {
         "generated_at": (now or dt.datetime.now(dt.timezone.utc)).isoformat(timespec="seconds"),
         "site": SITE,
-        "window": dict(span, days=days),
+        "window": {"start": start.isoformat(), "end": end.isoformat(), "days": days},
         "previous": {"start": prev_start.isoformat(), "end": prev_end.isoformat()},
         "totals": {
             "visits": page_visits(cur),
@@ -163,7 +169,12 @@ def build_report(get, today, days, now=None):
             "previous_events": prev.get("total_events", 0),
             "change_pct": change_pct(page_visits(cur), page_visits(prev)),
         },
-        "daily": daily_page_visits([s["day"] for s in cur.get("stats", [])], hits.get("hits", [])),
+        # The end-of-day end can spill into the next day in the site's time
+        # zone; keep the series to the window itself.
+        "daily": daily_page_visits(
+            [s["day"] for s in cur.get("stats", []) if span["start"] <= s["day"] <= end.isoformat()],
+            hits.get("hits", []),
+        ),
         "languages": {"en": by_path.get("/", 0), "de": by_path.get("/de/", 0)},
         # True when the API had more paths than the 100 fetched.
         "more_paths": bool(hits.get("more")),

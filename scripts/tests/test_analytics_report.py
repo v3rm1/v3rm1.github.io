@@ -87,6 +87,19 @@ class BuildReportTest(unittest.TestCase):
         self.assertEqual(self.report["countries"][0], {"name": "Germany", "count": 8})
         self.assertEqual(self.report["sizes"], [{"name": "Phones", "count": 7}])
 
+    def test_end_includes_the_whole_last_day(self):
+        # GoatCounter reads a bare end date as midnight at its start, which
+        # drops that day; the end must be the last second of the day.
+        seen = []
+
+        def recording_get(path, **params):
+            seen.append(params)
+            return fake_get(path, **params)
+
+        ar.build_report(recording_get, TODAY, 30, now=NOW)
+        ends = {p["end"] for p in seen}
+        self.assertEqual(ends, {"2026-10-13T23:59:59Z", "2026-09-13T23:59:59Z"})
+
     def test_empty_site(self):
         report = ar.build_report(empty_get, TODAY, 30, now=NOW)
         self.assertEqual(report["totals"]["visits"], 0)
