@@ -317,16 +317,6 @@ a.ext-link {
   margin: 6px 0;
 }
 
-/* ── Boot text ────────────────────────────────────── */
-.boot-tag {
-  color: var(--comment);
-}
-
-.boot-ok {
-  color: var(--green);
-  font-weight: 700;
-}
-
 /* ── Hero ─────────────────────────────────────────── */
 .hero {
   padding: 12px 4px 14px;
@@ -545,11 +535,6 @@ html.js #static-content {
     mask-image: linear-gradient(to right, #000 80%, transparent);
   }
 
-  /* Nobody scrolls past the hero to read it on a phone. */
-  .boot-line {
-    display: none;
-  }
-
   .row {
     grid-template-columns: 1fr;
   }
@@ -737,45 +722,6 @@ html.js #static-content {
 
 .spotlight-card .card-link {
   font-size: 0.84rem;
-}
-
-.spotlight-quicklinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  padding: 8px 10px;
-  background: var(--bg-dark);
-  border: 1px dashed var(--gutter);
-  border-radius: 4px;
-  font-size: 0.84rem;
-}
-
-/* ── Collapsible Boot Details ─────────────────────── */
-.boot-details {
-  margin-top: 10px;
-  border-top: 1px dashed var(--gutter);
-  padding-top: 8px;
-}
-
-.boot-summary {
-  cursor: pointer;
-  user-select: none;
-  font-size: 0.82rem;
-  padding: 4px 0;
-  outline: none;
-}
-
-.boot-summary:hover {
-  color: var(--cyan);
-}
-
-.boot-log-container {
-  margin-top: 6px;
-  padding: 6px 10px;
-  background: var(--bg-dark);
-  border-radius: 3px;
-  font-size: 0.82rem;
 }
 
 /* ── Projects Navigation & Cards ──────────────────── */

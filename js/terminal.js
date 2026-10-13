@@ -6,72 +6,6 @@
   const statusPath = document.getElementById("status-path");
   const frameTitle = document.getElementById("frame-title");
 
-  // ── Boot sequence ──────────────────────────────────────────────
-  const bootLines = [
-    { text: "[BIOS] v3rm1 systems v1.0", delay: 80 },
-    { text: "[BOOT] Loading kernel............. OK", delay: 150 },
-    { text: "[INIT] Mounting filesystem......... OK", delay: 150 },
-    { text: "[INIT] Starting network........... OK", delay: 150 },
-    { text: "[AUTH] User authenticated: guest", delay: 120 },
-    { text: "[SYS]  Loading profile: Varun Ravi Varma", delay: 120 },
-    { text: "[SYS]  Session started.", delay: 150 },
-    { text: "", delay: 80 },
-    { text: "Welcome to v3rm1's portfolio terminal.", delay: 80, cls: "color-green bold" },
-    { text: "Select a section from the menu or explore below.", delay: 80, cls: "color-comment" },
-    { text: "", delay: 40 }
-  ];
-
-  function colorBootLine(text) {
-    return text
-      .replace(/^(\[[A-Z]+\])/, '<span class="color-comment">$1</span>')
-      .replace(/(OK)$/, '<span class="color-green bold">$1</span>');
-  }
-
-  // Boot animation plays once per session, is skipped on any click or tap,
-  // and never plays for visitors who prefer reduced motion.
-  let skipBoot = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  try {
-    if (sessionStorage.getItem("booted")) skipBoot = true;
-    sessionStorage.setItem("booted", "1");
-  } catch (e) {}
-
-  function skipBootHandler() {
-    skipBoot = true;
-  }
-
-  let booting = false;
-
-  async function boot() {
-    trackView("", "");
-    booting = true;
-    output.innerHTML = "";
-    renderHome(output);
-    const logBox = document.getElementById("boot-log-box") || output;
-    document.addEventListener("pointerdown", skipBootHandler);
-    for (const line of bootLines) {
-      if (!skipBoot) await delay(line.delay);
-      if (!booting) break;
-      logBox.appendChild(bootLine(line));
-    }
-    booting = false;
-    document.removeEventListener("pointerdown", skipBootHandler);
-  }
-
-  function bootLine(line) {
-    const div = document.createElement("div");
-    div.className = "output-line boot-line";
-    if (line.cls) {
-      div.className += " " + line.cls;
-      div.textContent = line.text;
-    } else {
-      div.innerHTML = colorBootLine(line.text);
-    }
-    return div;
-  }
-
-  function delay(ms) {
-    return new Promise((r) => setTimeout(r, ms));
-  }
 
   // ── Scroll helper ──────────────────────────────────────────────
   function scrollToTop() {
@@ -236,10 +170,6 @@
             <div class="card-link">${makeClickable("View Career Timeline ▸", "timeline", true)}</div>
           </div>
         </div>
-        <details class="boot-details" ${skipBoot ? "" : "open"}>
-          <summary class="boot-summary color-comment">▶ System Boot Diagnostics (v3rm1 systems v1.0)</summary>
-          <div class="boot-log-container" id="boot-log-box"></div>
-        </details>
       </div>`;
     container.appendChild(spotlightDiv);
   }
@@ -651,26 +581,6 @@
     );
   };
 
-  commands.neofetch = function () {
-    const art = [
-      '<span class="color-blue bold">        ██╗   ██╗██████╗ </span>  <span class="color-green bold">v3rm1</span><span class="color-comment">@</span><span class="color-blue bold">portfolio</span>',
-      '<span class="color-blue bold">        ██║   ██║╚════██╗</span>  <span class="color-comment">──────────────────</span>',
-      '<span class="color-blue bold">        ██║   ██║ █████╔╝</span>  <span class="color-orange">OS:</span>      <span class="color-fg">v3rm1OS 1.0 (TUI Edition)</span>',
-      '<span class="color-blue bold">        ╚██╗ ██╔╝ ╚═══██╗</span>  <span class="color-orange">Host:</span>    <span class="color-fg">github.io</span>',
-      '<span class="color-blue bold">         ╚████╔╝ ██████╔╝</span>  <span class="color-orange">Kernel:</span>  <span class="color-fg">HTML5/CSS3/JS</span>',
-      '<span class="color-blue bold">          ╚═══╝  ╚═════╝ </span>  <span class="color-orange">Shell:</span>   <span class="color-fg">v3rm1-sh 1.0</span>',
-      '                          <span class="color-orange">Role:</span>    <span class="color-fg">PhD Researcher / AI Engineer</span>',
-      '                          <span class="color-orange">Focus:</span>   <span class="color-fg">Multi-Agent RL, Interpretability</span>',
-      '                          <span class="color-orange">Lang:</span>    <span class="color-fg">Python, C++, Julia</span>',
-      '                          <span class="color-orange">Theme:</span>   <span class="color-fg">Tokyo Night</span>',
-      '',
-      '                          <span class="color-red">██</span><span class="color-orange">██</span><span class="color-green">██</span><span class="color-cyan">██</span><span class="color-blue">██</span><span class="color-purple">██</span><span class="color-pink">██</span>',
-    ];
-    for (const line of art) {
-      appendLine(line);
-    }
-  };
-
   // ── Escape HTML ────────────────────────────────────────────────
   function escapeHtml(str) {
     const div = document.createElement("div");
@@ -711,7 +621,6 @@
     const args = parts.slice(1).join(" ");
     if (!commands[cmd]) cmd = "";
 
-    booting = false;
     output.innerHTML = "";
     hero.hidden = cmd !== "";
     if (cmd) {
@@ -719,8 +628,6 @@
       commands[cmd](args);
     } else {
       renderHome(output);
-      const logBox = document.getElementById("boot-log-box") || output;
-      for (const line of bootLines) logBox.appendChild(bootLine(line));
     }
 
     setActiveSidebar(cmd);
@@ -789,6 +696,5 @@
 
   // ── Start ──────────────────────────────────────────────────────
   const initial = hashToCmd(location.hash);
-  if (initial) render(initial);
-  else boot();
+  render(initial || "");
 })();
