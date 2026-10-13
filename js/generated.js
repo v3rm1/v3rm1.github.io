@@ -258,6 +258,32 @@ const SKILLS = [
   },
   {
     "group": "Machine learning",
+    "name": "Graph neural networks",
+    "slug": "graph-neural-networks",
+    "evidence": [
+      {
+        "label": "Scientific Programmer - Personal Health Data Science @ Sano Centre for Computational Medicine",
+        "cmd": "cv"
+      },
+      {
+        "label": "PhD, Artificial Intelligence, University of Agder",
+        "cmd": "cv"
+      }
+    ]
+  },
+  {
+    "group": "Machine learning",
+    "name": "LLMs & agentic workflows",
+    "slug": "llms-agentic-workflows",
+    "evidence": [
+      {
+        "label": "PhD, Artificial Intelligence, University of Agder",
+        "cmd": "cv"
+      }
+    ]
+  },
+  {
+    "group": "Machine learning",
     "name": "Computer vision",
     "slug": "computer-vision",
     "evidence": [
@@ -389,6 +415,32 @@ const SKILLS = [
   },
   {
     "group": "ML engineering & infrastructure",
+    "name": "CUDA",
+    "slug": "cuda",
+    "evidence": [
+      {
+        "label": "Scientific Programmer - Personal Health Data Science @ Sano Centre for Computational Medicine",
+        "cmd": "cv"
+      },
+      {
+        "label": "PhD, Artificial Intelligence, University of Agder",
+        "cmd": "cv"
+      }
+    ]
+  },
+  {
+    "group": "ML engineering & infrastructure",
+    "name": "Slurm & HPC clusters",
+    "slug": "slurm-hpc-clusters",
+    "evidence": [
+      {
+        "label": "M.Sc. Artificial Intelligence, University of Groningen",
+        "cmd": "cv"
+      }
+    ]
+  },
+  {
+    "group": "ML engineering & infrastructure",
     "name": "MLflow",
     "slug": "mlflow",
     "evidence": [
@@ -409,6 +461,50 @@ const SKILLS = [
       },
       {
         "label": "Scientific Programmer - Personal Health Data Science @ Sano Centre for Computational Medicine",
+        "cmd": "cv"
+      }
+    ]
+  },
+  {
+    "group": "ML engineering & infrastructure",
+    "name": "Kubernetes",
+    "slug": "kubernetes",
+    "evidence": [
+      {
+        "label": "Consultant II - Data Analytics @ Neudesic Global Services LLC",
+        "cmd": "cv"
+      }
+    ]
+  },
+  {
+    "group": "ML engineering & infrastructure",
+    "name": "Azure",
+    "slug": "azure",
+    "evidence": [
+      {
+        "label": "Consultant II - Data Analytics @ Neudesic Global Services LLC",
+        "cmd": "cv"
+      }
+    ]
+  },
+  {
+    "group": "ML engineering & infrastructure",
+    "name": "Databricks",
+    "slug": "databricks",
+    "evidence": [
+      {
+        "label": "Consultant II - Data Analytics @ Neudesic Global Services LLC",
+        "cmd": "cv"
+      }
+    ]
+  },
+  {
+    "group": "ML engineering & infrastructure",
+    "name": "Model serving (REST/gRPC)",
+    "slug": "model-serving-rest-grpc",
+    "evidence": [
+      {
+        "label": "Consultant II - Data Analytics @ Neudesic Global Services LLC",
         "cmd": "cv"
       }
     ]
@@ -630,6 +726,21 @@ const SKILLS = [
   },
   {
     "group": "Programming languages",
+    "name": "Rust",
+    "slug": "rust",
+    "evidence": [
+      {
+        "label": "Scientific Programmer - Personal Health Data Science @ Sano Centre for Computational Medicine",
+        "cmd": "cv"
+      },
+      {
+        "label": "PhD, Artificial Intelligence, University of Agder",
+        "cmd": "cv"
+      }
+    ]
+  },
+  {
+    "group": "Programming languages",
     "name": "C#",
     "slug": "c#",
     "evidence": [
@@ -736,7 +847,7 @@ const SKILLS = [
     "slug": "mechanical-engineering",
     "evidence": [
       {
-        "label": "B.E Mechanical Engineering, Visveswaraya Technological University",
+        "label": "B.Tech. Mechanical Engineering, Visveswaraya Technological University",
         "cmd": "cv"
       }
     ]
@@ -747,7 +858,7 @@ const SKILLS = [
     "slug": "cad",
     "evidence": [
       {
-        "label": "B.E Mechanical Engineering, Visveswaraya Technological University",
+        "label": "B.Tech. Mechanical Engineering, Visveswaraya Technological University",
         "cmd": "cv"
       }
     ]
@@ -758,7 +869,7 @@ const SKILLS = [
     "slug": "thermodynamics",
     "evidence": [
       {
-        "label": "B.E Mechanical Engineering, Visveswaraya Technological University",
+        "label": "B.Tech. Mechanical Engineering, Visveswaraya Technological University",
         "cmd": "cv"
       }
     ]
@@ -824,7 +935,7 @@ const TIMELINE = [
   {
     "when": "2012 - 2016",
     "start": "2012",
-    "title": "B.E Mechanical Engineering",
+    "title": "B.Tech. Mechanical Engineering",
     "org": "Visveswaraya Technological University",
     "kind": "education"
   }

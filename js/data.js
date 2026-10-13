@@ -15,7 +15,10 @@ const DATA = {
     topSkills: ["Multi-agent RL", "JAX", "Simulation & agent-based modelling", "GPU experiment sweeps", "Interpretable & explainable ML", "Data pipelines", "Python"],
     location: "Grimstad, Norway",
     url: "https://v3rm1.github.io/",
-    cv: "files/cv/VRVarma_Academic_CV.pdf"
+    // Industry CV is the default download; source in cv-src/industry-cv.tex.
+    cv: "files/cv/VarunRaviVarma_Industry_CV.pdf",
+    academicCv: "files/cv/VRVarma_Academic_CV.pdf",
+    ogImage: "images/og-card.png"
   },
 
   // German landing page (de/index.html). Technical terms stay in English.
@@ -72,7 +75,7 @@ experience in Python, JAX and scalable AI infrastructure.`,
         "Doctoral Researcher specialising in Multi-Agent Reinforcement Learning (MARL), Sequential Decision-Making, and Model Interpretability.",
         "Developing algorithms for hierarchical planning, resource allocation, and trajectory analysis with a focus on emergent dynamics and long-horizon objectives in complex systems."
       ],
-      stack: ["Reinforcement learning", "Multi-agent RL", "Sequential decision-making", "Hierarchical planning", "Simulation & agent-based modelling", "JAX", "Python", "Academic writing", "LaTeX & TikZ"]
+      stack: ["Reinforcement learning", "Multi-agent RL", "Sequential decision-making", "Hierarchical planning", "Simulation & agent-based modelling", "Graph neural networks", "LLMs & agentic workflows", "JAX", "CUDA", "Python", "Rust", "Academic writing", "LaTeX & TikZ"]
     },
     {
       institution: "University of Groningen",
@@ -84,11 +87,11 @@ experience in Python, JAX and scalable AI infrastructure.`,
         "Specialised in Deep Learning, Automaton Theory, and Reinforcement Learning.",
         "Thesis: Developed an interpretable RL agent using the Regression Tsetlin Machine to provide transparent, logic-based decision-making."
       ],
-      stack: ["Reinforcement learning", "Deep learning", "Tsetlin machines", "Multi-agent systems", "Cognitive modelling"]
+      stack: ["Reinforcement learning", "Deep learning", "Tsetlin machines", "Multi-agent systems", "Cognitive modelling", "Slurm & HPC clusters"]
     },
     {
       institution: "Visveswaraya Technological University",
-      degree: "B.E Mechanical Engineering",
+      degree: "B.Tech. Mechanical Engineering",
       period: "2012 - 2016",
       start: "2012",
       location: "Karnataka, India",
@@ -125,7 +128,7 @@ experience in Python, JAX and scalable AI infrastructure.`,
         "Architected analytical pipelines for structured and unstructured medical artefacts, leveraging knowledge graphs and dependency mapping for reasoning and inference.",
         "Developed and deployed research tools using Docker and Git-based CI/CD workflows, ensuring reproducible experimentation and scalable training pipelines."
       ],
-      stack: ["Data pipelines", "Knowledge graphs", "Docker", "Git & CI/CD", "Python"]
+      stack: ["Data pipelines", "Knowledge graphs", "Graph neural networks", "Docker", "Git & CI/CD", "CUDA", "Python", "Rust"]
     },
     {
       company: "University of Groningen",
@@ -152,7 +155,7 @@ experience in Python, JAX and scalable AI infrastructure.`,
         "Managed structured and unstructured data migration and analysis across cloud and on-premise infrastructures.",
         "Founded and led an internal upskilling group, conducting weekly sessions on statistics and machine learning."
       ],
-      stack: ["Data pipelines", "Deep learning", "SQL (SQL Server, MySQL)", "MongoDB", "Workshops & mentoring", "Python"]
+      stack: ["Data pipelines", "Deep learning", "Model serving (REST/gRPC)", "Kubernetes", "Azure", "Databricks", "SQL (SQL Server, MySQL)", "MongoDB", "Workshops & mentoring", "Python"]
     },
     {
       company: "Neudesic Global Services LLC",
@@ -191,18 +194,20 @@ experience in Python, JAX and scalable AI infrastructure.`,
         "Multi-agent systems", "Cognitive modelling"
       ],
       "Machine learning": [
-        "Deep learning", "Computer vision", "NLP (spaCy, NLTK)", "JAX", "PyTorch",
+        "Deep learning", "Graph neural networks", "LLMs & agentic workflows",
+        "Computer vision", "NLP (spaCy, NLTK)", "JAX", "PyTorch",
         "TensorFlow & Keras", "Scikit-learn", "XGBoost"
       ],
       "ML engineering & infrastructure": [
-        "GPU experiment sweeps", "MLflow", "Docker", "Git & CI/CD", "Linux",
-        "Library & API design"
+        "GPU experiment sweeps", "CUDA", "Slurm & HPC clusters", "MLflow", "Docker",
+        "Kubernetes", "Azure", "Databricks", "Model serving (REST/gRPC)", "Git & CI/CD",
+        "Linux", "Library & API design"
       ],
       "Data": [
         "Data pipelines", "Knowledge graphs", "SQL (SQL Server, MySQL)", "MongoDB",
         "Data warehousing", "Power BI", "Tableau"
       ],
-      "Programming languages": ["Python", "C++", "C#", "Julia", "JavaScript", "PowerShell"],
+      "Programming languages": ["Python", "C++", "Rust", "C#", "Julia", "JavaScript", "PowerShell"],
       "Communication": [
         "Academic writing", "LaTeX & TikZ", "Quarto", "Teaching", "Workshops & mentoring"
       ],

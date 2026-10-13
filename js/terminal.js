@@ -359,7 +359,9 @@
     }
 
     appendLine(
-      makeExtLink("[Download PDF]", DATA.profile.cv)
+      makeExtLink("[Download CV]", DATA.profile.cv) +
+        "  " +
+        makeExtLink("[Academic CV]", DATA.profile.academicCv)
     );
     appendLine("");
     appendLine(

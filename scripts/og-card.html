@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!-- Social preview card (1200x630), rendered to images/og-card.png by
+     scripts/make-og.sh. Content comes from js/data.js. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    background: #181825;
+    font-family: 'Fira Code', monospace;
+    color: #cdd6f4;
+    padding: 36px;
+  }
+  .frame {
+    height: 100%;
+    border: 2px solid #6c7086;
+    background: #1e1e2e;
+    display: flex;
+    flex-direction: column;
+  }
+  .bar {
+    padding: 10px 20px;
+    border-bottom: 2px solid #45475a;
+    color: #89b4fa;
+    font-size: 22px;
+  }
+  .body { flex: 1; padding: 36px 44px; display: flex; flex-direction: column; }
+  .prompt { color: #a6e3a1; font-size: 26px; }
+  h1 { font-size: 66px; color: #cba6f7; margin-top: 10px; line-height: 1.1; }
+  h1::before { content: '> '; color: #a6e3a1; }
+  .headline { font-size: 30px; color: #fab387; font-weight: 700; margin-top: 16px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .tag { border: 2px solid #45475a; padding: 2px 14px; font-size: 22px; color: #a6adc8; }
+  .footer { margin-top: auto; display: flex; justify-content: space-between; font-size: 22px; }
+  .avail { color: #a6e3a1; }
+  .url { color: #94e2d5; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="bar">┌─ v3rm1@portfolio:~</div>
+    <div class="body">
+      <div class="prompt">$ whoami</div>
+      <h1 id="name"></h1>
+      <div class="headline" id="headline"></div>
+      <div class="tags" id="tags"></div>
+      <div class="footer">
+        <span class="avail">● Open to roles in DACH from early 2028</span>
+        <span class="url">v3rm1.github.io</span>
+      </div>
+    </div>
+  </div>
+  <script src="../js/data.js"></script>
+  <script>
+    const p = DATA.profile;
+    document.getElementById("name").textContent = p.name;
+    document.getElementById("headline").textContent = p.headline;
+    for (const s of p.topSkills) {
+      const t = document.createElement("span");
+      t.className = "tag";
+      t.textContent = s;
+      document.getElementById("tags").appendChild(t);
+    }
+  </script>
+</body>
+</html>
