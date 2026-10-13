@@ -1,25 +1,10 @@
 (function () {
   const output = document.getElementById("output");
-  const input = document.getElementById("command-input");
-  const inputLine = document.getElementById("input-line");
   const terminalBody = document.getElementById("terminal-body");
   const sidebar = document.getElementById("sidebar");
-
-  const history = [];
-  let historyIndex = -1;
-
-  // ── Shortcut keys ─────────────────────────────────────────────
-  // Number keys instead of F-keys: F1/F5/F7 belong to the browser
-  // (help, reload, caret browsing) and need fn on most Mac keyboards.
-  const shortcutMap = {
-    1: "help",
-    2: "about",
-    3: "projects",
-    4: "cv",
-    5: "skills",
-    6: "publications",
-    7: "contact",
-  };
+  const hero = document.querySelector(".hero");
+  const statusPath = document.getElementById("status-path");
+  const frameTitle = document.getElementById("frame-title");
 
   // ── Boot sequence ──────────────────────────────────────────────
   const bootLines = [
@@ -32,7 +17,7 @@
     { text: "[SYS]  Session started.", delay: 200 },
     { text: "", delay: 100 },
     { text: "Welcome to v3rm1's portfolio terminal.", delay: 100, cls: "color-green bold" },
-    { text: "Type 'help' or select a command from the sidebar.", delay: 100, cls: "color-comment" },
+    { text: "Select a section from the menu.", delay: 100, cls: "color-comment" },
     { text: "", delay: 50 }
   ];
 
@@ -42,7 +27,7 @@
       .replace(/(OK)$/, '<span class="color-green bold">$1</span>');
   }
 
-  // Boot animation plays once per session, is skipped on any key or tap,
+  // Boot animation plays once per session, is skipped on any click or tap,
   // and never plays for visitors who prefer reduced motion.
   let skipBoot = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   try {
@@ -54,33 +39,32 @@
     skipBoot = true;
   }
 
+  // The boot log is the home pane's output. A section chosen mid-boot
+  // replaces the pane, so the animation stops writing once it is gone.
+  let booting = false;
+
   async function boot() {
-    inputLine.classList.add("hidden");
-    document.addEventListener("keydown", skipBootHandler);
+    booting = true;
     document.addEventListener("pointerdown", skipBootHandler);
     for (const line of bootLines) {
       if (!skipBoot) await delay(line.delay);
-      const div = document.createElement("div");
-      div.className = "output-line";
-      if (line.cls) {
-        div.className += " " + line.cls;
-        div.textContent = line.text;
-      } else {
-        div.innerHTML = colorBootLine(line.text);
-      }
-      output.appendChild(div);
+      if (!booting) break;
+      output.appendChild(bootLine(line));
     }
-    if (!skipBoot) await delay(200);
-    document.removeEventListener("keydown", skipBootHandler);
+    booting = false;
     document.removeEventListener("pointerdown", skipBootHandler);
-    inputLine.classList.remove("hidden");
-    focusInput();
   }
 
-  // Focusing on touch devices pops up the on-screen keyboard over the page.
-  const finePointer = window.matchMedia("(pointer: fine)").matches;
-  function focusInput() {
-    if (finePointer) input.focus({ preventScroll: true });
+  function bootLine(line) {
+    const div = document.createElement("div");
+    div.className = "output-line boot-line";
+    if (line.cls) {
+      div.className += " " + line.cls;
+      div.textContent = line.text;
+    } else {
+      div.innerHTML = colorBootLine(line.text);
+    }
+    return div;
   }
 
   function delay(ms) {
@@ -88,14 +72,25 @@
   }
 
   // ── Scroll helper ──────────────────────────────────────────────
-  function scrollToBottom() {
-    terminalBody.scrollTop = terminalBody.scrollHeight;
+  // Phones scroll the window, wider screens scroll the main panel.
+  function scrollToTop() {
+    terminalBody.scrollTop = 0;
+    window.scrollTo(0, 0);
   }
 
   // ── Output helpers ─────────────────────────────────────────────
+  // Leading spaces become a left indent and a "- " bullet a hanging
+  // indent, so wrapped text stays aligned on narrow screens.
   function appendLine(html, cls) {
     const div = document.createElement("div");
     div.className = "output-line" + (cls ? " " + cls : "");
+    const [, spaces, bullet] = html.match(/^( *)(- )?/);
+    if (spaces || bullet) {
+      const hang = bullet ? 2 : 0;
+      div.style.paddingLeft = spaces.length + hang + "ch";
+      div.style.textIndent = -hang + "ch";
+      html = html.slice(spaces.length);
+    }
     div.innerHTML = html;
     output.appendChild(div);
   }
@@ -111,8 +106,9 @@
     appendLine("────────────────────────────────────────────", "separator");
   }
 
-  function makeClickable(text, cmd) {
-    return `<span class="clickable" data-cmd="${cmd}">[${text}]</span>`;
+  function makeClickable(text, cmd, bare) {
+    const label = bare ? text : `[${text}]`;
+    return `<button type="button" class="clickable" data-cmd="${cmd}">${label}</button>`;
   }
 
   function makeExtLink(text, url) {
@@ -120,44 +116,21 @@
   }
 
   // ── Sidebar highlight ─────────────────────────────────────────
+  // `project x` highlights `projects`, `skills x` highlights `skills`.
   function setActiveSidebar(cmd) {
+    const section = cmd === "project" ? "projects" : cmd;
     sidebar.querySelectorAll(".sidebar-item").forEach((item) => {
-      item.classList.toggle("active", item.dataset.cmd === cmd);
+      const active = item.dataset.cmd === section;
+      item.classList.toggle("active", active);
+      if (active) item.setAttribute("aria-current", "page");
+      else item.removeAttribute("aria-current");
     });
   }
 
   // ── Commands ───────────────────────────────────────────────────
   const commands = {};
 
-  commands.help = function () {
-    const rows = [
-      ["help", "Show available commands"],
-      ["about", "About me"],
-      ["skills", "Skills by capability, with evidence"],
-      ["skills &lt;name&gt;", "Where I used a skill, e.g. skills jax"],
-      ["projects", "List all projects"],
-      ["project &lt;name&gt;", "View a specific project"],
-      ["timeline", "Career path at a glance"],
-      ["cv", "View my CV"],
-      ["teaching", "Courses I have taught"],
-      ["publications", "View my publications"],
-      ["blog", "Latest blog posts"],
-      ["contact", "Contact info & social links"],
-      ["whoami", "Display current user identity"],
-      ["neofetch", "System information"],
-      ["clear", "Clear the terminal"]
-    ];
-    let html = '<div class="help-table">';
-    for (const [cmd, desc] of rows) {
-      html += `<span class="help-cmd">${cmd}</span><span class="help-desc">${desc}</span>`;
-    }
-    html += "</div>";
-    appendBlock(html);
-  };
-
   commands.about = function () {
-    appendLine('<span class="color-purple bold">About Me</span>');
-    appendSeparator();
     appendBlock(escapeHtml(DATA.about));
     appendLine(
       makeClickable("skills", "skills") +
@@ -187,7 +160,7 @@
       );
       if (!matches.length) {
         appendLine(`<span class="color-red">No skill matching: ${escapeHtml(query)}</span>`);
-        appendLine('<span class="color-comment">Use \'skills\' to see them all</span>');
+        appendLine(makeClickable("all skills", "skills"), "color-comment");
         return;
       }
       for (const s of matches) {
@@ -206,8 +179,6 @@
       return;
     }
 
-    appendLine('<span class="color-purple bold">Skills</span>');
-    appendSeparator();
     const groups = {};
     for (const s of SKILLS) (groups[s.group] ||= []).push(s);
     for (const [group, skills] of Object.entries(groups)) {
@@ -231,13 +202,11 @@
     appendLine("  " + DATA.skills.languages.map(escapeHtml).join(" · "));
     appendLine("");
     appendLine(
-      '<span class="color-comment">Numbers count linked projects, roles and papers. Click a skill to see them.</span>'
+      '<span class="color-comment">Numbers count linked projects, roles and papers. Select a skill to see them.</span>'
     );
   };
 
   commands.projects = function () {
-    appendLine('<span class="color-purple bold">Projects</span>');
-    appendSeparator();
 
     for (const category of DATA.projectCategories) {
       const entries = Object.entries(DATA.projects).filter(
@@ -247,31 +216,23 @@
       appendLine(`<span class="color-orange bold">${escapeHtml(category)}</span>`);
       for (const [key, p] of entries) {
         appendLine(
-          `  <span class="clickable" data-cmd="project ${key}">${key}</span>  <span class="color-comment">— ${escapeHtml(p.title)}</span>`
+          `<div class="row">${makeClickable(key, "project " + key, true)}<span class="color-comment">— ${escapeHtml(p.title)}</span></div>`
         );
       }
       appendLine("");
     }
 
-    appendLine(
-      '<span class="color-comment">Type \'project &lt;name&gt;\' to view details</span>'
-    );
+    appendLine('<span class="color-comment">Select a project for details.</span>');
   };
 
   commands.project = function (args) {
     const name = args.trim().toLowerCase();
-    if (!name) {
-      appendLine('<span class="color-red">Usage: project &lt;name&gt;</span>');
-      return;
-    }
     const p = DATA.projects[name];
     if (!p) {
       appendLine(
         `<span class="color-red">Project not found: ${escapeHtml(name)}</span>`
       );
-      appendLine(
-        '<span class="color-comment">Use \'projects\' to see available projects</span>'
-      );
+      appendLine(makeClickable("projects", "projects"), "color-comment");
       return;
     }
 
@@ -291,8 +252,6 @@
   };
 
   commands.timeline = function () {
-    appendLine('<span class="color-purple bold">Timeline</span>');
-    appendSeparator();
     appendLine(`<span class="color-comment">${escapeHtml(TIMELINE_SUMMARY)}</span>`);
     appendLine("");
     for (const t of TIMELINE) {
@@ -310,8 +269,6 @@
   };
 
   commands.teaching = function () {
-    appendLine('<span class="color-purple bold">Teaching</span>');
-    appendSeparator();
     for (const t of TEACHING) {
       appendLine(
         `<span class="color-cyan bold">${escapeHtml(t.org)}</span> | ${escapeHtml(t.role)}`
@@ -325,8 +282,6 @@
   };
 
   commands.cv = function () {
-    appendLine('<span class="color-purple bold">Curriculum Vitae</span>');
-    appendSeparator();
 
     appendLine('<span class="color-orange bold">Experience</span>');
     for (const e of DATA.experience) {
@@ -375,8 +330,6 @@
   };
 
   commands.publications = function () {
-    appendLine('<span class="color-purple bold">Publications</span>');
-    appendSeparator();
 
     for (let i = 0; i < DATA.publications.length; i++) {
       const p = DATA.publications[i];
@@ -400,8 +353,6 @@
   };
 
   commands.blog = function () {
-    appendLine('<span class="color-purple bold">Blog</span>');
-    appendSeparator();
     if (!POSTS.length) {
       appendLine('<span class="color-comment">No posts yet.</span>');
     }
@@ -422,8 +373,6 @@
   };
 
   commands.contact = function () {
-    appendLine('<span class="color-purple bold">Contact</span>');
-    appendSeparator();
 
     const c = DATA.contact;
     appendLine(
@@ -441,28 +390,6 @@
     appendLine(
       `  <span class="color-orange">Location:</span> ${escapeHtml(c.location)}`
     );
-  };
-
-  commands.clear = function () {
-    output.innerHTML = "";
-  };
-
-  commands.whoami = function () {
-    appendLine(
-      '<span class="color-green bold">Varun Ravi Varma</span> <span class="color-comment">—</span> ' +
-      '<span class="color-purple">AI Research Scientist & Software Engineer</span> <span class="color-comment">@ Grimstad, Norway</span>'
-    );
-  };
-
-  // ── Easter eggs ────────────────────────────────────────────────
-  commands.sudo = function () {
-    appendLine('<span class="color-red bold">[sudo] password for guest: ********</span>');
-    appendLine('<span class="color-red">Access denied. Nice try though.</span>');
-  };
-
-  commands.exit = function () {
-    appendLine('<span class="color-comment">Logout...</span>');
-    appendLine('<span class="color-green bold">Just kidding. You can\'t leave. Stay a while.</span>');
   };
 
   commands.neofetch = function () {
@@ -492,131 +419,82 @@
     return div.innerHTML;
   }
 
-  // ── Execute command ────────────────────────────────────────────
-  function execute(raw) {
-    const trimmed = raw.trim();
-    if (!trimmed) return;
-
-    appendLine(
-      `<span class="history-prompt">v3rm1@portfolio:~$</span> <span class="history-cmd">${escapeHtml(trimmed)}</span>`
-    );
-
-    const parts = trimmed.split(/\s+/);
-    const cmd = parts[0].toLowerCase();
-    const args = parts.slice(1).join(" ");
-
-    history.push(trimmed);
-    historyIndex = history.length;
-
-    setActiveSidebar(cmd);
-
-    // Easter egg: rm -rf /
-    if (trimmed === "rm -rf /" || trimmed === "rm -rf / --no-preserve-root") {
-      appendLine('<span class="color-red bold">🔥 Deleting everything...</span>');
-      appendLine('<span class="color-red">rm: cannot remove \'/portfolio\': Permission denied</span>');
-      appendLine('<span class="color-comment">This is a portfolio, not a real filesystem. Relax.</span>');
-    } else if (commands[cmd]) {
-      commands[cmd](args);
-    } else {
-      appendLine(
-        `<span class="color-red">command not found: ${escapeHtml(cmd)}. Type 'help' for available commands.</span>`
-      );
-    }
-
-    appendLine("");
-    scrollToBottom();
+  // ── Panes ──────────────────────────────────────────────────────
+  // Every section is a pane addressed by the URL hash (`#projects`,
+  // `#skills/jax`), so the back button and shared links work. An empty
+  // hash is the home pane: the hero and the boot log.
+  function hashToCmd(hash) {
+    const h = decodeURIComponent(hash.replace(/^#/, ""));
+    // Static-content anchors used by the hero tags and no-JS links.
+    const skill = h.match(/^skill-(.+)$/);
+    if (skill) return "skills " + skill[1];
+    return h.split("/").join(" ").trim();
   }
 
-  // ── Input handling ─────────────────────────────────────────────
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const partial = input.value.trim().toLowerCase();
-      if (!partial) return;
-      const allCmds = Object.keys(commands);
-      const matches = allCmds.filter((c) => c.startsWith(partial));
-      if (matches.length === 1) {
-        input.value = matches[0];
-      } else if (matches.length > 1) {
-        appendLine(
-          `<span class="history-prompt">v3rm1@portfolio:~$</span> <span class="history-cmd">${escapeHtml(partial)}</span>`
-        );
-        appendLine(matches.join("  "), "color-cyan");
-        appendLine("");
-        scrollToBottom();
-      }
-    } else if (e.key === "Enter") {
-      const val = input.value;
-      input.value = "";
-      execute(val);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      if (historyIndex > 0) {
-        historyIndex--;
-        input.value = history[historyIndex];
-      }
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (historyIndex < history.length - 1) {
-        historyIndex++;
-        input.value = history[historyIndex];
-      } else {
-        historyIndex = history.length;
-        input.value = "";
-      }
+  function cmdToHash(cmd) {
+    return cmd ? "#" + cmd.trim().split(/\s+/).join("/") : "";
+  }
+
+  function render(raw) {
+    const parts = raw.trim().split(/\s+/);
+    let cmd = parts[0].toLowerCase();
+    const args = parts.slice(1).join(" ");
+    if (!commands[cmd]) cmd = "";
+
+    booting = false;
+    output.innerHTML = "";
+    hero.hidden = cmd !== "";
+    if (cmd) {
+      commands[cmd](args);
+    } else {
+      for (const line of bootLines) output.appendChild(bootLine(line));
     }
-  });
 
-  // ── Shortcut handling ──────────────────────────────────────────
-  // Only fires while the prompt is empty, so digits can still be typed
-  // as part of a command.
-  document.addEventListener("keydown", function (e) {
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (inputLine.classList.contains("hidden") || input.value) return;
-    if (shortcutMap[e.key]) {
-      e.preventDefault();
-      execute(shortcutMap[e.key]);
-      focusInput();
+    setActiveSidebar(cmd);
+    const path = "~/" + (cmd ? [cmd, args].filter(Boolean).join("/") : "");
+    statusPath.textContent = path;
+    frameTitle.textContent = "─ v3rm1@portfolio:" + path + " ";
+    scrollToTop();
+  }
+
+  function navigate(cmd) {
+    const hash = cmdToHash(cmd);
+    if (hash === location.hash) {
+      render(cmd);
+    } else if (hash) {
+      location.hash = hash;
+    } else {
+      // Going home: drop the hash without leaving a bare "#" in the URL.
+      history.pushState(null, "", location.pathname + location.search);
+      render("");
     }
-  });
+  }
 
-  // ── Sidebar click handling ─────────────────────────────────────
-  sidebar.addEventListener("click", function (e) {
-    const item = e.target.closest(".sidebar-item");
-    if (!item) return;
-    const cmd = item.dataset.cmd;
-    execute(cmd);
-    focusInput();
-  });
+  // Also fires on back/forward between panes, including back to home.
+  window.addEventListener("hashchange", () => render(hashToCmd(location.hash)));
 
-  // ── Hero section links ─────────────────────────────────────────
-  // Without JS these anchors jump to the static sections instead.
-  document.querySelector(".hero").addEventListener("click", function (e) {
+  // ── Pointer handling ───────────────────────────────────────────
+  // Sidebar buttons, hero links and inline commands all carry data-cmd.
+  // Hero anchors fall back to the static sections when JS is off.
+  document.addEventListener("click", function (e) {
     const el = e.target.closest("[data-cmd]");
     if (!el) return;
     e.preventDefault();
-    execute(el.dataset.cmd);
-    focusInput();
+    navigate(el.dataset.cmd);
   });
 
-  // ── Inline clickable elements ──────────────────────────────────
-  output.addEventListener("click", function (e) {
-    const el = e.target.closest(".clickable");
-    if (!el) return;
-    const cmd = el.dataset.cmd;
-    if (cmd) {
-      execute(cmd);
-      focusInput();
-    }
-  });
-
-  // ── Focus input on main panel click ────────────────────────────
-  terminalBody.addEventListener("click", function (e) {
-    if (!e.target.closest(".clickable") && !e.target.closest("a")) {
-      focusInput();
-    }
-  });
+  // ── Menu row overflow hint (phones) ────────────────────────────
+  // The row fades out on the right while more items are off-screen.
+  function updateMenuHint() {
+    const more = sidebar.scrollLeft + sidebar.clientWidth < sidebar.scrollWidth - 1;
+    sidebar.classList.toggle("has-more", more);
+  }
+  sidebar.addEventListener("scroll", updateMenuHint, { passive: true });
+  window.addEventListener("resize", updateMenuHint);
+  updateMenuHint();
 
   // ── Start ──────────────────────────────────────────────────────
-  boot();
+  const initial = hashToCmd(location.hash);
+  if (initial) render(initial);
+  else boot();
 })();

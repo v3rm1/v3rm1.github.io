@@ -151,7 +151,7 @@
     <!-- Top border with title -->
     <div class="tui-top-border">
       <span class="border-left">┌─ Commands ──┬</span>
-      <span class="border-title">─ v3rm1@portfolio:~ </span>
+      <span class="border-title" id="frame-title">─ v3rm1@portfolio:~/ </span>
       <span class="border-fill">────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────</span>
       <span class="border-right">┐</span>
     </div>
@@ -159,20 +159,20 @@
     <!-- Middle: sidebar + main -->
     <div class="tui-middle">
       <!-- Sidebar -->
-      <div class="tui-sidebar" id="sidebar">
+      <nav class="tui-sidebar" id="sidebar" aria-label="Menu">
         <div class="sidebar-header">NAVIGATION</div>
-        <div class="sidebar-item" data-cmd="help"> help</div>
-        <div class="sidebar-item" data-cmd="about"> about</div>
-        <div class="sidebar-item" data-cmd="projects"> projects</div>
-        <div class="sidebar-item" data-cmd="skills"> skills</div>
-        <div class="sidebar-item" data-cmd="timeline"> timeline</div>
-        <div class="sidebar-item" data-cmd="cv"> cv</div>
-        <div class="sidebar-item" data-cmd="teaching"> teaching</div>
-        <div class="sidebar-item" data-cmd="publications"> publications</div>
-        <div class="sidebar-item" data-cmd="blog"> blog</div>
-        <div class="sidebar-item" data-cmd="contact"> contact</div>
-        <div class="sidebar-item" data-cmd="clear"> clear</div>
-      </div>
+        <button type="button" class="sidebar-item" data-cmd="">home</button>
+        <button type="button" class="sidebar-item" data-cmd="about">about</button>
+        <button type="button" class="sidebar-item" data-cmd="projects">projects</button>
+        <button type="button" class="sidebar-item" data-cmd="skills">skills</button>
+        <button type="button" class="sidebar-item" data-cmd="timeline">timeline</button>
+        <button type="button" class="sidebar-item" data-cmd="cv">cv</button>
+        <button type="button" class="sidebar-item" data-cmd="teaching">teaching</button>
+        <button type="button" class="sidebar-item" data-cmd="publications">publications</button>
+        <button type="button" class="sidebar-item" data-cmd="blog">blog</button>
+        <button type="button" class="sidebar-item" data-cmd="contact">contact</button>
+        <button type="button" class="sidebar-item" data-cmd="neofetch">neofetch</button>
+      </nav>
 
       <!-- Main terminal panel -->
       <main class="tui-main" id="terminal-body">
@@ -204,10 +204,6 @@
   </header>
   <!-- GENERATED:hero END -->
         <div id="output" aria-live="polite"></div>
-        <div class="input-line" id="input-line">
-          <span class="prompt">v3rm1@portfolio:~$&nbsp;</span>
-          <input type="text" id="command-input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command">
-        </div>
         <!-- GENERATED:content START (scripts/build-static.mjs, do not edit by hand) -->
   <div id="static-content">
     <section id="about">
@@ -715,9 +711,7 @@ Stack: SpaCy, NLTK, GloVe, Rake, Scikit-Learn</p>
 
     <!-- Status bar -->
     <div class="tui-statusbar">
-      <span class="status-left" id="status-keys">
-        [1]Help [2]About [3]Projects [4]CV [5]Skills [6]Pubs [7]Contact
-      </span>
+      <span class="status-left" id="status-path">~/</span>
       <span class="status-right">
         v3rm1 │ Grimstad, NO
       </span>

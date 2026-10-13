@@ -60,8 +60,11 @@ html, body {
   flex-shrink: 0;
 }
 
+/* Shows the current pane's path; truncates rather than overflow. */
 .tui-top-border .border-title {
-  flex-shrink: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--blue);
 }
 
@@ -104,16 +107,34 @@ html, body {
 }
 
 .sidebar-item {
+  display: block;
+  width: 100%;
   padding: 1px 8px 1px 6px;
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
   color: var(--teal);
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.1s, color 0.1s;
 }
 
-.sidebar-item:hover {
-  background: var(--surface0);
-  color: var(--text);
+.sidebar-item::before {
+  content: ' ';
+}
+
+@media (hover: hover) {
+  .sidebar-item:hover {
+    background: var(--surface0);
+    color: var(--text);
+  }
+}
+
+.sidebar-item:focus-visible,
+.clickable:focus-visible {
+  outline: 1px solid var(--mauve);
+  outline-offset: -1px;
 }
 
 .sidebar-item.active {
@@ -234,41 +255,16 @@ html, body {
   margin-bottom: 10px;
 }
 
-/* ── Prompt and input ─────────────────────────────── */
-.input-line {
-  display: flex;
-  align-items: center;
-  margin-top: 4px;
+/* Name and description columns; the description wraps under itself. */
+.row {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0 2ch;
+  padding-left: 2ch;
 }
 
-.prompt {
-  color: var(--green);
-  white-space: nowrap;
-  font-weight: 700;
-}
-
-#command-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text);
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  caret-color: transparent;
-}
-
-/* Blinking block cursor */
-.input-line::after {
-  content: '▋';
-  color: var(--green);
-  animation: blink 1s step-end infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+.row .clickable {
+  justify-self: start;
 }
 
 /* ── Color utility classes ────────────────────────── */
@@ -285,15 +281,21 @@ html, body {
 
 /* ── Clickable inline commands ────────────────────── */
 .clickable {
+  padding: 0;
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--teal);
+  font: inherit;
   color: var(--teal);
   cursor: pointer;
-  text-decoration: none;
-  border-bottom: 1px dashed var(--teal);
+  text-align: left;
   transition: color 0.15s;
 }
 
-.clickable:hover {
-  color: var(--text);
+@media (hover: hover) {
+  .clickable:hover {
+    color: var(--text);
+  }
 }
 
 /* ── External links ───────────────────────────────── */
@@ -304,8 +306,10 @@ a.ext-link {
   transition: color 0.15s;
 }
 
-a.ext-link:hover {
-  color: var(--text);
+@media (hover: hover) {
+  a.ext-link:hover {
+    color: var(--text);
+  }
 }
 
 /* ── Separator ────────────────────────────────────── */
@@ -322,36 +326,6 @@ a.ext-link:hover {
 .boot-ok {
   color: var(--green);
   font-weight: 700;
-}
-
-/* ── History prompt echo ──────────────────────────── */
-.history-prompt {
-  color: var(--green);
-  font-weight: 700;
-}
-
-.history-cmd {
-  color: var(--text);
-}
-
-/* ── Help table ───────────────────────────────────── */
-.help-table {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2px 16px;
-}
-
-.help-cmd {
-  color: var(--teal);
-}
-
-.help-desc {
-  color: var(--overlay0);
-}
-
-/* ── Hidden input line (during boot) ──────────────── */
-.input-line.hidden {
-  display: none;
 }
 
 /* ── Hero ─────────────────────────────────────────── */
@@ -477,10 +451,6 @@ html.js #static-content {
   display: none;
 }
 
-html:not(.js) .input-line {
-  display: none;
-}
-
 #static-content section {
   margin-bottom: 24px;
 }
@@ -551,8 +521,64 @@ html:not(.js) .input-line {
     border: none;
   }
 
+  /* The sidebar becomes a menu row above the panel, scrolling sideways. */
+  .tui-middle {
+    flex-direction: column;
+  }
+
   .tui-sidebar {
+    width: auto;
+    display: flex;
+    flex-shrink: 0;
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-bottom: 1px solid var(--overlay0);
+    scrollbar-width: none;
+  }
+
+  .tui-sidebar::-webkit-scrollbar {
     display: none;
+  }
+
+  .tui-sidebar.has-more {
+    -webkit-mask-image: linear-gradient(to right, #000 80%, transparent);
+    mask-image: linear-gradient(to right, #000 80%, transparent);
+  }
+
+  /* Nobody scrolls past the hero to read it on a phone. */
+  .boot-line {
+    display: none;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .row .color-comment {
+    padding-left: 2ch;
+  }
+
+  .sidebar-header {
+    display: none;
+  }
+
+  .sidebar-item {
+    width: auto;
+    padding: 0 10px;
+    border-right: 1px solid var(--surface1);
+  }
+
+  .sidebar-item::before {
+    content: none;
+  }
+
+  .sidebar-item.active::after {
+    content: none;
+  }
+
+  .tui-main {
+    border-left: 1px solid var(--overlay0);
   }
 
   .tui-top-border .border-left {
@@ -587,17 +613,31 @@ html:not(.js) .input-line {
 
   .tui-statusbar {
     font-size: 12px;
-    flex-direction: column;
-    gap: 4px;
-    height: auto;
+    gap: 2ch;
+  }
+
+  .status-left {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .status-right {
-    text-align: right;
+    flex-shrink: 0;
+  }
+}
+
+/* ── Touch screens: finger-sized targets ──────────── */
+@media (pointer: coarse) {
+  .sidebar-item {
+    min-height: 44px;
   }
 
-  /* Keyboard shortcuts are no use on phones. */
-  .status-left {
-    display: none;
+  #output {
+    line-height: 2;
+  }
+
+  .clickable {
+    padding: 6px 0;
   }
 }
