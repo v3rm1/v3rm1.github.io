@@ -133,10 +133,13 @@
     const rows = [
       ["help", "Show available commands"],
       ["about", "About me"],
+      ["skills", "Skills by capability, with evidence"],
+      ["skills &lt;name&gt;", "Where I used a skill, e.g. skills jax"],
       ["projects", "List all projects"],
       ["project &lt;name&gt;", "View a specific project"],
+      ["timeline", "Career path at a glance"],
       ["cv", "View my CV"],
-      ["skills", "View my skills & tools"],
+      ["teaching", "Courses I have taught"],
       ["publications", "View my publications"],
       ["blog", "Latest blog posts"],
       ["contact", "Contact info & social links"],
@@ -157,12 +160,78 @@
     appendSeparator();
     appendBlock(escapeHtml(DATA.about));
     appendLine(
-      makeClickable("cv", "cv") +
+      makeClickable("skills", "skills") +
         "  " +
         makeClickable("projects", "projects") +
         "  " +
-        makeClickable("skills", "skills"),
+        makeClickable("timeline", "timeline"),
       "color-comment"
+    );
+  };
+
+  // Clickable skill names that run `skills <slug>`.
+  function skillTags(stack) {
+    return (stack || [])
+      .map((name) => {
+        const s = SKILLS.find((x) => x.name === name);
+        return s ? makeClickable(escapeHtml(name), "skills " + s.slug) : escapeHtml(name);
+      })
+      .join(" ");
+  }
+
+  commands.skills = function (args) {
+    const query = args.trim().toLowerCase();
+    if (query) {
+      const matches = SKILLS.filter(
+        (s) => s.slug === query || s.name.toLowerCase().includes(query)
+      );
+      if (!matches.length) {
+        appendLine(`<span class="color-red">No skill matching: ${escapeHtml(query)}</span>`);
+        appendLine('<span class="color-comment">Use \'skills\' to see them all</span>');
+        return;
+      }
+      for (const s of matches) {
+        appendLine(
+          `<span class="color-purple bold">${escapeHtml(s.name)}</span> <span class="color-comment">— ${escapeHtml(s.group)}</span>`
+        );
+        if (!s.evidence.length) {
+          appendLine('  <span class="color-comment">No linked project yet.</span>');
+        }
+        for (const e of s.evidence) {
+          appendLine(`  - ${makeClickable(escapeHtml(e.label), e.cmd)}`);
+        }
+        appendLine("");
+      }
+      appendLine(makeClickable("all skills", "skills"), "color-comment");
+      return;
+    }
+
+    appendLine('<span class="color-purple bold">Skills</span>');
+    appendSeparator();
+    const groups = {};
+    for (const s of SKILLS) (groups[s.group] ||= []).push(s);
+    for (const [group, skills] of Object.entries(groups)) {
+      appendLine(`<span class="color-orange bold">${escapeHtml(group)}</span>`);
+      appendLine(
+        "  " +
+          skills
+            .map(
+              (s) =>
+                makeClickable(escapeHtml(s.name), "skills " + s.slug) +
+                (s.evidence.length ? `<span class="color-comment">(${s.evidence.length})</span>` : "")
+            )
+            .join("  ")
+      );
+      appendLine("");
+    }
+    appendLine('<span class="color-orange bold">Also used</span>');
+    appendLine("  " + DATA.skills.alsoUsed.map(escapeHtml).join(" · "));
+    appendLine("");
+    appendLine('<span class="color-orange bold">Languages</span>');
+    appendLine("  " + DATA.skills.languages.map(escapeHtml).join(" · "));
+    appendLine("");
+    appendLine(
+      '<span class="color-comment">Numbers count linked projects, roles and papers. Click a skill to see them.</span>'
     );
   };
 
@@ -170,29 +239,20 @@
     appendLine('<span class="color-purple bold">Projects</span>');
     appendSeparator();
 
-    const research = [];
-    const personal = [];
-    for (const [key, p] of Object.entries(DATA.projects)) {
-      if (p.category === "Research") research.push([key, p]);
-      else personal.push([key, p]);
-    }
-
-    appendLine('<span class="color-orange bold">Research</span>');
-    for (const [key, p] of research) {
-      appendLine(
-        `  <span class="clickable" data-cmd="project ${key}">${key}</span>  <span class="color-comment">— ${p.title}</span>`
+    for (const category of DATA.projectCategories) {
+      const entries = Object.entries(DATA.projects).filter(
+        ([, p]) => p.category === category
       );
+      if (!entries.length) continue;
+      appendLine(`<span class="color-orange bold">${escapeHtml(category)}</span>`);
+      for (const [key, p] of entries) {
+        appendLine(
+          `  <span class="clickable" data-cmd="project ${key}">${key}</span>  <span class="color-comment">— ${escapeHtml(p.title)}</span>`
+        );
+      }
+      appendLine("");
     }
 
-    appendLine("");
-    appendLine('<span class="color-orange bold">Personal</span>');
-    for (const [key, p] of personal) {
-      appendLine(
-        `  <span class="clickable" data-cmd="project ${key}">${key}</span>  <span class="color-comment">— ${p.title}</span>`
-      );
-    }
-
-    appendLine("");
     appendLine(
       '<span class="color-comment">Type \'project &lt;name&gt;\' to view details</span>'
     );
@@ -216,9 +276,13 @@
     }
 
     appendLine(`<span class="color-purple bold">${escapeHtml(p.title)}</span>`);
-    appendLine(`<span class="color-orange">${p.category} Project</span>`);
+    appendLine(
+      `<span class="color-orange">${escapeHtml(p.category)}</span>` +
+        (p.status ? ` <span class="color-comment">· ${escapeHtml(p.status)}</span>` : "")
+    );
     appendSeparator();
     appendBlock(escapeHtml(p.description));
+    appendLine('<span class="color-comment">Skills:</span> ' + skillTags(p.stack));
     if (p.link) {
       appendLine(makeExtLink("[View on GitHub]", p.link));
     }
@@ -226,23 +290,43 @@
     appendLine(makeClickable("projects", "projects"), "color-comment");
   };
 
-  commands.cv = function () {
-    appendLine('<span class="color-purple bold">Curriculum Vitae</span>');
+  commands.timeline = function () {
+    appendLine('<span class="color-purple bold">Timeline</span>');
     appendSeparator();
+    appendLine(`<span class="color-comment">${escapeHtml(TIMELINE_SUMMARY)}</span>`);
+    appendLine("");
+    for (const t of TIMELINE) {
+      const marker = t.kind === "education" ? "◆" : "●";
+      appendLine(
+        `<span class="color-cyan">${marker}</span> <span class="bold">${escapeHtml(t.title)}</span>, ${escapeHtml(t.org)}`
+      );
+      appendLine(`  <span class="color-comment">${escapeHtml(t.when)}</span>`);
+    }
+    appendLine("");
+    appendLine(
+      '<span class="color-comment"><span class="color-cyan">◆</span> education  <span class="color-cyan">●</span> work</span>'
+    );
+    appendLine(makeClickable("cv", "cv") + "  " + makeClickable("skills", "skills"), "color-comment");
+  };
 
-    appendLine('<span class="color-orange bold">Education</span>');
-    for (const e of DATA.education) {
+  commands.teaching = function () {
+    appendLine('<span class="color-purple bold">Teaching</span>');
+    appendSeparator();
+    for (const t of TEACHING) {
       appendLine(
-        `  <span class="color-cyan bold">${escapeHtml(e.institution)}</span> | ${escapeHtml(e.degree)}`
+        `<span class="color-cyan bold">${escapeHtml(t.org)}</span> | ${escapeHtml(t.role)}`
       );
-      appendLine(
-        `  <span class="color-comment">${escapeHtml(e.period)} | ${escapeHtml(e.location)}</span>`
-      );
-      for (const d of e.details) {
-        appendLine(`    - ${escapeHtml(d)}`);
+      appendLine(`  <span class="color-comment">${escapeHtml(t.when)}</span>`);
+      for (const c of t.courses) {
+        appendLine(`    - ${escapeHtml(c)}`);
       }
       appendLine("");
     }
+  };
+
+  commands.cv = function () {
+    appendLine('<span class="color-purple bold">Curriculum Vitae</span>');
+    appendSeparator();
 
     appendLine('<span class="color-orange bold">Experience</span>');
     for (const e of DATA.experience) {
@@ -255,45 +339,37 @@
       for (const d of e.details) {
         appendLine(`    - ${escapeHtml(d)}`);
       }
+      appendLine("    " + skillTags(e.stack));
+      appendLine("");
+    }
+
+    appendLine('<span class="color-orange bold">Education</span>');
+    for (const e of DATA.education) {
+      appendLine(
+        `  <span class="color-cyan bold">${escapeHtml(e.institution)}</span> | ${escapeHtml(e.degree)}`
+      );
+      appendLine(
+        `  <span class="color-comment">${escapeHtml(e.period)} | ${escapeHtml(e.location)}</span>`
+      );
+      for (const d of e.details) {
+        appendLine(`    - ${escapeHtml(d)}`);
+      }
+      appendLine("    " + skillTags(e.stack));
       appendLine("");
     }
 
     appendLine(
-      makeExtLink("[Download PDF]", "files/cv/VRVarma_Academic_CV.pdf")
+      makeExtLink("[Download PDF]", DATA.profile.cv)
     );
     appendLine("");
     appendLine(
-      makeClickable("skills", "skills") +
+      makeClickable("timeline", "timeline") +
         "  " +
-        makeClickable("projects", "projects") +
+        makeClickable("teaching", "teaching") +
         "  " +
         makeClickable("publications", "publications"),
       "color-comment"
     );
-  };
-
-  commands.skills = function () {
-    appendLine('<span class="color-purple bold">Skills & Tools</span>');
-    appendSeparator();
-
-    appendLine('<span class="color-orange bold">Tools</span>');
-    for (const [cat, items] of Object.entries(DATA.skills.tools)) {
-      appendLine(`  <span class="color-cyan">${escapeHtml(cat)}:</span>`);
-      appendLine(`    ${items.map(escapeHtml).join(" · ")}`);
-    }
-
-    appendLine("");
-    appendLine('<span class="color-orange bold">Programming</span>');
-    for (const [cat, items] of Object.entries(DATA.skills.programming)) {
-      appendLine(`  <span class="color-cyan">${escapeHtml(cat)}:</span>`);
-      appendLine(`    ${items.map(escapeHtml).join(" · ")}`);
-    }
-
-    appendLine("");
-    appendLine('<span class="color-orange bold">Core Competencies</span>');
-    for (const c of DATA.skills.competencies) {
-      appendLine(`  - ${escapeHtml(c)}`);
-    }
   };
 
   commands.publications = function () {
@@ -305,11 +381,9 @@
       appendLine(
         `<span class="color-cyan bold">${i + 1}. ${escapeHtml(p.title)}</span>`
       );
-      let meta = `   <span class="color-orange">${escapeHtml(p.venue)}</span>`;
-      if (p.status === "Under Review") {
-        meta += ` <span class="color-comment">(Under Review)</span>`;
-      }
-      appendLine(meta);
+      appendLine(
+        `   <span class="color-orange">${escapeHtml(p.venue)}, ${escapeHtml(String(p.year))}</span>`
+      );
       if (p.doi) {
         appendLine(
           `   DOI: ${makeExtLink(p.doi, "https://doi.org/" + p.doi)}`
@@ -318,6 +392,7 @@
       appendLine(
         `   <span class="color-comment">${escapeHtml(p.description)}</span>`
       );
+      appendLine("   " + skillTags(p.stack));
       appendLine("");
     }
   };

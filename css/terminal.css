@@ -444,6 +444,34 @@ a.ext-link:hover {
   color: var(--teal);
 }
 
+/* ── Skill tags (hero and static content) ──────────── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tag {
+  padding: 0 8px;
+  border: 1px solid var(--surface1);
+  border-radius: 3px;
+  color: var(--subtext0);
+  font-size: 0.85em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tag:hover,
+.tag:focus-visible {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.hero-skills {
+  margin-top: 12px;
+}
+
 /* ── Static content (no-JS fallback, read by crawlers) ── */
 html.js #static-content {
   display: none;
@@ -488,6 +516,25 @@ html:not(.js) .input-line {
 
 #static-content .pre {
   white-space: pre-wrap;
+}
+
+#static-content article {
+  margin-bottom: 12px;
+}
+
+#static-content .skill-matrix dd {
+  margin-left: 2ch;
+  font-size: 0.9em;
+}
+
+#static-content .timeline {
+  list-style: none;
+  padding-left: 0;
+}
+
+/* Pages without the command sidebar (de/) need the left frame line. */
+.tui-main-full {
+  border-left: 1px solid var(--overlay0);
 }
 
 /* ── Responsive: narrow screens ───────────────────── */
