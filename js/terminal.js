@@ -138,6 +138,7 @@
       ["cv", "View my CV"],
       ["skills", "View my skills & tools"],
       ["publications", "View my publications"],
+      ["blog", "Latest blog posts"],
       ["contact", "Contact info & social links"],
       ["whoami", "Display current user identity"],
       ["neofetch", "System information"],
@@ -319,6 +320,28 @@
       );
       appendLine("");
     }
+  };
+
+  commands.blog = function () {
+    appendLine('<span class="color-purple bold">Blog</span>');
+    appendSeparator();
+    if (!POSTS.length) {
+      appendLine('<span class="color-comment">No posts yet.</span>');
+    }
+    for (const p of POSTS) {
+      appendLine(
+        `<span class="color-comment">${escapeHtml(p.date)}</span>  ` +
+          `<a class="ext-link" href="${p.url}">${escapeHtml(p.title)}</a>`
+      );
+      if (p.description) {
+        appendLine(`  <span class="color-comment">${escapeHtml(p.description)}</span>`);
+      }
+    }
+    appendLine("");
+    appendLine(
+      '<a class="ext-link" href="blog/">[All posts]</a>  ' +
+        '<a class="ext-link" href="blog/index.xml">[RSS]</a>'
+    );
   };
 
   commands.contact = function () {

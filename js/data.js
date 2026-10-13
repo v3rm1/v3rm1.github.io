@@ -5,7 +5,7 @@ const DATA = {
     name: "Varun Ravi Varma",
     headline: "AI Research Scientist — Reinforcement Learning & Multi-Agent Systems",
     tagline: "PhD researcher at the University of Agder building interpretable, multi-agent RL agents for long-horizon decision-making, with industry experience shipping ML and data pipelines.",
-    availability: null,
+    availability: "Open to research programmer and applied scientist roles in Germany, Austria or Switzerland (DACH) from early 2028.",
     location: "Grimstad, Norway",
     cv: "files/cv/VRVarma_Academic_CV.pdf"
   },
@@ -29,7 +29,7 @@ Languages: English (Fluent), German (A2 - Active Study)`,
     {
       institution: "University of Agder",
       degree: "PhD, Artificial Intelligence",
-      period: "Current",
+      period: "Expected completion 2027",
       location: "Grimstad, Norway",
       details: [
         "Doctoral Researcher specializing in Multi-Agent Reinforcement Learning (MARL), Sequential Decision-Making, and Model Interpretability.",

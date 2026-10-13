@@ -23,6 +23,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/terminal.css">
+  <link rel="alternate" type="application/rss+xml" title="Varun Ravi Varma — Blog" href="blog/index.xml">
 </head>
 <body>
   <div class="tui-frame">
@@ -45,6 +46,7 @@
         <div class="sidebar-item" data-cmd="cv"> cv</div>
         <div class="sidebar-item" data-cmd="skills"> skills</div>
         <div class="sidebar-item" data-cmd="publications"> publications</div>
+        <div class="sidebar-item" data-cmd="blog"> blog</div>
         <div class="sidebar-item" data-cmd="contact"> contact</div>
         <div class="sidebar-item" data-cmd="clear"> clear</div>
       </div>
@@ -56,7 +58,7 @@
     <h1 class="hero-name">Varun Ravi Varma</h1>
     <p class="hero-headline">AI Research Scientist — Reinforcement Learning &amp; Multi-Agent Systems</p>
     <p class="hero-tagline">PhD researcher at the University of Agder building interpretable, multi-agent RL agents for long-horizon decision-making, with industry experience shipping ML and data pipelines.</p>
-    
+    <p class="hero-availability">● Open to research programmer and applied scientist roles in Germany, Austria or Switzerland (DACH) from early 2028.</p>
     <div class="hero-cta">
       <a class="cta cta-primary" href="files/cv/VRVarma_Academic_CV.pdf" download>Download CV</a>
       <a class="cta" href="mailto:varunravivarma@gmail.com">Email me</a>
@@ -70,6 +72,7 @@
       <a class="hero-nav" href="#skills" data-cmd="skills">skills</a>
       <a class="hero-nav" href="#publications" data-cmd="publications">publications</a>
       <a class="hero-nav" href="#contact" data-cmd="contact">contact</a>
+      <a class="hero-nav" href="blog/">blog</a>
     </nav>
   </header>
   <!-- GENERATED:hero END -->
@@ -232,7 +235,7 @@ Stack: SpaCy, NLTK, GloVe, Rake, Scikit-Learn</p>
       <h3>Education</h3>
       <article>
         <h4>University of Agder <span class="color-comment">| PhD, Artificial Intelligence</span></h4>
-        <p class="color-comment">Current | Grimstad, Norway</p>
+        <p class="color-comment">Expected completion 2027 | Grimstad, Norway</p>
         <ul><li>Doctoral Researcher specializing in Multi-Agent Reinforcement Learning (MARL), Sequential Decision-Making, and Model Interpretability.</li><li>Developing algorithms for hierarchical planning, resource allocation, and trajectory analysis with a focus on emergent dynamics and long-horizon objectives in complex systems.</li></ul>
       </article>
       <article>
@@ -313,6 +316,11 @@ Stack: SpaCy, NLTK, GloVe, Rake, Scikit-Learn</p>
       </li>
       </ol>
     </section>
+    <section id="blog">
+      <h2>Blog</h2>
+      <ul><li><a class="ext-link" href="blog/posts/2026-10-13-jax-vs-pytorch-marl/">JAX vs PyTorch in High-Throughput MARL: Why Multi-Processing Fails</a> <span class="color-comment">2026-10-13</span></li><li><a class="ext-link" href="blog/posts/2026-10-13-legg-hutter-to-arc/">From Legg-Hutter to ARC: What Are We Actually Optimising?</a> <span class="color-comment">2026-10-13</span></li></ul>
+      <p><a class="ext-link" href="blog/">All posts</a> · <a class="ext-link" href="blog/index.xml">RSS</a></p>
+    </section>
     <section id="contact">
       <h2>Contact</h2>
       <ul>
@@ -354,6 +362,7 @@ Stack: SpaCy, NLTK, GloVe, Rake, Scikit-Learn</p>
   </div>
 
   <script src="js/data.js"></script>
+  <script src="js/posts.js"></script>
   <script src="js/terminal.js"></script>
 </body>
 </html>

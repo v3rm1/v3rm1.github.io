@@ -3,3 +3,4 @@ _site/
 .DS_Store
 graphify-out/
 node_modules/
+blog-src/.quarto/
