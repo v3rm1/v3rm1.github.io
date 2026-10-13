@@ -624,6 +624,441 @@ html.js #static-content {
   .status-right {
     flex-shrink: 0;
   }
+
+  .subpane-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ── Persistent Subpane Header ────────────────────── */
+.subpane-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+  background: var(--bg-highlight);
+  border: 1px solid var(--gutter);
+  border-radius: 4px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.subpane-identity {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.subpane-name {
+  color: var(--magenta);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.subpane-role {
+  color: var(--comment);
+  font-size: 0.85rem;
+}
+
+.subpane-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cta-compact {
+  padding: 2px 8px;
+  font-size: 0.82rem;
+  border-radius: 2px;
+}
+
+.cta-home {
+  background: none;
+  border: 1px solid var(--gutter);
+  color: var(--cyan);
+  cursor: pointer;
+  font: inherit;
+  transition: all 0.15s;
+}
+
+.cta-home:hover {
+  border-color: var(--cyan);
+  background: var(--bg);
+}
+
+/* ── Home Executive Spotlight ─────────────────────── */
+.home-spotlight {
+  margin-top: 10px;
+  margin-bottom: 14px;
+}
+
+.spotlight-header {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.spotlight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.spotlight-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 4px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.15s;
+}
+
+.spotlight-card:hover {
+  border-color: var(--blue);
+}
+
+.spotlight-card .card-title {
+  margin-bottom: 6px;
+  font-size: 0.92rem;
+}
+
+.spotlight-card .card-body {
+  color: var(--fg-dark);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  flex: 1;
+  margin-bottom: 8px;
+}
+
+.spotlight-card .card-link {
+  font-size: 0.84rem;
+}
+
+.spotlight-quicklinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--bg-dark);
+  border: 1px dashed var(--gutter);
+  border-radius: 4px;
+  font-size: 0.84rem;
+}
+
+/* ── Collapsible Boot Details ─────────────────────── */
+.boot-details {
+  margin-top: 10px;
+  border-top: 1px dashed var(--gutter);
+  padding-top: 8px;
+}
+
+.boot-summary {
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.82rem;
+  padding: 4px 0;
+  outline: none;
+}
+
+.boot-summary:hover {
+  color: var(--cyan);
+}
+
+.boot-log-container {
+  margin-top: 6px;
+  padding: 6px 10px;
+  background: var(--bg-dark);
+  border-radius: 3px;
+  font-size: 0.82rem;
+}
+
+/* ── Projects Navigation & Cards ──────────────────── */
+.projects-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--gutter);
+}
+
+.filter-btn {
+  background: none;
+  border: 1px solid var(--gutter);
+  color: var(--comment);
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-btn:hover {
+  color: var(--fg);
+  border-color: var(--cyan);
+}
+
+.filter-btn.active {
+  background: var(--bg-highlight);
+  color: var(--magenta);
+  border-color: var(--magenta);
+  font-weight: 700;
+}
+
+.project-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+
+.project-card:hover {
+  border-color: var(--cyan);
+}
+
+.project-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.project-card-title {
+  font-weight: 700;
+  color: var(--cyan);
+}
+
+.project-card-status {
+  font-size: 0.8rem;
+  color: var(--orange);
+}
+
+.project-card-desc {
+  font-size: 0.86rem;
+  color: var(--fg-dark);
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+.project-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.project-pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid var(--gutter);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ── Connected Vertical Timeline ──────────────────── */
+.timeline-rail {
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-step {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  position: relative;
+}
+
+.timeline-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timeline-glyph {
+  color: var(--cyan);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.timeline-connector {
+  flex: 1;
+  width: 1px;
+  background: var(--gutter);
+  margin: 2px 0;
+}
+
+.timeline-content {
+  padding-bottom: 14px;
+  padding-left: 6px;
+}
+
+.timeline-role {
+  font-weight: 700;
+  color: var(--fg);
+  font-size: 0.95rem;
+}
+
+.timeline-org {
+  color: var(--blue);
+  font-size: 0.9rem;
+}
+
+.timeline-date {
+  color: var(--comment);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+/* ── BibTeX Drawer & Copy Buttons ─────────────────── */
+.bibtex-toggle-btn {
+  background: none;
+  border: 1px solid var(--gutter);
+  color: var(--cyan);
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: all 0.15s;
+}
+
+.bibtex-toggle-btn:hover {
+  border-color: var(--magenta);
+  color: var(--magenta);
+}
+
+.bibtex-drawer {
+  margin-top: 8px;
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+
+.bibtex-code {
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: var(--fg-dark);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+.copy-btn {
+  background: var(--bg-highlight);
+  border: 1px solid var(--comment);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.76rem;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  float: right;
+  margin-bottom: 6px;
+  transition: all 0.15s;
+}
+
+.copy-btn:hover {
+  background: var(--cyan);
+  color: var(--bg);
+}
+
+.copy-inline-btn {
+  background: none;
+  border: 1px dashed var(--gutter);
+  color: var(--cyan);
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: all 0.15s;
+}
+
+.copy-inline-btn:hover {
+  border-color: var(--cyan);
+  background: var(--bg-highlight);
+}
+
+/* ── Skills Live Filter ───────────────────────────── */
+.skills-filter-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 4px;
+}
+
+.tui-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: var(--fg);
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.tui-input::placeholder {
+  color: var(--comment);
+}
+
+.skill-pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-dark);
+  border: 1px solid var(--gutter);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin: 2px 4px 2px 0;
+  font-size: 0.85rem;
+}
+
+.skill-pill.top-skill {
+  border-color: var(--purple);
+}
+
+.skill-count {
+  font-size: 0.75rem;
+  color: var(--comment);
+  margin-left: 4px;
+}
+
+/* ── Breadcrumb Button in Status Bar ──────────────── */
+.breadcrumb-btn {
+  background: none;
+  border: none;
+  color: var(--cyan);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.breadcrumb-btn:hover {
+  color: var(--fg);
 }
 
 /* ── Touch screens: finger-sized targets ──────────── */
