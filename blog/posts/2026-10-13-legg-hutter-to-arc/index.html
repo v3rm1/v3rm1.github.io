@@ -68,7 +68,7 @@ div.csl-indent {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-19954d71dda9073188f2520a411f1fcd.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-a716e0938d444ba54fac9c79b414e98f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-0e077db15f6727f4d61aff1d2d482489.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -1061,7 +1061,9 @@ Villalobos, Pablo, Anson Ho, Jaime Sevilla, Tamay Besiroglu, Lennart Heim, and M
     if (nav) {
       var li = document.createElement("li");
       li.className = "nav-item";
-      li.innerHTML = '<button type="button" id="blog-theme-toggle" class="nav-link theme-toggle-btn" style="background:none;border:none;cursor:pointer;" aria-label="Toggle theme">◐</button>';
+      var curTheme = document.documentElement.getAttribute("data-theme");
+      var label = curTheme === "light" ? "☀️ Light" : "🌙 Dark";
+      li.innerHTML = '<button type="button" id="blog-theme-toggle" class="nav-link theme-toggle-btn" style="background:none;border:none;cursor:pointer;" aria-label="Toggle theme">' + label + '</button>';
       nav.appendChild(li);
       document.getElementById("blog-theme-toggle").addEventListener("click", function () {
         var cur = document.documentElement.getAttribute("data-theme");
@@ -1069,9 +1071,11 @@ Villalobos, Pablo, Anson Ho, Jaime Sevilla, Tamay Besiroglu, Lennart Heim, and M
         if (next === "light") {
           document.documentElement.setAttribute("data-theme", "light");
           localStorage.setItem("theme", "light");
+          this.textContent = "☀️ Light";
         } else {
           document.documentElement.removeAttribute("data-theme");
           localStorage.setItem("theme", "dark");
+          this.textContent = "🌙 Dark";
         }
       });
     }

@@ -742,9 +742,13 @@
       if (next === "light") {
         document.documentElement.setAttribute("data-theme", "light");
         localStorage.setItem("theme", "light");
+        themeToggle.textContent = "☀️ Light";
+        themeToggle.setAttribute("aria-label", "Switch to dark theme");
       } else {
         document.documentElement.removeAttribute("data-theme");
         localStorage.setItem("theme", "dark");
+        themeToggle.textContent = "🌙 Dark";
+        themeToggle.setAttribute("aria-label", "Switch to light theme");
       }
       return;
     }
@@ -765,6 +769,12 @@
   updateMenuHint();
 
   // ── Start ──────────────────────────────────────────────────────
+  const currentTheme = document.documentElement.getAttribute("data-theme");
+  const themeToggleEl = document.getElementById("theme-toggle");
+  if (themeToggleEl) {
+    themeToggleEl.textContent = currentTheme === "light" ? "☀️ Light" : "🌙 Dark";
+  }
+
   const initial = hashToCmd(location.hash);
   render(initial || "");
 })();

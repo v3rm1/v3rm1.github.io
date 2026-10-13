@@ -356,6 +356,38 @@ svg.mermaid-js .labelBkg {
   background-color: $bg !important;
 }
 
+[data-theme="light"] {
+  svg.mermaid-js {
+    .cluster rect {
+      fill: #d5d6db !important;
+      stroke: #b4b5ba !important;
+    }
+    .cluster span.nodeLabel {
+      color: #343b58 !important;
+    }
+    .node rect, .node polygon, .node circle, .node path {
+      fill: #e1e2e7 !important;
+      stroke: #2e53a4 !important;
+    }
+    .node .label, .node .nodeLabel, text.actor {
+      color: #343b58 !important;
+      fill: #343b58 !important;
+    }
+    .edgePath .path {
+      stroke: #6172b0 !important;
+    }
+    .edgeLabel, .edgeLabel p, .labelBkg {
+      background-color: #e1e2e7 !important;
+      color: #343b58 !important;
+      fill: #343b58 !important;
+    }
+    .marker {
+      fill: #6172b0 !important;
+      stroke: #6172b0 !important;
+    }
+  }
+}
+
 // The full title truncates on phones; show the short handle instead.
 @media (max-width: 575.98px) {
   .navbar-brand::before {

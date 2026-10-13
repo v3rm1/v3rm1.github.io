@@ -66,7 +66,9 @@ format:
             if (nav) {
               var li = document.createElement("li");
               li.className = "nav-item";
-              li.innerHTML = '<button type="button" id="blog-theme-toggle" class="nav-link theme-toggle-btn" style="background:none;border:none;cursor:pointer;" aria-label="Toggle theme">◐</button>';
+              var curTheme = document.documentElement.getAttribute("data-theme");
+              var label = curTheme === "light" ? "☀️ Light" : "🌙 Dark";
+              li.innerHTML = '<button type="button" id="blog-theme-toggle" class="nav-link theme-toggle-btn" style="background:none;border:none;cursor:pointer;" aria-label="Toggle theme">' + label + '</button>';
               nav.appendChild(li);
               document.getElementById("blog-theme-toggle").addEventListener("click", function () {
                 var cur = document.documentElement.getAttribute("data-theme");
@@ -74,9 +76,11 @@ format:
                 if (next === "light") {
                   document.documentElement.setAttribute("data-theme", "light");
                   localStorage.setItem("theme", "light");
+                  this.textContent = "☀️ Light";
                 } else {
                   document.documentElement.removeAttribute("data-theme");
                   localStorage.setItem("theme", "dark");
+                  this.textContent = "🌙 Dark";
                 }
               });
             }
