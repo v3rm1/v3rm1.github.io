@@ -8,3 +8,5 @@ cv-src/*.aux
 cv-src/*.log
 cv-src/*.out
 cv-src/*.pdf
+__pycache__/
+*.pyc

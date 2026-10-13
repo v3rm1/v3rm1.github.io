@@ -1,0 +1,9 @@
+{"total": 30, "more": false, "hits": [
+  {"path": "/", "title": "Varun Ravi Varma", "event": false, "count": 12, "stats": []},
+  {"path": "/de/", "title": "Varun Ravi Varma (DE)", "event": false, "count": 3, "stats": []},
+  {"path": "/#projects", "title": "Varun Ravi Varma", "event": false, "count": 5, "stats": []},
+  {"path": "/#skills/jax", "title": "Varun Ravi Varma", "event": false, "count": 7, "stats": []},
+  {"path": "/blog/posts/2026-10-13-legg-hutter-to-arc/", "title": "From Legg-Hutter to ARC", "event": false, "count": 9, "stats": []},
+  {"path": "cv-industry", "title": "Download CV", "event": true, "count": 2, "stats": []},
+  {"path": "out-github.com", "title": "GitHub", "event": true, "count": 4, "stats": []}
+]}
