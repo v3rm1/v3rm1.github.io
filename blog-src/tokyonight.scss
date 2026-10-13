@@ -48,10 +48,65 @@ $mermaid-label-fg-color: $fg;
 $mermaid-font-family: "trebuchet ms", verdana, arial, sans-serif;
 
 $font-family-monospace: "Fira Code", "JetBrains Mono", Consolas, monospace;
+$font-family-base: $font-family-monospace;
+$font-size-root: 15px;
+$font-size-base: 0.9375rem; // exactly 15px when root is 16px, or 15px when root is 15px
+$line-height-base: 1.6;
 $headings-font-family: $font-family-monospace;
 $headings-color: $magenta;
+$h1-font-size: 1.65rem;
+$h2-font-size: 1.25rem;
+$h3-font-size: 1.05rem;
+$h4-font-size: 0.95rem;
 
 /*-- scss:rules --*/
+
+// ── Harmonised Root Typography ───────────────────────────────────
+html, body {
+  font-family: $font-family-monospace !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  color: $fg !important;
+}
+
+main.content, .page-columns .content {
+  font-size: 15px !important;
+  line-height: 1.65 !important;
+}
+
+.quarto-title .title {
+  font-size: 1.75rem !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.5px;
+}
+
+h2, .h2 {
+  font-size: 1.3rem !important;
+  margin-top: 1.8rem;
+  margin-bottom: 0.75rem;
+}
+
+h3, .h3 {
+  font-size: 1.1rem !important;
+  margin-top: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+p, li, dl {
+  font-size: 15px !important;
+  line-height: 1.65 !important;
+}
+
+.listing-title {
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+}
+
+.listing-description {
+  font-size: 0.9rem !important;
+  line-height: 1.55 !important;
+  color: $fg-dark !important;
+}
 
 // ── Reading Progress Bar ─────────────────────────────────────────
 #reading-progress {
