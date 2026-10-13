@@ -35,6 +35,7 @@ To elucidate why parametric scaling alone cannot yield Artificial General Intell
 ```{mermaid}
 %%| label: fig-empirical-vs-formal
 %%| fig-cap: "Empirical next-token interpolation over web corpora vs universal algorithmic induction under Occam's prior."
+%%{init: {"flowchart": {"wrappingWidth": 110, "nodeSpacing": 24, "padding": 8}}}%%
 flowchart TD
     subgraph Empirical ["Empirical paradigm"]
         direction TB
@@ -45,8 +46,8 @@ flowchart TD
 
     subgraph Formal ["Algorithmic paradigm"]
         direction TB
-        EnvSpace["Space of All Computable Environments E"] --> Occam["Occam Algorithmic Prior: 2^{-K(mu)}"]
-        Occam --> Universal["Legg-Hutter Universal Intelligence: Upsilon(pi)"]
+        EnvSpace["Space of All Computable Environments E"] --> Occam["Occam Algorithmic Prior: 2^(−K(μ))"]
+        Occam --> Universal["Legg-Hutter Universal Intelligence: Υ(π)"]
         Universal --> Fluid["Skill Acquisition Efficiency: ARC Formalism"]
         Fluid --> Search["Test-Time Verification & Structured Search"]
     end
@@ -93,7 +94,7 @@ While Legg and Hutter supply the uncomputable theoretical bound, François Choll
 ```{mermaid}
 %%| label: fig-arc-pipeline
 %%| fig-cap: "ARC evaluation pipeline: grounding novel program induction in core spatial and relational priors."
-flowchart LR
+flowchart TD
     Priors["Core Knowledge Priors: Objectness, Topology, Geometry"] --> SearchEngine["Inductive Program Synthesis Engine"]
     SearchEngine --> NovelTasks["Novel Few-Shot Grid Transformations"]
     NovelTasks --> Metric["Skill-Acquisition Efficiency: Generalisation Difficulty / (Priors + Experience)"]
@@ -182,7 +183,8 @@ The emerging paradigm of inference-time reasoning models, such as OpenAI o1/o3 [
 ```{mermaid}
 %%| label: fig-phase-transition
 %%| fig-cap: "The architectural phase transition: decoupling compute from static parameter counts through inference-time search."
-flowchart LR
+%%{init: {"flowchart": {"wrappingWidth": 110, "nodeSpacing": 24, "padding": 8}}}%%
+flowchart TD
     Parametric["Pre-Training Scaling: Fixed O(1) Feed-Forward Step"] --> Bottleneck{"Marginal Diminishing Returns"}
     Bottleneck --> InferenceShift["Inference-Time Scaling: Dynamic Search Flops"]
     InferenceShift --> MCTS["Tree Search & Branch Pruning"]

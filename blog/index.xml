@@ -44,7 +44,8 @@
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-empirical-vs-formal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div>
-<pre class="mermaid mermaid-js" data-label="fig-empirical-vs-formal">flowchart TD
+<pre class="mermaid mermaid-js" data-label="fig-empirical-vs-formal">%%{init: {"flowchart": {"wrappingWidth": 110, "nodeSpacing": 24, "padding": 8}}}%%
+flowchart TD
     subgraph Empirical ["Empirical paradigm"]
         direction TB
         Data["Trillions of Observed Human Tokens"] --&gt; Loss["Causal Next-Token Cross-Entropy Loss"]
@@ -54,8 +55,8 @@
 
     subgraph Formal ["Algorithmic paradigm"]
         direction TB
-        EnvSpace["Space of All Computable Environments E"] --&gt; Occam["Occam Algorithmic Prior: 2^{-K(mu)}"]
-        Occam --&gt; Universal["Legg-Hutter Universal Intelligence: Upsilon(pi)"]
+        EnvSpace["Space of All Computable Environments E"] --&gt; Occam["Occam Algorithmic Prior: 2^(−K(μ))"]
+        Occam --&gt; Universal["Legg-Hutter Universal Intelligence: Υ(π)"]
         Universal --&gt; Fluid["Skill Acquisition Efficiency: ARC Formalism"]
         Fluid --&gt; Search["Test-Time Verification &amp; Structured Search"]
     end
@@ -108,7 +109,7 @@ Figure&nbsp;1: Empirical next-token interpolation over web corpora vs universal 
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-arc-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div>
-<pre class="mermaid mermaid-js" data-label="fig-arc-pipeline">flowchart LR
+<pre class="mermaid mermaid-js" data-label="fig-arc-pipeline">flowchart TD
     Priors["Core Knowledge Priors: Objectness, Topology, Geometry"] --&gt; SearchEngine["Inductive Program Synthesis Engine"]
     SearchEngine --&gt; NovelTasks["Novel Few-Shot Grid Transformations"]
     NovelTasks --&gt; Metric["Skill-Acquisition Efficiency: Generalisation Difficulty / (Priors + Experience)"]
@@ -243,7 +244,8 @@ Figure&nbsp;3: Four-tier computational search hierarchy from direct navigation t
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-phase-transition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div>
-<pre class="mermaid mermaid-js" data-label="fig-phase-transition">flowchart LR
+<pre class="mermaid mermaid-js" data-label="fig-phase-transition">%%{init: {"flowchart": {"wrappingWidth": 110, "nodeSpacing": 24, "padding": 8}}}%%
+flowchart TD
     Parametric["Pre-Training Scaling: Fixed O(1) Feed-Forward Step"] --&gt; Bottleneck{"Marginal Diminishing Returns"}
     Bottleneck --&gt; InferenceShift["Inference-Time Scaling: Dynamic Search Flops"]
     InferenceShift --&gt; MCTS["Tree Search &amp; Branch Pruning"]
