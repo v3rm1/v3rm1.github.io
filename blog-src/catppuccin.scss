@@ -57,3 +57,20 @@ $headings-color: $mauve;
 a {
   text-decoration-color: rgba($blue, 0.4);
 }
+
+// Wide display maths and tables scroll inside their own box instead of
+// widening the whole page on narrow screens.
+.math.display {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+@media (max-width: 767.98px) {
+  main table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
