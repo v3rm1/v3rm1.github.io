@@ -767,12 +767,15 @@
 
   // ── Menu row overflow hint (phones) ────────────────────────────
   function updateMenuHint() {
+    if (!sidebar) return;
     const more = sidebar.scrollLeft + sidebar.clientWidth < sidebar.scrollWidth - 1;
     sidebar.classList.toggle("has-more", more);
   }
-  sidebar.addEventListener("scroll", updateMenuHint, { passive: true });
-  window.addEventListener("resize", updateMenuHint);
-  updateMenuHint();
+  if (sidebar) {
+    sidebar.addEventListener("scroll", updateMenuHint, { passive: true });
+    window.addEventListener("resize", updateMenuHint);
+    updateMenuHint();
+  }
 
   // ── Start ──────────────────────────────────────────────────────
   const currentTheme = document.documentElement.getAttribute("data-theme");

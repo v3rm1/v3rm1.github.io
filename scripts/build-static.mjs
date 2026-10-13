@@ -368,21 +368,23 @@ function germanPage() {
   </script>
 </head>
 <body>
-  <div class="tui-frame">
-    <header class="tui-window-titlebar" aria-hidden="true">
-      <div class="window-controls">
-        <span class="window-dot dot-close"></span>
-        <span class="window-dot dot-minimize"></span>
-        <span class="window-dot dot-maximize"></span>
-      </div>
-      <div class="window-title">v3rm1@portfolio:~/de</div>
-      <div class="window-right">
-        <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Theme umschalten" title="Theme umschalten">◐</button>
-        <div class="window-badge">zsh · de</div>
+  <div class="site-wrapper">
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="header-brand" href="../">Varun Ravi Varma</a>
+        <nav class="header-nav" aria-label="Navigation">
+          <a class="nav-link" href="../">English (Full Site)</a>
+          <a class="nav-link" href="../#projects">Projekte</a>
+          <a class="nav-link" href="../#skills">Kompetenzen</a>
+          <a class="nav-link" href="../#cv">Lebenslauf</a>
+        </nav>
+        <div class="header-actions">
+          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Theme umschalten" title="Theme umschalten">🌙 Dark</button>
+        </div>
       </div>
     </header>
-    <div class="tui-middle">
-      <main class="tui-main tui-main-full">
+    <main class="site-main">
+      <div class="site-container">
         <header class="hero">
           <h1 class="hero-name">${esc(p.name)}</h1>
           <p class="hero-headline">${esc(de.headline)}</p>
@@ -430,19 +432,15 @@ function germanPage() {
             </ul>
           </section>
         </div>
-      </main>
-    </div>
-    <footer class="tui-statusbar" aria-hidden="true">
-      <div class="status-left">
-        <span class="status-mode">STATIC</span>
-        <span class="status-path">~/de</span>
       </div>
-      <div class="status-right">
-        <span>v3rm1</span>
-        <span class="status-separator">│</span>
-        <span>Grimstad, NO</span>
-        <span class="status-separator">│</span>
-        <span>de-DE</span>
+    </main>
+    <footer class="site-footer">
+      <div class="site-container footer-inner">
+        <span>© 2026 Varun Ravi Varma</span>
+        <span class="footer-dot">·</span>
+        <span>Grimstad, NO / Heidelberg</span>
+        <span class="footer-dot">·</span>
+        <span id="status-path" hidden>~/de</span>
       </div>
     </footer>
   </div>

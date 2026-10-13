@@ -157,40 +157,35 @@
   </script>
 </head>
 <body>
-  <div class="tui-frame">
-    <!-- Modern Terminal Window Titlebar -->
-    <header class="tui-window-titlebar">
-      <div class="window-controls" aria-hidden="true">
-        <span class="window-dot dot-close"></span>
-        <span class="window-dot dot-minimize"></span>
-        <span class="window-dot dot-maximize"></span>
-      </div>
-      <div class="window-title" id="frame-title">v3rm1@portfolio:~/</div>
-      <div class="window-right">
-        <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark/light theme" title="Toggle theme">◐</button>
-        <div class="window-badge" aria-hidden="true">zsh · main</div>
+  <div class="site-wrapper">
+    <!-- Clean Site Header -->
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="header-brand" href="#top">Varun Ravi Varma</a>
+        <nav class="header-nav" id="sidebar" aria-label="Main Navigation">
+          <button type="button" class="sidebar-item" data-cmd="">Home</button>
+          <button type="button" class="sidebar-item" data-cmd="about">About</button>
+          <button type="button" class="sidebar-item" data-cmd="projects">Projects</button>
+          <button type="button" class="sidebar-item" data-cmd="skills">Skills</button>
+          <button type="button" class="sidebar-item" data-cmd="timeline">Timeline</button>
+          <button type="button" class="sidebar-item" data-cmd="cv">CV</button>
+          <button type="button" class="sidebar-item" data-cmd="teaching">Teaching</button>
+          <button type="button" class="sidebar-item" data-cmd="publications">Publications</button>
+          <button type="button" class="sidebar-item" data-cmd="blog">Blog</button>
+          <button type="button" class="sidebar-item" data-cmd="contact">Contact</button>
+        </nav>
+        <div class="header-actions">
+          <button type="button" id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark/light theme" title="Toggle theme">🌙 Dark</button>
+        </div>
       </div>
     </header>
 
-    <!-- Middle: sidebar + main -->
-    <div class="tui-middle">
-      <!-- Sidebar -->
-      <nav class="tui-sidebar" id="sidebar" aria-label="Menu">
-        <div class="sidebar-header">NAVIGATION</div>
-        <button type="button" class="sidebar-item" data-cmd=""><span class="sidebar-icon">~</span> home</button>
-        <button type="button" class="sidebar-item" data-cmd="about"><span class="sidebar-icon">✦</span> about</button>
-        <button type="button" class="sidebar-item" data-cmd="projects"><span class="sidebar-icon">⚙</span> projects</button>
-        <button type="button" class="sidebar-item" data-cmd="skills"><span class="sidebar-icon">⚡</span> skills</button>
-        <button type="button" class="sidebar-item" data-cmd="timeline"><span class="sidebar-icon">⧗</span> timeline</button>
-        <button type="button" class="sidebar-item" data-cmd="cv"><span class="sidebar-icon">📄</span> cv</button>
-        <button type="button" class="sidebar-item" data-cmd="teaching"><span class="sidebar-icon">☕</span> teaching</button>
-        <button type="button" class="sidebar-item" data-cmd="publications"><span class="sidebar-icon">✍</span> publications</button>
-        <button type="button" class="sidebar-item" data-cmd="blog"><span class="sidebar-icon">↗</span> blog</button>
-        <button type="button" class="sidebar-item" data-cmd="contact"><span class="sidebar-icon">✉</span> contact</button>
-      </nav>
-
-      <!-- Main terminal panel -->
-      <main class="tui-main" id="terminal-body">
+    <!-- Main Container -->
+    <main class="site-main" id="terminal-body">
+      <div class="site-container">
+        <!-- Hidden elements for test & tracking compatibility -->
+        <span id="frame-title" hidden></span>
+        <span id="status-path" hidden>~/</span>
         <!-- GENERATED:hero START (scripts/build-static.mjs, do not edit by hand) -->
   <header class="hero" id="top">
     <h1 class="hero-name">Varun Ravi Varma</h1>
@@ -704,22 +699,17 @@ Stack: SpaCy, NLTK, GloVe, Rake, Scikit-Learn</p>
     </section>
   </div>
   <!-- GENERATED:content END -->
-      </main>
-    </div>
-
-    <!-- Integrated Modern Status Bar -->
-    <footer class="tui-statusbar">
-      <div class="status-left">
-        <span class="status-mode" aria-hidden="true">NORMAL</span>
-        <span class="status-branch" aria-hidden="true"> main</span>
-        <span class="status-path" id="status-path">~/</span>
       </div>
-      <div class="status-right">
-        <span>v3rm1</span>
-        <span class="status-separator">│</span>
-        <span>Grimstad, NO</span>
-        <span class="status-separator">│</span>
-        <span>UTF-8</span>
+    </main>
+
+    <!-- Clean Site Footer -->
+    <footer class="site-footer">
+      <div class="site-container footer-inner">
+        <span>© 2026 Varun Ravi Varma</span>
+        <span class="footer-dot">·</span>
+        <span>Heidelberg / Grimstad</span>
+        <span class="footer-dot">·</span>
+        <a class="ext-link" href="blog/index.xml">RSS</a>
       </div>
     </footer>
   </div>
