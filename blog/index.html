@@ -48,7 +48,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-19954d71dda9073188f2520a411f1fcd.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-989247e610593b44a2a9c5f7f9b46d3a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-4e81a8fda35b8e899d376757ba8414df.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -105,6 +105,7 @@ ul.task-list li input[type="checkbox"] {
     }
   })
   </script>
+<style>html{ scroll-behavior: smooth; }</style>
 <meta name="theme-color" content="#16161e">
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
@@ -138,8 +139,10 @@ window.Quarto = {
 </script>
 
 <link rel="alternate" type="application/rss+xml" title="Varun Ravi Varma — Blog" href="index.xml" data-external="1"><meta property="og:title" content="Blog – Varun Ravi Varma — Blog">
+<meta property="og:description" content="Research notes on reinforcement learning, multi-agent systems and algorithmic theories of intelligence.">
 <meta property="og:site_name" content="Varun Ravi Varma — Blog">
 <meta name="twitter:title" content="Blog – Varun Ravi Varma — Blog">
+<meta name="twitter:description" content="Research notes on reinforcement learning, multi-agent systems and algorithmic theories of intelligence.">
 <meta name="twitter:card" content="summary">
 </head>
 
@@ -205,6 +208,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Blog</h1>
+<p class="subtitle lead">Research notes on reinforcement learning, multi-agent systems and algorithmic theories of intelligence.</p>
 </div>
 
 
@@ -221,11 +225,46 @@ window.Quarto = {
 </header>
 
 
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>Technical essays by <strong>Varun Ravi Varma</strong> (<a href="https://v3rm1.github.io/">~/home</a>). Code and experiment setups on <a href="https://github.com/v3rm1">GitHub</a>.</p>
+</div>
+</div>
+</div>
 
 
 
 
 <div class="quarto-listing quarto-listing-container-default" id="listing-listing">
+<div class="listing-actions-group">
+   <div class="input-group input-group-sm quarto-listing-sort">
+    <span class="input-group-text"><i class="bi bi-sort-down"></i></span>
+    <select id="listing-listing-sort" class="form-select" aria-label="Order By" onchange="window['quarto-listings']['listing-listing'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})">
+      <option value="" disabled="" selected="" hidden="">Order By</option>
+      <option value="index" data-direction="asc">Default</option>
+      <option value="listing-title" data-direction="asc">
+        Title
+      </option>
+      <option value="listing-date-sort" data-direction="asc">
+        Date - Oldest
+      </option>
+      <option value="listing-date-sort" data-direction="desc">
+        Date - Newest
+      </option>
+      <option value="listing-author" data-direction="asc">
+        Author
+      </option>
+    </select>
+  </div>
+    <div class="input-group input-group-sm quarto-listing-filter">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input type="text" class="search form-control" placeholder="Filter">
+    </div>
+</div>
 <div class="list quarto-listing-default">
 <div class="quarto-post image-right" data-index="0" data-categories="dGhlb3J5LW9mLWludGVsbGlnZW5jZSUyQ2FsZ29yaXRobWljLWluZm9ybWF0aW9uLXRoZW9yeSUyQ3JlaW5mb3JjZW1lbnQtbGVhcm5pbmclMkNyZWFzb25pbmc=" data-listing-date-sort="1791842400000" data-listing-file-modified-sort="1791899615433" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="11" data-listing-word-count-sort="2035">
 <div class="thumbnail"><a href="./posts/2026-10-13-legg-hutter-to-arc/index.html" class="no-external">
@@ -675,9 +714,25 @@ Varun Ravi Varma
   });
   </script>
 </div> <!-- /content -->
-<script>(function () { var s = document.createElement("script"); s.src = "/js/track.js"; document.body.appendChild(s); })();</script>
+<div id="reading-progress"></div>
+<script>
+  window.addEventListener("scroll", function () {
+    var h = document.documentElement;
+    var st = h.scrollTop || document.body.scrollTop;
+    var sh = h.scrollHeight || document.body.scrollHeight;
+    var p = (st / (sh - h.clientHeight)) * 100;
+    var el = document.getElementById("reading-progress");
+    if (el) el.style.width = p + "%";
+  });
+  (function () {
+    var s = document.createElement("script");
+    s.src = "/js/track.js";
+    document.body.appendChild(s);
+  })();
+</script>
 
 
 
 
+<script src="site_libs/quarto-html/zenscroll-min.js"></script>
 </body></html>

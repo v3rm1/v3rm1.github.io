@@ -236,13 +236,6 @@
             <div class="card-link">${makeClickable("View Career Timeline ▸", "timeline", true)}</div>
           </div>
         </div>
-        <div class="spotlight-quicklinks">
-          <span class="color-comment">Quick Explore:</span>
-          ${makeClickable("Projects", "projects")}
-          ${makeClickable("Skills Matrix", "skills")}
-          ${makeClickable("Timeline", "timeline")}
-          ${makeClickable("Publications", "publications")}
-        </div>
         <details class="boot-details" ${skipBoot ? "" : "open"}>
           <summary class="boot-summary color-comment">▶ System Boot Diagnostics (v3rm1 systems v1.0)</summary>
           <div class="boot-log-container" id="boot-log-box"></div>

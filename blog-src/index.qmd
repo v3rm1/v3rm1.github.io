@@ -1,13 +1,19 @@
 ---
 title: "Blog"
+subtitle: "Research notes on reinforcement learning, multi-agent systems and algorithmic theories of intelligence."
 listing:
   contents: posts
   sort: "date desc"
   type: default
   categories: true
-  sort-ui: false
-  filter-ui: false
+  sort-ui: true
+  filter-ui: true
   feed: true
 page-layout: full
 title-block-banner: false
 ---
+
+::: {.callout-note appearance="simple"}
+Technical essays by **Varun Ravi Varma** ([~/home](https://v3rm1.github.io/)). Code and experiment setups on [GitHub](https://github.com/v3rm1).
+:::
+

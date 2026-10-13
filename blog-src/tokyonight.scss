@@ -52,25 +52,169 @@ $headings-font-family: $font-family-monospace;
 $headings-color: $magenta;
 
 /*-- scss:rules --*/
+
+// ── Reading Progress Bar ─────────────────────────────────────────
+#reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, $cyan, $magenta);
+  z-index: 9999;
+  width: 0%;
+  transition: width 0.08s linear;
+}
+
+// ── Navbar ───────────────────────────────────────────────────────
+.navbar {
+  border-bottom: 1px solid $gutter !important;
+  background-color: $bg-dark !important;
+}
+
 .navbar-brand, .navbar .nav-link {
   font-family: $font-family-monospace;
 }
 
+.navbar-brand {
+  color: $magenta !important;
+  font-weight: 700;
+}
+
 .navbar-brand::before {
-  content: "> ";
+  content: "v3rm1@portfolio:~/blog$ ";
   color: $green;
+  font-weight: 400;
 }
 
 .quarto-listing .listing-title, .quarto-title .title {
   color: $magenta;
 }
 
-.listing-date, .listing-categories .listing-category {
+.listing-date {
   color: $comment;
+  font-family: $font-family-monospace;
+}
+
+// ── Category / Tag Pills ─────────────────────────────────────────
+.quarto-category, .listing-category {
+  font-family: $font-family-monospace;
+  background: $bg-dark !important;
+  border: 1px solid $gutter !important;
+  border-radius: 3px !important;
+  color: $fg-dark !important;
+  font-size: 0.8rem !important;
+  padding: 1px 7px !important;
+  text-decoration: none !important;
+  margin: 2px 4px 2px 0;
+  display: inline-block;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: $cyan !important;
+    color: $cyan !important;
+  }
 }
 
 a {
   text-decoration-color: rgba($blue, 0.4);
+}
+
+// ── Callouts ─────────────────────────────────────────────────────
+.callout {
+  background-color: $bg-dark !important;
+  border: 1px solid $gutter !important;
+  border-radius: 4px !important;
+  margin: 1.25rem 0;
+
+  &.callout-note {
+    border-left: 4px solid $cyan !important;
+    .callout-header { color: $cyan; }
+  }
+  &.callout-tip {
+    border-left: 4px solid $green !important;
+    .callout-header { color: $green; }
+  }
+  &.callout-warning {
+    border-left: 4px solid $orange !important;
+    .callout-header { color: $orange; }
+  }
+  &.callout-important, &.callout-caution {
+    border-left: 4px solid $magenta !important;
+    .callout-header { color: $magenta; }
+  }
+}
+
+// ── Code Blocks & Copy Button ────────────────────────────────────
+div.sourceCode {
+  border: 1px solid $gutter !important;
+  border-radius: 4px !important;
+  background-color: $bg-dark !important;
+}
+
+.code-copy-button {
+  background-color: $bg-highlight !important;
+  border: 1px solid $gutter !important;
+  color: $fg !important;
+  border-radius: 3px;
+
+  &:hover {
+    background-color: $cyan !important;
+    color: $bg !important;
+  }
+}
+
+// ── Floating Table of Contents ───────────────────────────────────
+#TOC {
+  font-family: $font-family-monospace;
+  font-size: 0.82rem;
+  border-left: 1px solid $gutter;
+  padding-left: 0.75rem;
+
+  .toc-active {
+    color: $magenta !important;
+    font-weight: 700;
+  }
+  a {
+    color: $comment;
+    &:hover {
+      color: $cyan;
+    }
+  }
+}
+
+// ── Metadata & Search ────────────────────────────────────────────
+.quarto-title-meta-heading {
+  font-family: $font-family-monospace;
+  color: $comment;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.quarto-title-meta-contents {
+  font-family: $font-family-monospace;
+  color: $cyan;
+  font-size: 0.9rem;
+}
+
+.quarto-listing input.search {
+  background-color: $bg-dark !important;
+  border: 1px solid $gutter !important;
+  color: $fg !important;
+  font-family: $font-family-monospace !important;
+  border-radius: 3px !important;
+  padding: 4px 10px !important;
+
+  &:focus {
+    border-color: $cyan !important;
+    outline: none;
+  }
+}
+
+.quarto-listing-category-title {
+  font-family: $font-family-monospace;
+  color: $orange;
+  font-weight: 700;
 }
 
 // Diagrams render after the page loads; hide their source until then.
@@ -88,6 +232,10 @@ svg.mermaid-js .labelBkg {
 
 // The full title truncates on phones; show the short handle instead.
 @media (max-width: 575.98px) {
+  .navbar-brand::before {
+    content: "> ";
+  }
+
   .navbar-title {
     font-size: 0;
   }

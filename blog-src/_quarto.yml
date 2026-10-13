@@ -31,15 +31,31 @@ format:
     theme: [darkly, tokyonight.scss]
     toc: true
     code-copy: true
+    reading-time: true
+    smooth-scroll: true
     link-external-newwindow: true
     # Tints the browser bar on phones to match the navbar.
     include-in-header:
       text: '<meta name="theme-color" content="#16161e">'
-    # Page views and link events (GoatCounter); see docs/analytics.md.
-    # Loaded from script so Quarto cannot rewrite the site-root path to
-    # one inside /blog/.
+    # Page views and link events (GoatCounter), plus reading progress bar.
     include-after-body:
-      text: '<script>(function () { var s = document.createElement("script"); s.src = "/js/track.js"; document.body.appendChild(s); })();</script>'
+      text: |
+        <div id="reading-progress"></div>
+        <script>
+          window.addEventListener("scroll", function () {
+            var h = document.documentElement;
+            var st = h.scrollTop || document.body.scrollTop;
+            var sh = h.scrollHeight || document.body.scrollHeight;
+            var p = (st / (sh - h.clientHeight)) * 100;
+            var el = document.getElementById("reading-progress");
+            if (el) el.style.width = p + "%";
+          });
+          (function () {
+            var s = document.createElement("script");
+            s.src = "/js/track.js";
+            document.body.appendChild(s);
+          })();
+        </script>
 
 execute:
   # Code cells run once locally; results are stored in _freeze/ and reused,

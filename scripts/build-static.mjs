@@ -123,11 +123,6 @@ function groupBy(items, key) {
 function hero() {
   const p = DATA.profile;
   const c = DATA.contact;
-  const nav = ["about", "skills", "projects", "timeline", "cv", "publications", "contact"]
-    .map((s) => `<a class="hero-nav" href="#${s}" data-cmd="${s}">${s}</a>`)
-    .concat('<a class="hero-nav" href="blog/">blog</a>')
-    .concat('<a class="hero-nav" href="de/" hreflang="de" lang="de">deutsch</a>')
-    .join("\n      ");
   const top = p.topSkills
     .map((n) => `<a class="tag" href="#skill-${skillSlug[n]}" data-cmd="skills ${skillSlug[n]}">${esc(n)}</a>`)
     .join(" ");
@@ -144,10 +139,8 @@ function hero() {
       <a class="cta" href="mailto:${esc(c.email)}">Email me</a>
       <a class="cta" href="${esc(c.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>
       <a class="cta" href="${esc(c.github)}" target="_blank" rel="noopener">GitHub</a>
+      <a class="cta" href="de/" hreflang="de" lang="de">Deutsch</a>
     </div>
-    <nav class="hero-navs" aria-label="Sections">
-      ${nav}
-    </nav>
   </header>
   `;
 }
