@@ -40,10 +40,24 @@
       .replace(/(OK)$/, '<span class="color-green bold">$1</span>');
   }
 
+  // Boot animation plays once per session, is skipped on any key or tap,
+  // and never plays for visitors who prefer reduced motion.
+  let skipBoot = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  try {
+    if (sessionStorage.getItem("booted")) skipBoot = true;
+    sessionStorage.setItem("booted", "1");
+  } catch (e) {}
+
+  function skipBootHandler() {
+    skipBoot = true;
+  }
+
   async function boot() {
     inputLine.classList.add("hidden");
+    document.addEventListener("keydown", skipBootHandler);
+    document.addEventListener("pointerdown", skipBootHandler);
     for (const line of bootLines) {
-      await delay(line.delay);
+      if (!skipBoot) await delay(line.delay);
       const div = document.createElement("div");
       div.className = "output-line";
       if (line.cls) {
@@ -53,11 +67,18 @@
         div.innerHTML = colorBootLine(line.text);
       }
       output.appendChild(div);
-      scrollToBottom();
     }
-    await delay(200);
+    if (!skipBoot) await delay(200);
+    document.removeEventListener("keydown", skipBootHandler);
+    document.removeEventListener("pointerdown", skipBootHandler);
     inputLine.classList.remove("hidden");
-    input.focus();
+    focusInput();
+  }
+
+  // Focusing on touch devices pops up the on-screen keyboard over the page.
+  const finePointer = window.matchMedia("(pointer: fine)").matches;
+  function focusInput() {
+    if (finePointer) input.focus({ preventScroll: true });
   }
 
   function delay(ms) {
@@ -449,7 +470,7 @@
     if (fKeyMap[e.key]) {
       e.preventDefault();
       execute(fKeyMap[e.key]);
-      input.focus();
+      focusInput();
     }
   });
 
@@ -459,7 +480,17 @@
     if (!item) return;
     const cmd = item.dataset.cmd;
     execute(cmd);
-    input.focus();
+    focusInput();
+  });
+
+  // ── Hero section links ─────────────────────────────────────────
+  // Without JS these anchors jump to the static sections instead.
+  document.querySelector(".hero").addEventListener("click", function (e) {
+    const el = e.target.closest("[data-cmd]");
+    if (!el) return;
+    e.preventDefault();
+    execute(el.dataset.cmd);
+    focusInput();
   });
 
   // ── Inline clickable elements ──────────────────────────────────
@@ -469,14 +500,14 @@
     const cmd = el.dataset.cmd;
     if (cmd) {
       execute(cmd);
-      input.focus();
+      focusInput();
     }
   });
 
   // ── Focus input on main panel click ────────────────────────────
   terminalBody.addEventListener("click", function (e) {
     if (!e.target.closest(".clickable") && !e.target.closest("a")) {
-      input.focus();
+      focusInput();
     }
   });
 

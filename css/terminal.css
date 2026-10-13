@@ -354,6 +354,142 @@ a.ext-link:hover {
   display: none;
 }
 
+/* ── Hero ─────────────────────────────────────────── */
+.hero {
+  padding: 12px 4px 14px;
+  margin-bottom: 8px;
+  border-bottom: 1px dashed var(--surface1);
+}
+
+.hero-name {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  color: var(--mauve);
+}
+
+.hero-name::before {
+  content: '> ';
+  color: var(--green);
+}
+
+.hero-headline {
+  margin-top: 4px;
+  color: var(--peach);
+  font-weight: 700;
+}
+
+.hero-tagline {
+  margin-top: 8px;
+  max-width: 70ch;
+  color: var(--subtext0);
+}
+
+.hero-availability {
+  margin-top: 8px;
+  color: var(--green);
+}
+
+.hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.cta {
+  padding: 4px 12px;
+  border: 1px solid var(--teal);
+  color: var(--teal);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.cta:hover,
+.cta:focus-visible {
+  background: var(--teal);
+  color: var(--base);
+}
+
+.cta-primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--base);
+  font-weight: 700;
+}
+
+.cta-primary:hover,
+.cta-primary:focus-visible {
+  background: var(--text);
+  border-color: var(--text);
+}
+
+.hero-navs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-top: 12px;
+}
+
+.hero-nav {
+  color: var(--overlay0);
+  text-decoration: none;
+}
+
+.hero-nav::before {
+  content: '$ ';
+}
+
+.hero-nav:hover,
+.hero-nav:focus-visible {
+  color: var(--teal);
+}
+
+/* ── Static content (no-JS fallback, read by crawlers) ── */
+html.js #static-content {
+  display: none;
+}
+
+html:not(.js) .input-line {
+  display: none;
+}
+
+#static-content section {
+  margin-bottom: 24px;
+}
+
+#static-content h2 {
+  color: var(--mauve);
+  font-size: 1.1rem;
+  border-bottom: 1px solid var(--surface1);
+  margin-bottom: 8px;
+}
+
+#static-content h3 {
+  color: var(--peach);
+  font-size: 1rem;
+  margin-top: 12px;
+}
+
+#static-content h4 {
+  color: var(--teal);
+  font-size: 1rem;
+  margin-top: 8px;
+}
+
+#static-content ul,
+#static-content ol {
+  padding-left: 2ch;
+}
+
+#static-content dt {
+  color: var(--teal);
+  margin-top: 4px;
+}
+
+#static-content .pre {
+  white-space: pre-wrap;
+}
+
 /* ── Responsive: narrow screens ───────────────────── */
 @media (max-width: 768px) {
   .tui-sidebar {
@@ -393,6 +529,10 @@ a.ext-link:hover {
     padding: 8px;
   }
 
+  .hero-name {
+    font-size: 1.4rem;
+  }
+
   body {
     font-size: 14px;
     overflow-y: auto;
@@ -407,16 +547,5 @@ a.ext-link:hover {
 
   .status-right {
     text-align: right;
-  }
-}
-nt-size: 16px;
-  }
-
-  body {
-    font-size: 14px;
-  }
-
-  .tui-statusbar {
-    font-size: 13px;
   }
 }

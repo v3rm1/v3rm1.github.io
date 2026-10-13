@@ -1,5 +1,16 @@
 const DATA = {
-  about: `AI Research Scientist specializing in Reinforcement Learning, Agentic AI,
+  // Hero shown above the terminal. `availability` is rendered only when set,
+  // e.g. "Open to research & applied-scientist roles from mid-2027".
+  profile: {
+    name: "Varun Ravi Varma",
+    headline: "AI Research Scientist — Reinforcement Learning & Multi-Agent Systems",
+    tagline: "PhD researcher at the University of Agder building interpretable, multi-agent RL agents for long-horizon decision-making, with industry experience shipping ML and data pipelines.",
+    availability: null,
+    location: "Grimstad, Norway",
+    cv: "files/cv/VRVarma_Academic_CV.pdf"
+  },
+
+  about:`AI Research Scientist specializing in Reinforcement Learning, Agentic AI,
 and Sequential Decision-Making. PhD candidate with a strong background in
 Multi-Agent Systems (MAS) and interpretable decision-making.
 
