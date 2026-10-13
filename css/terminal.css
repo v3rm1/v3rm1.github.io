@@ -548,4 +548,9 @@ html:not(.js) .input-line {
   .status-right {
     text-align: right;
   }
+
+  /* Keyboard shortcuts are no use on phones. */
+  .status-left {
+    display: none;
+  }
 }

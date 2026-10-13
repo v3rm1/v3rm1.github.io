@@ -8,15 +8,17 @@
   const history = [];
   let historyIndex = -1;
 
-  // ── F-key mappings ────────────────────────────────────────────
-  const fKeyMap = {
-    F1: "help",
-    F2: "about",
-    F3: "projects",
-    F4: "cv",
-    F5: "skills",
-    F6: "publications",
-    F7: "contact",
+  // ── Shortcut keys ─────────────────────────────────────────────
+  // Number keys instead of F-keys: F1/F5/F7 belong to the browser
+  // (help, reload, caret browsing) and need fn on most Mac keyboards.
+  const shortcutMap = {
+    1: "help",
+    2: "about",
+    3: "projects",
+    4: "cv",
+    5: "skills",
+    6: "publications",
+    7: "contact",
   };
 
   // ── Boot sequence ──────────────────────────────────────────────
@@ -465,11 +467,15 @@
     }
   });
 
-  // ── F-key handling ─────────────────────────────────────────────
+  // ── Shortcut handling ──────────────────────────────────────────
+  // Only fires while the prompt is empty, so digits can still be typed
+  // as part of a command.
   document.addEventListener("keydown", function (e) {
-    if (fKeyMap[e.key]) {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (inputLine.classList.contains("hidden") || input.value) return;
+    if (shortcutMap[e.key]) {
       e.preventDefault();
-      execute(fKeyMap[e.key]);
+      execute(shortcutMap[e.key]);
       focusInput();
     }
   });
