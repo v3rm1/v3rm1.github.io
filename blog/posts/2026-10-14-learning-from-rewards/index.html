@@ -132,9 +132,6 @@ div.csl-indent {
   }
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
-<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
-<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
-<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 <meta name="theme-color" content="#16161e">
 <script>
   (function () {
@@ -367,26 +364,15 @@ Figure&nbsp;1: Ada’s game of noughts and crosses on the kitchen table.
 <li><strong>Supervised Learning (Instructional Feedback):</strong> An external oracle provides ground-truth supervisory labels delineating the exact corrective action required in each scenario.</li>
 <li><strong>Reinforcement Learning (Evaluative Feedback):</strong> The environment supplies a scalar numerical reward evaluating how favourable the outcome was, without ever indicating whether an alternative, untaken action was superior.</li>
 </ol>
-<div class="cell" data-layout-align="default">
-<div class="cell-output-display">
-<div id="fig-rl-interaction-loop" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="fig-rl-interaction-loop" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-rl-interaction-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div>
-<pre class="mermaid mermaid-js" data-label="fig-rl-interaction-loop">%%{init: {"flowchart": {"wrappingWidth": 110, "nodeSpacing": 24, "padding": 8}}}%%
-flowchart LR
-    Agent["Agent (Decision Maker)"] -- "Action A_t" --&gt; Env["Environment (Rules &amp; Dynamics)"]
-    Env -- "State S_{t+1}" --&gt; Agent
-    Env -- "Reward R_{t+1}" --&gt; Agent
-</pre>
-</div>
+<img src="rl-interaction-loop.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:85.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rl-interaction-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: The closed-loop interaction cycle between agent and environment.
 </figcaption>
 </figure>
-</div>
-</div>
 </div>
 </section>
 <section id="why-supervision-fails-where-reinforcement-succeeds" class="level3" data-number="0.3">

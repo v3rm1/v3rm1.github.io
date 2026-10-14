@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 240" width="100%" height="100%">
+  <defs>
+    <!-- Arrowhead markers -->
+    <marker id="arrow-action" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#7dcfff"/>
+    </marker>
+    <marker id="arrow-state" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#9ece6a"/>
+    </marker>
+    <marker id="arrow-reward" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#e0af68"/>
+    </marker>
+    <!-- Drop shadow -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <style>
+    .node-box { fill: #1f2335; stroke-width: 2px; filter: url(#shadow); }
+    .node-title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 17px; font-weight: 700; text-anchor: middle; }
+    .node-sub { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; fill: #9aa5ce; text-anchor: middle; }
+    .badge-box { fill: #16161e; stroke-width: 1.5px; }
+    .badge-text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; text-anchor: middle; dominant-baseline: central; }
+    .flow-line { fill: none; stroke-width: 2.5px; }
+  </style>
+
+  <!-- Agent Box -->
+  <g transform="translate(40, 45)">
+    <rect class="node-box" stroke="#7aa2f7" width="190" height="150" rx="14"/>
+    <text class="node-title" fill="#7aa2f7" x="95" y="65">Agent</text>
+    <text class="node-sub" x="95" y="92">Decision Maker</text>
+    <text class="node-sub" x="95" y="112">(Policy π)</text>
+  </g>
+
+  <!-- Environment Box -->
+  <g transform="translate(510, 45)">
+    <rect class="node-box" stroke="#bb9af7" width="190" height="150" rx="14"/>
+    <text class="node-title" fill="#bb9af7" x="95" y="65">Environment</text>
+    <text class="node-sub" x="95" y="92">Rules &amp; Dynamics</text>
+    <text class="node-sub" x="95" y="112">(Opponent Counter-Play)</text>
+  </g>
+
+  <!-- Top Path: Agent -> Environment (Action) -->
+  <path class="flow-line" stroke="#7dcfff" marker-end="url(#arrow-action)" d="M 230 85 L 500 85" />
+  <g transform="translate(365, 85)">
+    <rect class="badge-box" stroke="#7dcfff" x="-75" y="-16" width="150" height="32" rx="6"/>
+    <text class="badge-text" fill="#7dcfff" x="0" y="0">Action A<tspan baseline-shift="sub" font-size="10">t</tspan></text>
+  </g>
+
+  <!-- Bottom Path 1: Environment -> Agent (State) -->
+  <path class="flow-line" stroke="#9ece6a" marker-end="url(#arrow-state)" d="M 510 135 L 240 135" />
+  <g transform="translate(365, 135)">
+    <rect class="badge-box" stroke="#9ece6a" x="-75" y="-16" width="150" height="32" rx="6"/>
+    <text class="badge-text" fill="#9ece6a" x="0" y="0">State S<tspan baseline-shift="sub" font-size="10">t+1</tspan></text>
+  </g>
+
+  <!-- Bottom Path 2: Environment -> Agent (Reward) -->
+  <path class="flow-line" stroke="#e0af68" marker-end="url(#arrow-reward)" d="M 510 170 L 240 170" />
+  <g transform="translate(365, 170)">
+    <rect class="badge-box" stroke="#e0af68" x="-75" y="-16" width="150" height="32" rx="6"/>
+    <text class="badge-text" fill="#e0af68" x="0" y="0">Reward R<tspan baseline-shift="sub" font-size="10">t+1</tspan></text>
+  </g>
+</svg>
