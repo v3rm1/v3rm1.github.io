@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Blog",
     "section": "",
-    "text": "Technical essays by Varun Ravi Varma (~/home). Code and experiment setups on GitHub.\n\n\n\n\n\n\n\n\n\n   \n    \n    \n      Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n      \n        Author\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\n\n\n\nFrom Legg-Hutter to ARC: What Are We Actually Optimising?\n\n\nMoving beyond next-token compression toward algorithmic information theory, skill acquisition efficiency, and structured search across latent manifolds.\n\n\n\ntheory-of-intelligence\n\nalgorithmic-information-theory\n\nreinforcement-learning\n\nreasoning\n\n\n\nA formal critique of parametric next-token scaling through the lens of algorithmic information theory (Legg-Hutter, AIXI), Chollet’s ARC skill acquisition efficiency, and multi-tier search ontologies.\n\n\n\n\n\nOct 13, 2026\n\n\nVarun Ravi Varma\n\n\n\n\n\nNo matching items"
+    "text": "Technical essays by Varun Ravi Varma (~/home). Code and experiment setups on GitHub.\n\n\n\n\n\n\n\n\n\n   \n    \n    \n      Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n      \n        Author\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\n\n\n\nLearning from Rewards: Tic-Tac-Toe and Value Functions\n\n\nSeason 1, Episode 00: Why trial, error, and credit assignment form the bedrock of reinforcement learning.\n\n\n\nreinforcement-learning\n\ngame-theory\n\npython\n\nfirst-principles\n\n\n\nA first-principles exposition of tabular value iteration on tic-tac-toe, spanning intuitive storytelling, interactive temporal credit updates, and formal Sutton & Barto mathematical foundations.\n\n\n\n\n\nOct 14, 2026\n\n\nVarun Ravi Varma\n\n\n\n\n\n\n\n\n\n\n\n\nFrom Legg-Hutter to ARC: What Are We Actually Optimising?\n\n\nMoving beyond next-token compression toward algorithmic information theory, skill acquisition efficiency, and structured search across latent manifolds.\n\n\n\ntheory-of-intelligence\n\nalgorithmic-information-theory\n\nreinforcement-learning\n\nreasoning\n\n\n\nA formal critique of parametric next-token scaling through the lens of algorithmic information theory (Legg-Hutter, AIXI), Chollet’s ARC skill acquisition efficiency, and multi-tier search ontologies.\n\n\n\n\n\nOct 13, 2026\n\n\nVarun Ravi Varma\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "posts/2026-10-13-legg-hutter-to-arc/index.html",
@@ -68,5 +68,40 @@
     "title": "From Legg-Hutter to ARC: What Are We Actually Optimising?",
     "section": "References",
     "text": "References\n\n\nChollet, François. 2019. On the Measure of Intelligence. https://arxiv.org/abs/1911.01547.\n\n\nDeepSeek-AI. 2025. DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning. https://arxiv.org/abs/2501.12948.\n\n\nHutter, Marcus. 2005. Universal Artificial Intelligence: Sequential Decisions Based on Algorithmic Probability. Texts in Theoretical Computer Science. Springer. https://doi.org/10.1007/b138233.\n\n\nLandauer, Rolf. 1961. “Irreversibility and Heat Generation in the Computing Process.” IBM Journal of Research and Development 5 (3): 183–91. https://doi.org/10.1147/rd.53.0183.\n\n\nLegg, Shane, and Marcus Hutter. 2007. “Universal Intelligence: A Definition of Machine Intelligence.” Minds and Machines 17 (4): 391–444. https://doi.org/10.1007/s11023-007-9079-x.\n\n\nLeike, Jan, and Marcus Hutter. 2015. “On the Computability of AIXI.” Proceedings of the 31st Conference on Uncertainty in Artificial Intelligence (UAI). https://arxiv.org/abs/1510.05572.\n\n\nLi, Ming, and Paul Vitányi. 2008. An Introduction to Kolmogorov Complexity and Its Applications. 3rd ed. Texts in Computer Science. Springer. https://doi.org/10.1007/978-0-387-49820-1.\n\n\nOpenAI. 2024. Learning to Reason with LLMs. https://openai.com/index/learning-to-reason-with-llms/.\n\n\nSolomonoff, Ray J. 1964. “A Formal Theory of Inductive Inference. Part I.” Information and Control 7 (1): 1–22. https://doi.org/10.1016/S0019-9958(64)90223-2.\n\n\nSpelke, Elizabeth S., and Katherine D. Kinzler. 2007. “Core Knowledge.” Developmental Science 10 (1): 89–96. https://doi.org/10.1111/j.1467-7687.2007.00569.x.\n\n\nVillalobos, Pablo, Anson Ho, Jaime Sevilla, Tamay Besiroglu, Lennart Heim, and Marius Hobbhahn. 2024. “Will We Run Out of Data? Limits of LLM Scaling Based on Human-Generated Data.” Proceedings of the 41st International Conference on Machine Learning (ICML). https://arxiv.org/abs/2211.04325."
+  },
+  {
+    "objectID": "posts/2026-10-14-learning-from-rewards/index.html",
+    "href": "posts/2026-10-14-learning-from-rewards/index.html",
+    "title": "Learning from Rewards: Tic-Tac-Toe and Value Functions",
+    "section": "",
+    "text": "NoteIn brief\n\n\n\nUnlike supervised learning, which relies on instructional corrective feedback from an external oracle, reinforcement learning systems discover optimal decision policies purely through active interaction, trial, error, and evaluative reward. This inaugural episode introduces the foundations of tabular value learning using the classic game of noughts and crosses (tic-tac-toe): formalising how delayed temporal credit cascades backwards through state-value estimates and how exploration mitigates sub-optimal policy collapse.\n\n\n\nGame: Tic-tac-toe (Noughts and Crosses)\nSource: Sutton & Barto, Reinforcement Learning: An Introduction (2nd ed.), Chapter 1, §1.1–1.7 (Sutton and Barto 2018)\nReading Time: Story ~5 min · Idea ~15 min · Maths & Code ~35 min\nSeries Index: RL from First Principles"
+  },
+  {
+    "objectID": "posts/2026-10-14-learning-from-rewards/index.html#game-theory-corner",
+    "href": "posts/2026-10-14-learning-from-rewards/index.html#game-theory-corner",
+    "title": "Learning from Rewards: Tic-Tac-Toe and Value Functions",
+    "section": "1 Game Theory Corner",
+    "text": "1 Game Theory Corner\nFrom an game-theoretic standpoint, tic-tac-toe is a finite, extensive-form, two-player zero-sum game with perfect information (Neumann and Morgenstern 1944). By Zermelo’s theorem, there exists a unique game-theoretic value under backwards induction: with optimal backward play, the game is a deterministic draw.\nArthur Samuel’s seminal 1959 checkers player (Samuel 1959) demonstrated that learning state values via linear parameter updates can approximate minimax tree search without exhaustive combinatorial expansion. When our tabular agent plays against an unvarying suboptimal adversary, it does not seek the game-theoretic minimax equilibrium; rather, it actively exploits the opponent’s systematic idiosyncrasies to maximise empirical payoff."
+  },
+  {
+    "objectID": "posts/2026-10-14-learning-from-rewards/index.html#glossary",
+    "href": "posts/2026-10-14-learning-from-rewards/index.html#glossary",
+    "title": "Learning from Rewards: Tic-Tac-Toe and Value Functions",
+    "section": "2 Glossary",
+    "text": "2 Glossary\n\nAgent: The active entity that observes state, computes policy, and executes actions.\nEnvironment: Everything external to the agent, specifying the transition dynamics and reward responses.\nState (\\(S_t\\)): The complete informational representation of the current configuration.\nValue Function (\\(V(s)\\)): The expected cumulative discounted future reward conditional on starting in state \\(s\\).\nTemporal-Difference Error (\\(\\delta_t\\)): The discrepancy between successive state value estimates: \\(\\delta_t = V(S_{t+1}) - V(S_t)\\).\nExploration vs Exploitation: The essential trade-off between trying novel actions to acquire information versus choosing known high-reward actions."
+  },
+  {
+    "objectID": "posts/2026-10-14-learning-from-rewards/index.html#next-in-the-series",
+    "href": "posts/2026-10-14-learning-from-rewards/index.html#next-in-the-series",
+    "title": "Learning from Rewards: Tic-Tac-Toe and Value Functions",
+    "section": "3 Next in the Series",
+    "text": "3 Next in the Series\nIn Season 1, Episode 01: Which Candy Machine?, we isolate the exploration-exploitation dilemma from delayed state transitions through the classic \\(k\\)-armed bandit framework.\n\nNext Episode: 01. Which Candy Machine? (Multi-Armed Bandits) (coming soon)"
+  },
+  {
+    "objectID": "posts/2026-10-14-learning-from-rewards/index.html#references",
+    "href": "posts/2026-10-14-learning-from-rewards/index.html#references",
+    "title": "Learning from Rewards: Tic-Tac-Toe and Value Functions",
+    "section": "References",
+    "text": "References\n\n\nNeumann, John von, and Oskar Morgenstern. 1944. Theory of Games and Economic Behavior. Princeton University Press.\n\n\nSamuel, Arthur L. 1959. “Some Studies in Machine Learning Using the Game of Checkers.” IBM Journal of Research and Development 3 (3): 210–29. https://doi.org/10.1147/rd.33.0210.\n\n\nSutton, Richard S., and Andrew G. Barto. 2018. Reinforcement Learning: An Introduction. 2nd ed. MIT Press. http://incompleteideas.net/book/the-book-2nd.html.\n\n\nWatkins, Christopher J. C. H., and Peter Dayan. 1992. “Q-Learning.” Machine Learning 8 (3–4): 279–92. https://doi.org/10.1007/BF00992698."
   }
 ]

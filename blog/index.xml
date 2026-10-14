@@ -10,7 +10,1106 @@
 <atom:link href="https://v3rm1.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>Notes on reinforcement learning, multi-agent systems and interpretable AI.</description>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Mon, 12 Oct 2026 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 13 Oct 2026 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>Learning from Rewards: Tic-Tac-Toe and Value Functions</title>
+  <dc:creator>Varun Ravi Varma</dc:creator>
+  <link>https://v3rm1.github.io/blog/posts/2026-10-14-learning-from-rewards/</link>
+  <description><![CDATA[ 
+
+
+
+
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>In brief
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Unlike supervised learning, which relies on instructional corrective feedback from an external oracle, reinforcement learning systems discover optimal decision policies purely through active interaction, trial, error, and evaluative reward. This inaugural episode introduces the foundations of tabular value learning using the classic game of noughts and crosses (tic-tac-toe): formalising how delayed temporal credit cascades backwards through state-value estimates and how exploration mitigates sub-optimal policy collapse.</p>
+<section id="episode-metadata" class="level3" data-number="0.1">
+<h3 data-number="0.1" class="anchored" data-anchor-id="episode-metadata"><span class="header-section-number">0.1</span> Episode Metadata</h3>
+<ul>
+<li><strong>Game:</strong> Tic-tac-toe (Noughts and Crosses)</li>
+<li><strong>Source:</strong> Sutton &amp; Barto, <em>Reinforcement Learning: An Introduction</em> (2nd ed.), Chapter 1, §1.1–1.7 <span class="citation" data-cites="sutton2018reinforcement">(Sutton and Barto 2018)</span></li>
+<li><strong>Reading Time:</strong> Story ~5 min · Idea ~15 min · Maths &amp; Code ~35 min</li>
+<li><strong>Series Index:</strong> <a href="../../index.html#rl-first-principles">RL from First Principles</a></li>
+</ul>
+</section>
+</div>
+</div>
+<div class="tabset-margin-container"></div><div class="panel-tabset" data-group="depth">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">Story</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">Idea</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" aria-controls="tabset-1-3" aria-selected="false" href="">Maths &amp; Code</a></li></ul>
+<div class="tab-content" data-group="depth">
+<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<p>Rain taps against the kitchen windowpane. Ada is six years old, and she is thoroughly bored. Grandpa Leo sets down his mug of Earl Grey tea, picks up an ink pen, and draws a crisp grid of nine squares on a sheet of scrap paper. Biscuit, his scruffy terrier, curls up quietly beneath the wooden table.</p>
+<p>“A game of noughts and crosses,” Grandpa Leo announces with a twinkle in his eye. “You shall play crosses. I shall play noughts.”</p>
+<p>Ada grips her pencil tightly. “How do I win, Grandpa?”</p>
+<p>Grandpa Leo leans back in his wicker chair and smiles. “I am not going to give you instructions or tell you where to move. We shall simply play, and you will discover it yourself.”</p>
+<div id="fig-story-tictactoe" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-story-tictactoe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://v3rm1.github.io/blog/posts/2026-10-14-learning-from-rewards/tictactoe-board.jpg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-story-tictactoe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Ada’s game of noughts and crosses on the kitchen table.
+</figcaption>
+</figure>
+</div>
+<p>Ada loses her very first game within four turns. She loses the second game as well. In the third encounter, however, she places her cross squarely in the centre square almost by accident. Suddenly Grandpa Leo pauses, studies the board carefully, and scratches his chin. Two moves later, Ada completes a diagonal line of three crosses. She leaps up from her chair and cheers!</p>
+<p>Ada runs over to the dresser, grabs a small blue notebook, and flips to a clean page. Every time a match concludes, she retraces the sequence of boards that unfolded along the way. Whenever a board layout leads directly to victory, she sketches a beaming happy face beside it. Whenever a layout leads to defeat, she sketches a frown. When a match ends in a stalemate, she sketches a neutral, flat line.</p>
+<p>After forty games across the afternoon, something magical begins to happen. Before placing her pencil onto paper, Ada glances across the empty squares and can almost feel which moves lead toward winning positions. She naturally selects the move that transitions the board into one carrying a happy face.</p>
+<p>Occasionally, however, she deliberately tests an unusual move that she has never tried before. “Why did you place your cross in that odd corner, Ada?” laughs Grandpa Leo. “That seems like an eccentric move!”</p>
+<p>“I am exploring,” Ada replies proudly. “Perhaps that square is secretly wonderful!”</p>
+<p>Most of the time, the eccentric move leads nowhere special. Yet once in a while, it reveals an ingenious trap that Grandpa Leo cannot block, earning a fresh smiley face in her little notebook.</p>
+<p>By teatime, Ada and Grandpa draw every single contest. Nobody ever handed Ada a handbook or dictated a fixed set of rules. She acquired mastery purely through interaction, rewards, and keen observation.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>What Would You Do?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If nobody ever explains the optimal strategy to you, how can you still systematically improve your skill at a game?</p>
+</div>
+</div>
+<hr>
+</div>
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
+<section id="learning-from-evaluative-feedback" class="level3" data-number="0.2">
+<h3 data-number="0.2" class="anchored" data-anchor-id="learning-from-evaluative-feedback"><span class="header-section-number">0.2</span> Learning from Evaluative Feedback</h3>
+<p>The fundamental distinction separating reinforcement learning from classical supervised learning lies in the nature of feedback:</p>
+<ol type="1">
+<li><strong>Supervised Learning (Instructional Feedback):</strong> An external oracle provides ground-truth supervisory labels delineating the exact corrective action required in each scenario.</li>
+<li><strong>Reinforcement Learning (Evaluative Feedback):</strong> The environment supplies a scalar numerical reward evaluating how favourable the outcome was, without ever indicating whether an alternative, untaken action was superior.</li>
+</ol>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-rl-interaction-loop" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rl-interaction-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-rl-interaction-loop">%%{init: {"flowchart": {"wrappingWidth": 110, "nodeSpacing": 24, "padding": 8}}}%%
+flowchart LR
+    Agent["Agent (Decision Maker)"] -- "Action A_t" --&gt; Env["Environment (Rules &amp; Dynamics)"]
+    Env -- "State S_{t+1}" --&gt; Agent
+    Env -- "Reward R_{t+1}" --&gt; Agent
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rl-interaction-loop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The closed-loop interaction cycle between agent and environment.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="why-supervision-fails-where-reinforcement-succeeds" class="level3" data-number="0.3">
+<h3 data-number="0.3" class="anchored" data-anchor-id="why-supervision-fails-where-reinforcement-succeeds"><span class="header-section-number">0.3</span> Why Supervision Fails Where Reinforcement Succeeds</h3>
+<p>Why can we not simply formulate game-playing and sequential control as standard supervised classification? Supervised learning requires an exhaustive training corpus of state-action pairs <img src="https://latex.codecogs.com/png.latex?(s,%20a%5E*)"> labelled with optimal decisions. In sequential domains, this paradigm suffers from three critical failure modes:</p>
+<ol type="1">
+<li><strong>The Oracle Paradox:</strong> For complex sequential decision problems, no omniscient human or computational oracle exists to provide optimal labels across the combinatorial explosion of states. If an expert already possessed the optimal policy for every board state, programming the system directly would be trivial, obviating the need for machine learning.</li>
+<li><strong>Imitation Ceiling and Sub-optimal Demonstration:</strong> A supervised model trained on behavioural cloning can never surpass the skill of the teacher who supplied the training data. If Grandpa Leo plays with systematic flaws or cognitive blind spots, a supervised network dutifully replicates those blunders. Reinforcement learning, conversely, circumvents teacher bias: by learning directly from outcomes (<img src="https://latex.codecogs.com/png.latex?+1"> for win, <img src="https://latex.codecogs.com/png.latex?-1"> for loss), an agent discovers creative strategies unthought of by its creators.</li>
+<li><strong>Distributional Covariate Shift (Compounding Errors):</strong> In supervised learning, training assumes independent and identically distributed (i.i.d.) data. In sequential interaction, however, an agent’s current action dictates the subsequent state distribution. If a supervised agent makes a minor prediction error, it lands in an unfamiliar state outside its training distribution. Without training data in that region, errors compound rapidly along the trajectory, leading to catastrophic failure. Reinforcement learning is inherently active and closed-loop: the agent experiences the causal consequences of its own mistakes, learning corrective recoveries directly from the environment.</li>
+</ol>
+</section>
+<section id="credit-assignment-and-value-propagation" class="level3" data-number="0.4">
+<h3 data-number="0.4" class="anchored" data-anchor-id="credit-assignment-and-value-propagation"><span class="header-section-number">0.4</span> Credit Assignment and Value Propagation</h3>
+<p>When playing a game, reward signals are typically delayed until termination. How does an agent determine which early opening move was genuinely responsible for a victory attained twenty turns later? This challenge is formalised as the <strong>temporal credit assignment problem</strong>.</p>
+<p>In our tabular formulation, the agent maintains an internal lookup table assigning an estimated <strong>value</strong> <img src="https://latex.codecogs.com/png.latex?V(s)%20%5Cin%20%5B0,%201%5D"> to each board state <img src="https://latex.codecogs.com/png.latex?s">, representing the long-term probability of victory from that state. Learning operates via backward propagation:</p>
+<ul>
+<li>States containing three crosses in a row are terminal winning states: <img src="https://latex.codecogs.com/png.latex?V(s)%20=%201">.</li>
+<li>States containing three noughts in a row are terminal losing states: <img src="https://latex.codecogs.com/png.latex?V(s)%20=%200">.</li>
+<li>Stalemate boards have terminal value <img src="https://latex.codecogs.com/png.latex?V(s)%20=%200.5">.</li>
+<li>All intermediate states are initialised optimistically to <img src="https://latex.codecogs.com/png.latex?V(s)%20=%200.5">.</li>
+</ul>
+<p>As games unfold, probability values gradually cascade backwards from terminal outcomes into earlier configurations:</p>
+<p><img src="https://latex.codecogs.com/png.latex?V(S_t)%20%5Cleftarrow%20V(S_t)%20+%20%5Calpha%20%5Cbig%5B%20V(S_%7Bt+1%7D)%20-%20V(S_t)%20%5Cbig%5D"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?%5Calpha%20%5Cin%20(0,%201%5D"> denotes the step-size learning rate.</p>
+</section>
+<section id="the-exploration-exploitation-dilemma" class="level3" data-number="0.5">
+<h3 data-number="0.5" class="anchored" data-anchor-id="the-exploration-exploitation-dilemma"><span class="header-section-number">0.5</span> The Exploration-Exploitation Dilemma</h3>
+<p>At every decision point, an agent confronts a core trade-off:</p>
+<ul>
+<li><strong>Exploitation:</strong> Select the move leading to the state <img src="https://latex.codecogs.com/png.latex?S_%7Bt+1%7D"> with the highest existing estimated value <img src="https://latex.codecogs.com/png.latex?V(S_%7Bt+1%7D)"> to maximise current win rate.</li>
+<li><strong>Exploration:</strong> Select an alternative move at random with probability <img src="https://latex.codecogs.com/png.latex?%5Cepsilon"> to sample uncharted state trajectories and refine inaccurate estimates.</li>
+</ul>
+<p>If an agent acts purely greedily (<img src="https://latex.codecogs.com/png.latex?%5Cepsilon%20=%200">), it risks latching onto a sub-optimal heuristic formed through early stochastic luck. Conversely, if an agent explores excessively, it sacrifices performance by repeatedly committing catastrophic blunders.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Common Misconception
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Misconception:</strong> “Reinforcement learning is merely unstructured trial and error at random.” <strong>Reality:</strong> While random sampling initiates exploration, the errors are systematically captured by the value function. Subsequent decisions are biased toward high-value basins, converting random variance into guided, goal-directed improvement.</p>
+</div>
+</div>
+<hr>
+</section>
+</div>
+<div id="tabset-1-3" class="tab-pane" aria-labelledby="tabset-1-3-tab">
+<section id="mathematical-formalisation" class="level3" data-number="0.6">
+<h3 data-number="0.6" class="anchored" data-anchor-id="mathematical-formalisation"><span class="header-section-number">0.6</span> Mathematical Formalisation</h3>
+<section id="foundational-elements-of-reinforcement-learning" class="level4" data-number="0.6.1">
+<h4 data-number="0.6.1" class="anchored" data-anchor-id="foundational-elements-of-reinforcement-learning"><span class="header-section-number">0.6.1</span> Foundational Elements of Reinforcement Learning</h4>
+<p>Following Sutton and Barto <span class="citation" data-cites="sutton2018reinforcement">(2018, sec. 1.3)</span>, a reinforcement learning system is characterised by four integral sub-elements:</p>
+<ol type="1">
+<li><strong>Policy (<img src="https://latex.codecogs.com/png.latex?%5Cpi">):</strong> A mapping <img src="https://latex.codecogs.com/png.latex?%5Cpi:%20%5Cmathcal%7BS%7D%20%5Ctimes%20%5Cmathcal%7BA%7D%20%5Cto%20%5B0,%201%5D">, where <img src="https://latex.codecogs.com/png.latex?%5Cpi(a%20%5Cmid%20s)%20%5Ctriangleq%20%5Cmathbb%7BP%7D(A_t%20=%20a%20%5Cmid%20S_t%20=%20s)"> delineates the agent’s behavioural disposition across valid actions.</li>
+<li><strong>Reward Signal (<img src="https://latex.codecogs.com/png.latex?R_t%20%5Cin%20%5Cmathbb%7BR%7D">):</strong> An immediate scalar evaluative feedback transmitted by the environment at each discrete transition, defining the operational objective.</li>
+<li><strong>Value Function (<img src="https://latex.codecogs.com/png.latex?V(s)"> vs <img src="https://latex.codecogs.com/png.latex?Q(s,%20a)">):</strong> Whereas reward specifies immediate desirability, the state-value function <img src="https://latex.codecogs.com/png.latex?V(s)"> quantifies the expected cumulative return over the long-term horizon, taking into account the states likely to follow.</li>
+<li><strong>Model of the Environment:</strong> An internal representation of transition dynamics. In tic-tac-toe, the agent leverages a simple 1-step lookahead model of the game rules to evaluate candidate moves directly via state values <img src="https://latex.codecogs.com/png.latex?V(s')">, circumventing the requirement for model-free action-value functions <img src="https://latex.codecogs.com/png.latex?Q(s,%20a)">.</li>
+</ol>
+</section>
+<section id="the-markov-decision-process-formalism" class="level4" data-number="0.6.2">
+<h4 data-number="0.6.2" class="anchored" data-anchor-id="the-markov-decision-process-formalism"><span class="header-section-number">0.6.2</span> The Markov Decision Process Formalism</h4>
+<p>We model the learning agent under the formalism of a discrete-time Markov Decision Process (MDP) defined by the 5-tuple <img src="https://latex.codecogs.com/png.latex?(%5Cmathcal%7BS%7D,%20%5Cmathcal%7BA%7D,%20%5Cmathcal%7BP%7D,%20%5Cmathcal%7BR%7D,%20%5Cgamma)">:</p>
+<ul>
+<li><strong>State Space (<img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BS%7D">):</strong> The finite set of valid 9-cell board configurations, with <img src="https://latex.codecogs.com/png.latex?S_t%20%5Cin%20%5Cmathcal%7BS%7D"> representing the board state at turn <img src="https://latex.codecogs.com/png.latex?t">.</li>
+<li><strong>Action Space (<img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BA%7D(s)">):</strong> The state-dependent set of legal placements available in unoccupied squares.</li>
+<li><strong>Transition Dynamics (<img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BP%7D">):</strong> The transition probability kernel <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BP%7D(s'%20%5Cmid%20s,%20a)%20%5Ctriangleq%20%5Cmathbb%7BP%7D(S_%7Bt+1%7D%20=%20s'%20%5Cmid%20S_t%20=%20s,%20A_t%20=%20a)">. In a two-player game, a single environment transition folds the agent’s placement <img src="https://latex.codecogs.com/png.latex?A_t"> together with the opponent’s subsequent counter-action <img src="https://latex.codecogs.com/png.latex?A_%7B%5Ctext%7Bopp%7D%7D">, preserving the Markov property from the agent’s perspective against a stationary opponent.</li>
+<li><strong>Reward Function (<img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BR%7D">):</strong> Immediate scalar feedback <img src="https://latex.codecogs.com/png.latex?R_%7Bt+1%7D%20=%20%5Cmathcal%7BR%7D(S_t,%20A_t,%20S_%7Bt+1%7D)">. Intermediate step rewards are zero, with evaluative payoffs allocated at episode termination <img src="https://latex.codecogs.com/png.latex?T">: <img src="https://latex.codecogs.com/png.latex?R_T%20=%20%5Cbegin%7Bcases%7D%20+1%20&amp;%20%5Ctext%7Bif%20agent%20wins%7D%20%5C%5C%200%20&amp;%20%5Ctext%7Bif%20draw%20or%20loss%7D%20%5Cend%7Bcases%7D"></li>
+<li><strong>Discount Factor (<img src="https://latex.codecogs.com/png.latex?%5Cgamma">):</strong> The parameter <img src="https://latex.codecogs.com/png.latex?%5Cgamma%20%5Cin%20%5B0,%201%5D"> weighting future vs immediate returns. Because tic-tac-toe is an episodic game with guaranteed finite termination (<img src="https://latex.codecogs.com/png.latex?T%20%5Cle%209">), we set <img src="https://latex.codecogs.com/png.latex?%5Cgamma%20=%201"> (undiscounted episodic return).</li>
+</ul>
+</section>
+<section id="trajectory-return-and-state-value" class="level4" data-number="0.6.3">
+<h4 data-number="0.6.3" class="anchored" data-anchor-id="trajectory-return-and-state-value"><span class="header-section-number">0.6.3</span> Trajectory, Return, and State Value</h4>
+<p>An episode generates a finite trajectory <img src="https://latex.codecogs.com/png.latex?%5Ctau%20=%20(S_0,%20A_0,%20R_1,%20S_1,%20A_1,%20%5Cdots,%20R_T,%20S_T)">. The return <img src="https://latex.codecogs.com/png.latex?G_t"> denotes the cumulative discounted reward accumulated from time step <img src="https://latex.codecogs.com/png.latex?t">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?G_t%20%5Ctriangleq%20%5Csum_%7Bk=0%7D%5E%7BT-t-1%7D%20%5Cgamma%5Ek%20R_%7Bt+k+1%7D"></p>
+<p>With <img src="https://latex.codecogs.com/png.latex?%5Cgamma%20=%201"> and zero intermediate rewards, <img src="https://latex.codecogs.com/png.latex?G_t%20=%20R_T">. The state-value function <img src="https://latex.codecogs.com/png.latex?V%5E%5Cpi(s)"> under policy <img src="https://latex.codecogs.com/png.latex?%5Cpi"> represents the expected return contingent upon starting from state <img src="https://latex.codecogs.com/png.latex?s">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?V%5E%5Cpi(s)%20%5Ctriangleq%20%5Cmathbb%7BE%7D_%5Cpi%20%5Cleft%5B%20G_t%20%5Cmid%20S_t%20=%20s%20%5Cright%5D%20=%20%5Cmathbb%7BP%7D(%5Ctext%7BWin%7D%20%5Cmid%20S_t%20=%20s,%20%5Cpi)"></p>
+</section>
+<section id="why-supervised-loss-fails-empirical-risk-vs-bellman-consistency" class="level4" data-number="0.6.4">
+<h4 data-number="0.6.4" class="anchored" data-anchor-id="why-supervised-loss-fails-empirical-risk-vs-bellman-consistency"><span class="header-section-number">0.6.4</span> Why Supervised Loss Fails: Empirical Risk vs Bellman Consistency</h4>
+<p>In supervised learning, an agent minimises empirical cross-entropy loss over a static dataset of teacher transitions <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BD%7D%20=%20%5C%7B(s_i,%20a_i%5E*)%5C%7D_%7Bi=1%7D%5EN">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Cmin_%5Ctheta%20%5Cmathbb%7BE%7D_%7B(s,%20a%5E*)%20%5Csim%20%5Cmathcal%7BD%7D%7D%20%5Cleft%5B%20-%5Cln%20%5Cpi_%5Ctheta(a%5E*%20%5Cmid%20s)%20%5Cright%5D"></p>
+<p>This objective treats transitions as independent and identically distributed. Under sequential rollouts, however, policy deviations induce covariate shift: the true visitation distribution <img src="https://latex.codecogs.com/png.latex?d%5E%7B%5Cpi_%5Ctheta%7D(s)"> diverges from the demonstration distribution <img src="https://latex.codecogs.com/png.latex?d%5E%7B%5Cpi%5E*%7D(s)">, causing error growth proportional to <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BO%7D(%5Cepsilon%20T%5E2)"> over horizon <img src="https://latex.codecogs.com/png.latex?T"> (the compounding error bound of behavioural cloning).</p>
+<p>Reinforcement learning replaces empirical label fitting with <strong>Bellman consistency</strong>. Rather than matching arbitrary teacher actions, the objective aligns state evaluations with realized environmental returns:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Cmin_V%20%5Cmathbb%7BE%7D_%7Bs%20%5Csim%20d%5E%5Cpi%7D%20%5Cleft%5B%20%5CBig(%20V(s)%20-%20%5Cmathbb%7BE%7D%5Cleft%5B%20R_%7Bt+1%7D%20+%20%5Cgamma%20V(S_%7Bt+1%7D)%20%5Cmid%20S_t%20=%20s%20%5Cright%5D%20%5CBig)%5E2%20%5Cright%5D"></p>
+<p>Because the state distribution <img src="https://latex.codecogs.com/png.latex?d%5E%5Cpi"> is generated by the agent’s own interaction, any trajectory diversion automatically populates the value table with corrective feedback, ensuring stability and surpassing human demonstration bounds.</p>
+</section>
+<section id="the-temporal-difference-update-rule" class="level4" data-number="0.6.5">
+<h4 data-number="0.6.5" class="anchored" data-anchor-id="the-temporal-difference-update-rule"><span class="header-section-number">0.6.5</span> The Temporal-Difference Update Rule</h4>
+<p>Following each non-exploratory state transition <img src="https://latex.codecogs.com/png.latex?S_t%20%5Cto%20S_%7Bt+1%7D"> (accounting for the opponent’s subsequent counter-move), the value estimate is updated via:</p>
+<p><img src="https://latex.codecogs.com/png.latex?V(S_t)%20%5Cleftarrow%20V(S_t)%20+%20%5Calpha%20%5CBig(%20V(S_%7Bt+1%7D)%20-%20V(S_t)%20%5CBig)"></p>
+<p>where:</p>
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?V(S_t)"> is the current value estimate of state <img src="https://latex.codecogs.com/png.latex?S_t">.</li>
+<li><img src="https://latex.codecogs.com/png.latex?V(S_%7Bt+1%7D)"> serves as the <strong>bootstrapping target</strong>—the foundational principle of updating an existing evaluation estimate from subsequent estimates rather than awaiting the empirical terminal return <img src="https://latex.codecogs.com/png.latex?G_t"> at episode conclusion.</li>
+<li><img src="https://latex.codecogs.com/png.latex?%5Cdelta_t%20%5Ctriangleq%20R_%7Bt+1%7D%20+%20%5Cgamma%20V(S_%7Bt+1%7D)%20-%20V(S_t)%20=%20V(S_%7Bt+1%7D)%20-%20V(S_t)"> is the temporal-difference (TD) error (recalling <img src="https://latex.codecogs.com/png.latex?R_%7Bt+1%7D%20=%200"> for non-terminal transitions and <img src="https://latex.codecogs.com/png.latex?%5Cgamma%20=%201">).</li>
+<li><img src="https://latex.codecogs.com/png.latex?%5Calpha%20%5Cin%20(0,%201%5D"> is the step-size parameter governing the learning rate.</li>
+</ul>
+<p>If <img src="https://latex.codecogs.com/png.latex?%5Calpha"> is reduced gradually satisfying the Robbins-Monro conditions <img src="https://latex.codecogs.com/png.latex?%5Csum_%7Bk=1%7D%5E%5Cinfty%20%5Calpha_k%20=%20%5Cinfty"> and <img src="https://latex.codecogs.com/png.latex?%5Csum_%7Bk=1%7D%5E%5Cinfty%20%5Calpha_k%5E2%20%3C%20%5Cinfty">, <img src="https://latex.codecogs.com/png.latex?V(s)"> converges asymptotically to the true win probabilities against any stationary opponent <span class="citation" data-cites="sutton2018reinforcement">(Sutton and Barto 2018)</span>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Why Are Exploratory Moves Excluded from Updates?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In the classic formulation of Sutton and Barto §1.5, when the agent takes an exploratory move, the prior state <img src="https://latex.codecogs.com/png.latex?S_t"> is not updated using the value of the exploratory successor. Learning from exploratory actions would bias the value function toward reflecting the consequences of irrational exploratory blunders rather than the value of states under greedy execution. This serves as an early pedagogical precursor to off-policy Q-learning <span class="citation" data-cites="watkins1992q">(Watkins and Dayan 1992)</span>.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="algorithmic-specification" class="level3" data-number="0.7">
+<h3 data-number="0.7" class="anchored" data-anchor-id="algorithmic-specification"><span class="header-section-number">0.7</span> Algorithmic Specification</h3>
+<pre class="text"><code>Algorithm: Tabular TD(0) Value Learning for Tic-Tac-Toe
+Initialize V(s) = 0.5 for all non-terminal states s in S
+Initialize V(s) = 1.0 for winning terminal states
+Initialize V(s) = 0.0 for losing terminal states
+Initialize V(s) = 0.5 for draw terminal states
+
+For each training episode:
+    s = Initial empty board state
+    trajectory = [s]
+    While s is not terminal:
+        With probability epsilon:
+            a = UniformRandomChoice(legal_actions(s))
+            exploratory = True
+        Else:
+            a = argmax_{a' in legal_actions(s)} V(successor(s, a'))
+            exploratory = False
+        
+        Execute a, observe intermediate board s_mid
+        If s_mid is terminal:
+            s_next = s_mid
+        Else:
+            Opponent chooses move a_opp
+            s_next = successor(s_mid, a_opp)
+        
+        If not exploratory:
+            V(s) &lt;- V(s) + alpha * [V(s_next) - V(s)]
+        
+        s = s_next</code></pre>
+</section>
+<section id="complete-numpy-implementation" class="level3" data-number="0.8">
+<h3 data-number="0.8" class="anchored" data-anchor-id="complete-numpy-implementation"><span class="header-section-number">0.8</span> Complete NumPy Implementation</h3>
+<p>Below is a self-contained, reproducible Python implementation of the tabular value iteration agent playing against both random and heuristic opponents:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb2-2"></span>
+<span id="cb2-3"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> TicTacToe:</span>
+<span id="cb2-4">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">__init__</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb2-5">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.zeros(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">9</span>, dtype<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>)</span>
+<span id="cb2-6">        </span>
+<span id="cb2-7">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> reset(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb2-8">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board.fill(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb2-9">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.get_state()</span>
+<span id="cb2-10"></span>
+<span id="cb2-11">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> get_state(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb2-12">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">tuple</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board)</span>
+<span id="cb2-13"></span>
+<span id="cb2-14">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> legal_moves(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb2-15">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> np.where(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb2-16"></span>
+<span id="cb2-17">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> make_move(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, action, player):</span>
+<span id="cb2-18">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board[action] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> player</span>
+<span id="cb2-19"></span>
+<span id="cb2-20">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> check_winner(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>):</span>
+<span id="cb2-21">        wins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [</span>
+<span id="cb2-22">            (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>), (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>), (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">7</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span>),</span>
+<span id="cb2-23">            (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>), (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">7</span>), (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span>),</span>
+<span id="cb2-24">            (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span>), (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>)</span>
+<span id="cb2-25">        ]</span>
+<span id="cb2-26">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> a, b, c <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> wins:</span>
+<span id="cb2-27">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board[a] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">and</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board[a] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board[b] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board[c]:</span>
+<span id="cb2-28">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.board[a]</span>
+<span id="cb2-29">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.legal_moves()) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>:</span>
+<span id="cb2-30">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Draw</span></span>
+<span id="cb2-31">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Ongoing</span></span>
+<span id="cb2-32"></span>
+<span id="cb2-33"></span>
+<span id="cb2-34"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> TabularRLAgent:</span>
+<span id="cb2-35">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">__init__</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, epsilon<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span>):</span>
+<span id="cb2-36">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alpha <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> alpha</span>
+<span id="cb2-37">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.epsilon <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> epsilon</span>
+<span id="cb2-38">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.values <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {}</span>
+<span id="cb2-39">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb2-40"></span>
+<span id="cb2-41">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> get_value(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, state, winner<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>):</span>
+<span id="cb2-42">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> winner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:</span>
+<span id="cb2-43">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span></span>
+<span id="cb2-44">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">elif</span> winner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:</span>
+<span id="cb2-45">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.0</span></span>
+<span id="cb2-46">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">elif</span> winner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>:</span>
+<span id="cb2-47">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span></span>
+<span id="cb2-48">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> state <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.values:</span>
+<span id="cb2-49">            <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.values[state] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span></span>
+<span id="cb2-50">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.values[state]</span>
+<span id="cb2-51"></span>
+<span id="cb2-52">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> select_action(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, env, explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>):</span>
+<span id="cb2-53">        moves <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.legal_moves()</span>
+<span id="cb2-54">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> explore <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">and</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.rng.random() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.epsilon:</span>
+<span id="cb2-55">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.rng.choice(moves), <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span></span>
+<span id="cb2-56"></span>
+<span id="cb2-57">        best_val <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>np.inf</span>
+<span id="cb2-58">        best_moves <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb2-59">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> m <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> moves:</span>
+<span id="cb2-60">            env.make_move(m, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb2-61">            winner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.check_winner()</span>
+<span id="cb2-62">            val <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.get_value(env.get_state(), winner)</span>
+<span id="cb2-63">            env.make_move(m, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb2-64"></span>
+<span id="cb2-65">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> val <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> best_val:</span>
+<span id="cb2-66">                best_val <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> val</span>
+<span id="cb2-67">                best_moves <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [m]</span>
+<span id="cb2-68">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">elif</span> np.isclose(val, best_val):</span>
+<span id="cb2-69">                best_moves.append(m)</span>
+<span id="cb2-70"></span>
+<span id="cb2-71">        action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.rng.choice(best_moves)</span>
+<span id="cb2-72">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> action, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span></span>
+<span id="cb2-73"></span>
+<span id="cb2-74">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> update(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, s, s_prime):</span>
+<span id="cb2-75">        v_s <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.get_value(s)</span>
+<span id="cb2-76">        v_prime <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.get_value(s_prime)</span>
+<span id="cb2-77">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.values[s] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> v_s <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.alpha <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (v_prime <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> v_s)</span>
+<span id="cb2-78"></span>
+<span id="cb2-79"></span>
+<span id="cb2-80"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> train(episodes<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10_000</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, epsilon<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span>):</span>
+<span id="cb2-81">    agent <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> TabularRLAgent(alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>alpha, epsilon<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>epsilon, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>seed)</span>
+<span id="cb2-82">    rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb2-83">    history <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb2-84"></span>
+<span id="cb2-85">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> ep <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(episodes):</span>
+<span id="cb2-86">        env <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> TicTacToe()</span>
+<span id="cb2-87">        s <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.reset()</span>
+<span id="cb2-88">        done <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span></span>
+<span id="cb2-89"></span>
+<span id="cb2-90">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">while</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> done:</span>
+<span id="cb2-91">            action, explored <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> agent.select_action(env, explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb2-92">            env.make_move(action, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb2-93">            winner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.check_winner()</span>
+<span id="cb2-94"></span>
+<span id="cb2-95">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> winner <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">is</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>:</span>
+<span id="cb2-96">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> explored:</span>
+<span id="cb2-97">                    agent.update(s, env.get_state())</span>
+<span id="cb2-98">                history.append(winner)</span>
+<span id="cb2-99">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">break</span></span>
+<span id="cb2-100"></span>
+<span id="cb2-101">            <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Opponent turn: Random policy</span></span>
+<span id="cb2-102">            opp_moves <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.legal_moves()</span>
+<span id="cb2-103">            opp_action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> rng.choice(opp_moves)</span>
+<span id="cb2-104">            env.make_move(opp_action, <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb2-105">            winner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.check_winner()</span>
+<span id="cb2-106"></span>
+<span id="cb2-107">            s_next <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.get_state()</span>
+<span id="cb2-108">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> explored:</span>
+<span id="cb2-109">                agent.update(s, s_next)</span>
+<span id="cb2-110"></span>
+<span id="cb2-111">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> winner <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">is</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>:</span>
+<span id="cb2-112">                history.append(winner)</span>
+<span id="cb2-113">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">break</span></span>
+<span id="cb2-114">            s <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> s_next</span>
+<span id="cb2-115"></span>
+<span id="cb2-116">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> agent, np.array(history)</span></code></pre></div></div>
+</section>
+<section id="empirical-evaluation" class="level3" data-number="0.9">
+<h3 data-number="0.9" class="anchored" data-anchor-id="empirical-evaluation"><span class="header-section-number">0.9</span> Empirical Evaluation</h3>
+<p>Evaluating the agent over 10,000 games reveals monotonic asymptotic improvement. In early iterations, the random opponent scores occasional victories. Within 2,000 episodes, the agent’s win rate ascends past 90%, with losses completely extinguished as credit diffuses back to the root opening state:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">agent, hist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> train(episodes<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10_000</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, epsilon<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>)</span>
+<span id="cb3-2"></span>
+<span id="cb3-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Windowed win-rate calculation</span></span>
+<span id="cb3-4">window <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span></span>
+<span id="cb3-5">wins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.convolve(hist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, np.ones(window)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>window, mode<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'valid'</span>)</span>
+<span id="cb3-6">draws <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.convolve(hist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, np.ones(window)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>window, mode<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'valid'</span>)</span>
+<span id="cb3-7">losses <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.convolve(hist <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, np.ones(window)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span>window, mode<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'valid'</span>)</span>
+<span id="cb3-8"></span>
+<span id="cb3-9"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"Final 1,000 Games Performance:"</span>)</span>
+<span id="cb3-10"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"  Win Rate:  </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>np<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>mean(hist[<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>:] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.1f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">%"</span>)</span>
+<span id="cb3-11"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"  Draw Rate: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>np<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>mean(hist[<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>:] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.1f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">%"</span>)</span>
+<span id="cb3-12"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"  Loss Rate: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>np<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>mean(hist[<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>:] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.1f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">%"</span>)</span></code></pre></div></div>
+</section>
+<section id="analytical-exercises" class="level3" data-number="0.10">
+<h3 data-number="0.10" class="anchored" data-anchor-id="analytical-exercises"><span class="header-section-number">0.10</span> Analytical Exercises</h3>
+<ol type="1">
+<li><strong>Exercise 1.1: Self-Play Dynamics.</strong> If both players utilise value iteration simultaneously, how does non-stationarity manifest? Will the system converge to an unexploitable minimax equilibrium, or can cycling occur?</li>
+<li><strong>Exercise 1.2: State-Space Reduction via Symmetries.</strong> The board exhibits the dihedral symmetry group <img src="https://latex.codecogs.com/png.latex?D_4"> of order 8 (rotations and reflections). By quotienting the state space <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BS%7D%20/%20D_4">, by what factor is the tabular parameter size compressed, and how does this accelerate convergence?</li>
+<li><strong>Exercise 1.3: Greedy Exploitation Pathology.</strong> If <img src="https://latex.codecogs.com/png.latex?%5Cepsilon%20=%200"> throughout training against an imperfect opponent, construct a concrete counterexample where the agent acquires a policy that wins reliably yet remains vulnerable to an unobserved defensive response.</li>
+<li><strong>Exercise 1.4: Off-Policy Bootstrapping.</strong> Suppose the agent updates <img src="https://latex.codecogs.com/png.latex?V(S_t)"> from <img src="https://latex.codecogs.com/png.latex?S_%7Bt+1%7D"> even when <img src="https://latex.codecogs.com/png.latex?A_t"> was selected exploratively. Formally demonstrate how this contaminates value estimates with exploratory regret.</li>
+</ol>
+</section>
+</div>
+</div>
+</div>
+<hr>
+<section id="game-theory-corner" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="game-theory-corner"><span class="header-section-number">1</span> Game Theory Corner</h2>
+<p>From an game-theoretic standpoint, tic-tac-toe is a finite, extensive-form, two-player zero-sum game with perfect information <span class="citation" data-cites="vonneumann1944theory">(Neumann and Morgenstern 1944)</span>. By Zermelo’s theorem, there exists a unique game-theoretic value under backwards induction: with optimal backward play, the game is a deterministic draw.</p>
+<p>Arthur Samuel’s seminal 1959 checkers player <span class="citation" data-cites="samuel1959some">(Samuel 1959)</span> demonstrated that learning state values via linear parameter updates can approximate minimax tree search without exhaustive combinatorial expansion. When our tabular agent plays against an unvarying suboptimal adversary, it does not seek the game-theoretic minimax equilibrium; rather, it actively exploits the opponent’s systematic idiosyncrasies to maximise empirical payoff.</p>
+<hr>
+</section>
+<section id="glossary" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="glossary"><span class="header-section-number">2</span> Glossary</h2>
+<ul>
+<li><strong>Agent:</strong> The active entity that observes state, computes policy, and executes actions.</li>
+<li><strong>Environment:</strong> Everything external to the agent, specifying the transition dynamics and reward responses.</li>
+<li><strong>State (<img src="https://latex.codecogs.com/png.latex?S_t">):</strong> The complete informational representation of the current configuration.</li>
+<li><strong>Value Function (<img src="https://latex.codecogs.com/png.latex?V(s)">):</strong> The expected cumulative discounted future reward conditional on starting in state <img src="https://latex.codecogs.com/png.latex?s">.</li>
+<li><strong>Temporal-Difference Error (<img src="https://latex.codecogs.com/png.latex?%5Cdelta_t">):</strong> The discrepancy between successive state value estimates: <img src="https://latex.codecogs.com/png.latex?%5Cdelta_t%20=%20V(S_%7Bt+1%7D)%20-%20V(S_t)">.</li>
+<li><strong>Exploration vs Exploitation:</strong> The essential trade-off between trying novel actions to acquire information versus choosing known high-reward actions.</li>
+</ul>
+<hr>
+</section>
+<section id="next-in-the-series" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="next-in-the-series"><span class="header-section-number">3</span> Next in the Series</h2>
+<p>In <strong>Season 1, Episode 01: Which Candy Machine?</strong>, we isolate the exploration-exploitation dilemma from delayed state transitions through the classic <img src="https://latex.codecogs.com/png.latex?k">-armed bandit framework.</p>
+<ul>
+<li><strong>Next Episode:</strong> <em>01. Which Candy Machine? (Multi-Armed Bandits)</em> (coming soon)</li>
+</ul>
+</section>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-vonneumann1944theory" class="csl-entry">
+Neumann, John von, and Oskar Morgenstern. 1944. <em>Theory of Games and Economic Behavior</em>. Princeton University Press.
+</div>
+<div id="ref-samuel1959some" class="csl-entry">
+Samuel, Arthur L. 1959. <span>“Some Studies in Machine Learning Using the Game of Checkers.”</span> <em>IBM Journal of Research and Development</em> 3 (3): 210–29. <a href="https://doi.org/10.1147/rd.33.0210">https://doi.org/10.1147/rd.33.0210</a>.
+</div>
+<div id="ref-sutton2018reinforcement" class="csl-entry">
+Sutton, Richard S., and Andrew G. Barto. 2018. <em>Reinforcement Learning: An Introduction</em>. 2nd ed. MIT Press. <a href="http://incompleteideas.net/book/the-book-2nd.html">http://incompleteideas.net/book/the-book-2nd.html</a>.
+</div>
+<div id="ref-watkins1992q" class="csl-entry">
+Watkins, Christopher J. C. H., and Peter Dayan. 1992. <span>“Q-Learning.”</span> <em>Machine Learning</em> 8 (3–4): 279–92. <a href="https://doi.org/10.1007/BF00992698">https://doi.org/10.1007/BF00992698</a>.
+</div>
+</div>
+
+
+</section>
+
+ ]]></description>
+  <category>reinforcement-learning</category>
+  <category>game-theory</category>
+  <category>python</category>
+  <category>first-principles</category>
+  <guid>https://v3rm1.github.io/blog/posts/2026-10-14-learning-from-rewards/</guid>
+  <pubDate>Tue, 13 Oct 2026 22:00:00 GMT</pubDate>
+</item>
 <item>
   <title>From Legg-Hutter to ARC: What Are We Actually Optimising?</title>
   <dc:creator>Varun Ravi Varma</dc:creator>
