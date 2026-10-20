@@ -18,7 +18,6 @@ This inaugural episode introduces the foundations of tabular value learning usin
 ### Episode Metadata
 - **Game:** Tic-tac-toe (Noughts and Crosses)
 - **Source:** Sutton & Barto, *Reinforcement Learning: An Introduction* (2nd ed.), Chapter 1, §1.1–1.7 [@sutton2018reinforcement]
-- **Reading Time:** Story ~5 min · Idea ~15 min · Maths & Code ~35 min
 - **Series Index:** [RL from First Principles](../../index.qmd#rl-first-principles)
 :::
 
@@ -445,7 +444,7 @@ When our tabular agent plays against an unvarying suboptimal adversary, it does 
 
 In **Season 1, Episode 01: Which Candy Machine?**, we isolate the exploration-exploitation dilemma from delayed state transitions through the classic $k$-armed bandit framework.
 
-- **Next Episode:** *01. Which Candy Machine? (Multi-Armed Bandits)* (coming soon)
+- **Next Episode:** [01. Which Candy Machine? (Multi-Armed Bandits)](../2026-10-20-which-candy-machine/index.qmd)
 
 ## References {.unnumbered}
 
