@@ -471,7 +471,7 @@ This competitive dynamic transforms the bandit into a **zero-sum matrix game** (
 ### What Comes Next?
 
 While $\varepsilon$-greedy action selection guarantees asymptotic exploration, its randomised choices are indiscriminate: it explores promising and dismal alternatives with equal likelihood.
-In **Season 1, Episode 02: Curious, but Clever** (upcoming), we formulate guided, directed exploration mechanisms:
+In **Season 1, Episode 02: [Curious, but Clever](../2026-10-27-curious-but-clever/index.qmd)**, we formulate guided, directed exploration mechanisms:
 - **Optimism in the Face of Uncertainty:** Initial value biases that encourage transient, self-terminating exploration.
 - **Upper Confidence Bound (UCB):** Quantifying epistemic uncertainty via concentration bounds to attain logarithmic regret $\mathcal{O}(\log T)$.
 - **Gradient Bandits:** Learning continuous action preference probabilities through softmax stochastic gradient ascent.

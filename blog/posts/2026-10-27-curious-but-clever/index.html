@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Varun Ravi Varma">
+<meta name="dcterms.date" content="2026-10-27">
+<meta name="description" content="A formal exposition of directed exploration in k-armed bandits, deriving optimistic initial values, UCB1 regret bounds, soft-max preference gradient ascent, and associative search formalisms.">
+
+<title>Curious, but Clever: Uncertainty-Directed Exploration and Preference Gradient Bandits – Varun Ravi Varma — Blog</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-19954d71dda9073188f2520a411f1fcd.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-d3cd74dfbf34dce192e337426adc9413.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script type="module" src="../../site_libs/quarto-ojs/quarto-ojs-runtime.js"></script>
+<link href="../../site_libs/quarto-ojs/quarto-ojs.css" rel="stylesheet">
+<meta name="theme-color" content="#16161e">
+<script>
+  (function () {
+    var t = localStorage.getItem("theme");
+    if (!t && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+      t = "light";
+    }
+    if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+  })();
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="Curious, but Clever: Uncertainty-Directed Exploration and Preference Gradient Bandits – Varun Ravi Varma — Blog">
+<meta property="og:description" content="A formal exposition of directed exploration in k-armed bandits, deriving optimistic initial values, UCB1 regret bounds, soft-max preference gradient ascent, and associative search formalisms.">
+<meta property="og:image" content="https://v3rm1.github.io/blog/posts/2026-10-27-curious-but-clever/exploration-paradigms.svg">
+<meta property="og:site_name" content="Varun Ravi Varma — Blog">
+<meta name="twitter:title" content="Curious, but Clever: Uncertainty-Directed Exploration and Preference Gradient Bandits – Varun Ravi Varma — Blog">
+<meta name="twitter:description" content="A formal exposition of directed exploration in k-armed bandits, deriving optimistic initial values, UCB1 regret bounds, soft-max preference gradient ascent, and associative search formalisms.">
+<meta name="twitter:image" content="https://v3rm1.github.io/blog/posts/2026-10-27-curious-but-clever/exploration-paradigms.svg">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Varun Ravi Varma — Blog</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="https://v3rm1.github.io/"> 
+<span class="menu-text">~/home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">blog</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/v3rm1"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/varun-ravi-varma"> <i class="bi bi-linkedin" role="img" aria-label="LinkedIn">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#game-theory-corner" id="toc-game-theory-corner" class="nav-link active" data-scroll-target="#game-theory-corner"><span class="header-section-number">1</span> Game Theory Corner</a></li>
+  <li><a href="#key-takeaways-glossary" id="toc-key-takeaways-glossary" class="nav-link" data-scroll-target="#key-takeaways-glossary"><span class="header-section-number">2</span> Key Takeaways &amp; Glossary</a></li>
+  <li><a href="#next-in-the-series" id="toc-next-in-the-series" class="nav-link" data-scroll-target="#next-in-the-series"><span class="header-section-number">3</span> Next in the Series</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Curious, but Clever: Uncertainty-Directed Exploration and Preference Gradient Bandits</h1>
+<p class="subtitle lead">Season 1, Episode 02: Moving beyond undirected perturbation toward optimistic initialization, upper confidence bounds, preference gradients, and contextual state.</p>
+  <div class="quarto-categories">
+    <div class="quarto-category">reinforcement-learning</div>
+    <div class="quarto-category">bandits</div>
+    <div class="quarto-category">exploration</div>
+    <div class="quarto-category">ucb</div>
+    <div class="quarto-category">policy-gradient</div>
+    <div class="quarto-category">first-principles</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A formal exposition of directed exploration in k-armed bandits, deriving optimistic initial values, UCB1 regret bounds, soft-max preference gradient ascent, and associative search formalisms.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Varun Ravi Varma </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 27, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>In brief
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In the preceding episode, we established how sample-average updates and <span class="math inline">\(\varepsilon\)</span>-greedy action selection navigate the tension between empirical exploitation and stochastic exploration. Nonetheless, selecting actions uniformly at random during exploratory intervals incurs linear regret because the agent samples known inferior actions with equal likelihood. This episode formalises <strong>uncertainty-directed exploration</strong> and <strong>preference-based gradient learning</strong>. Specifically, we delineate optimistic initialisation, derive the Upper Confidence Bound (UCB1) algorithm to achieve logarithmic regret, substantiate soft-max policy gradient updates via stochastic gradient ascent, and introduce associative search as the conceptual bridge toward full Markov Decision Processes <span class="citation" data-cites="sutton2018reinforcement auer2002finite lai1985asymptotically">(<a href="#ref-sutton2018reinforcement" role="doc-biblioref">Sutton and Barto 2018</a>; <a href="#ref-auer2002finite" role="doc-biblioref">Auer et al. 2002</a>; <a href="#ref-lai1985asymptotically" role="doc-biblioref">Lai and Robbins 1985</a>)</span>.</p>
+<section id="episode-metadata" class="level3" data-number="0.1">
+<h3 data-number="0.1" class="anchored" data-anchor-id="episode-metadata"><span class="header-section-number">0.1</span> Episode Metadata</h3>
+<ul>
+<li><strong>Game:</strong> Candy machines with a twist</li>
+<li><strong>Source:</strong> Sutton &amp; Barto, <em>Reinforcement Learning: An Introduction</em> (2nd ed.), Chapter 2, §2.6–2.10 <span class="citation" data-cites="sutton2018reinforcement">(<a href="#ref-sutton2018reinforcement" role="doc-biblioref">Sutton and Barto 2018</a>)</span></li>
+<li><strong>Series Index:</strong> <a href="../../index.html#rl-first-principles">RL from First Principles</a></li>
+</ul>
+</section>
+</div>
+</div>
+<div class="tabset-margin-container"></div><div class="panel-tabset" data-group="depth">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Story</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Idea</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">Maths &amp; Code</a></li></ul>
+<div class="tab-content" data-group="depth">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<p>The following weekend, Ada and Grandpa Leo return to the autumn fairground. The candy booth has expanded substantially: an extended row of colourful vintage dispensers now stretches across the pavilion.</p>
+<p>“Too many to check one by one with a handful of tokens,” Ada observes, surveying the line with dismay.</p>
+<p>Grandpa Leo retrieves a piece of chalk and draws a conspicuous question mark over each dispenser that Ada has barely touched. “A dispenser you know very little about might harbour an extraordinary payout,” he notes with a smile. “To discover its potential, we must provide those unfamiliar levers with a fair appraisal.”</p>
+<p>Ada conceives a methodical heuristic. She begins her trial by pretending every single dispenser is exceptionally generous, recording an initial tally of ten sweets beside every machine on her napkin. Each time a machine dispenses merely one or two sweets, the disappointing outcome pulls its running average downwards. Consequently, this initial optimism compels her to test every machine at least once or twice before settling upon an apparent favourite.</p>
+<p>Furthermore, Ada refines her exploratory strategy. Instead of pulling levers entirely at random when curious, she prioritises the dispensers enveloped by the greatest uncertainty. A dispenser pulled forty times has yielded its secrets; its empirical performance is corroborated with high confidence. Conversely, a dispenser pulled only once remains an enigma whose true distribution might easily eclipse the current front-runner.</p>
+<p>“Curious,” Grandpa Leo observes, admiring her napkin, “yet genuinely clever in where you direct that curiosity.”</p>
+<p>By late afternoon, the booth keeper introduces a final twist. Each dispenser is equipped with an overhead indicator lamp that alternates between red and blue. When the illumination is red, the dispensers on the left flank prove consistently superior; when blue, the rightmost bank yields the greatest bounty.</p>
+<p>Ada ceases asking “Which dispenser is universally superior?” Instead, she conditions her decision upon the immediate context: “Which dispenser manifests the highest payout when the lamp glows this colour?” Within moments, she glances at the context lamp and navigates directly to the optimal machine.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>What Would You Do?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Is it more advantageous to explore options entirely at random, or to deliberately allocate exploratory trials to the options about which you possess the least empirical evidence?</p>
+</div>
+</div>
+<hr>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<section id="moving-beyond-undirected-exploration" class="level3" data-number="0.2">
+<h3 data-number="0.2" class="anchored" data-anchor-id="moving-beyond-undirected-exploration"><span class="header-section-number">0.2</span> Moving Beyond Undirected Exploration</h3>
+<p>While an <span class="math inline">\(\varepsilon\)</span>-greedy policy guarantees asymptotic convergence to true action values by perturbing decisions uniformly with probability <span class="math inline">\(\varepsilon\)</span>, its exploratory mechanism is fundamentally undirected. The agent expends valuable trials pulling alternatives regardless of whether an alternative has been tested a thousand times or never touched.</p>
+<p>To mitigate this inefficiency, we employ two distinct paradigms:</p>
+<ol type="1">
+<li><strong>Optimism in the Face of Uncertainty:</strong> By instilling an initial prior belief that all actions yield maximal reward (<span class="math inline">\(Q_1(a) \gg q_*(a)\)</span>), the agent is systematically driven by empirical disappointment to sample every untried action during early iterations.</li>
+<li><strong>Confidence-Directed Selection (UCB):</strong> By augmenting each value estimate with an uncertainty bonus proportional to <span class="math inline">\(\sqrt{\ln t / N_t(a)}\)</span>, action selection leverages the upper bound of a statistical confidence interval. An action is selected either because its empirical payoff estimate is superior or because its estimate remains heavily unverified.</li>
+</ol>
+<div id="fig-exploration-paradigms" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-exploration-paradigms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="exploration-paradigms.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-exploration-paradigms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Taxonomy of action selection paradigms in stateless bandit problems.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="what-to-notice" class="level3" data-number="0.3">
+<h3 data-number="0.3" class="anchored" data-anchor-id="what-to-notice"><span class="header-section-number">0.3</span> What to Notice</h3>
+<ul>
+<li><strong>Optimism Fades Naturally:</strong> Optimistic initial values drive heavy exploration early on, but the drive is temporary: once the estimates fall to realistic levels it vanishes, so optimism alone cannot track machines whose payouts drift.</li>
+<li><strong>Logarithmic Regret:</strong> Under UCB1, the expected number of pulls of any suboptimal action <span class="math inline">\(a\)</span> grows only as <span class="math inline">\(\mathcal{O}(\ln T / \Delta_a^2)\)</span>, so its contribution to regret is <span class="math inline">\(\mathcal{O}(\ln T / \Delta_a)\)</span>, in contrast to the <span class="math inline">\(\mathcal{O}(T)\)</span> linear regret incurred by constant <span class="math inline">\(\varepsilon\)</span>-greedy policies.</li>
+<li><strong>Preferences vs Absolute Values:</strong> Gradient bandits do not estimate expected returns directly; instead, they optimise a relative preference manifold invariant to global reward translation when an empirical baseline is subtracted.</li>
+</ul>
+</section>
+<section id="try-it-four-ways-to-explore" class="level3" data-number="0.4">
+<h3 data-number="0.4" class="anchored" data-anchor-id="try-it-four-ways-to-explore"><span class="header-section-number">0.4</span> Try It: Four Ways to Explore</h3>
+<p>All four strategies on the 10-armed testbed, simulated live in your browser and averaged over many independent problems. Defaults follow Sutton &amp; Barto: optimistic greedy uses <span class="math inline">\(Q_1 = 5\)</span>, <span class="math inline">\(\varepsilon = 0\)</span> and <span class="math inline">\(\alpha = 0.1\)</span> (Figure 2.3), UCB uses <span class="math inline">\(c = 2\)</span> (Figure 2.4). Shift every true value up by <span class="math inline">\(+4\)</span> and untick the baseline to reproduce Figure 2.5; switch on drift to watch optimism fade.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb1" data-startfrom="93" data-source-offset="-0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 92;"><span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> {makeRng<span class="op">,</span> argmaxRandom<span class="op">,</span> runTestbed<span class="op">,</span> toRows<span class="op">,</span> observeTheme<span class="op">,</span> palette} <span class="im">from</span> <span class="st">"../../assets/ojs/rl.js"</span></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>theme <span class="op">=</span> Generators<span class="op">.</span><span class="fu">observe</span>(observeTheme)</span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>pal <span class="op">=</span> <span class="fu">palette</span>(theme)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-1-1" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-1-2" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-1-3" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+</div>
+<div class="rl-widget">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb2" data-startfrom="101" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 100;"><span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>viewof explore <span class="op">=</span> Inputs<span class="op">.</span><span class="fu">form</span>({</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>  <span class="dt">runs</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="dv">50</span><span class="op">,</span> <span class="dv">1000</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="dv">50</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="dv">200</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"Problems averaged"</span>})<span class="op">,</span></span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>  <span class="dt">epsilon</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="dv">0</span><span class="op">,</span> <span class="fl">0.3</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="fl">0.01</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"ε (ε-greedy)"</span>})<span class="op">,</span></span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>  <span class="dt">q0</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="dv">0</span><span class="op">,</span> <span class="dv">10</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="fl">0.5</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="dv">5</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"Q₁ (optimistic)"</span>})<span class="op">,</span></span>
+<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a>  <span class="dt">c</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="dv">0</span><span class="op">,</span> <span class="dv">4</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="dv">2</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"c (UCB)"</span>})<span class="op">,</span></span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a>  <span class="dt">alpha</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="fl">0.01</span><span class="op">,</span> <span class="fl">0.5</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="fl">0.01</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"α (gradient)"</span>})<span class="op">,</span></span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a>  <span class="dt">baseline</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">toggle</span>({<span class="dt">label</span><span class="op">:</span> <span class="st">"Gradient baseline"</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="kw">true</span>})<span class="op">,</span></span>
+<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a>  <span class="dt">shift</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">toggle</span>({<span class="dt">label</span><span class="op">:</span> <span class="st">"Shift q* by +4"</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="kw">false</span>})<span class="op">,</span></span>
+<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a>  <span class="dt">drift</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">toggle</span>({<span class="dt">label</span><span class="op">:</span> <span class="st">"Drifting machines"</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="kw">false</span>})</span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-2" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb3" data-startfrom="116" data-source-offset="-0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 115;"><span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>exploreNames <span class="op">=</span> [<span class="st">"ε-greedy"</span><span class="op">,</span> <span class="st">"Optimistic greedy"</span><span class="op">,</span> <span class="st">"UCB"</span><span class="op">,</span> <span class="st">"Gradient bandit"</span>]</span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>exploreRows <span class="op">=</span> {</span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> common <span class="op">=</span> {</span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a>    <span class="dt">runs</span><span class="op">:</span> explore<span class="op">.</span><span class="at">runs</span><span class="op">,</span> <span class="dt">steps</span><span class="op">:</span> explore<span class="op">.</span><span class="at">drift</span> <span class="op">?</span> <span class="dv">3000</span> <span class="op">:</span> <span class="dv">1000</span><span class="op">,</span> <span class="dt">seed</span><span class="op">:</span> <span class="dv">7</span><span class="op">,</span></span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>    <span class="dt">nonstationary</span><span class="op">:</span> explore<span class="op">.</span><span class="at">drift</span><span class="op">,</span> <span class="dt">offset</span><span class="op">:</span> explore<span class="op">.</span><span class="at">shift</span> <span class="op">?</span> <span class="dv">4</span> <span class="op">:</span> <span class="dv">0</span></span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> series <span class="op">=</span> [</span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a>    {<span class="dt">name</span><span class="op">:</span> exploreNames[<span class="dv">0</span>]<span class="op">,</span> <span class="op">...</span><span class="fu">runTestbed</span>({<span class="op">...</span>common<span class="op">,</span> <span class="dt">epsilon</span><span class="op">:</span> explore<span class="op">.</span><span class="at">epsilon</span>})}<span class="op">,</span></span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a>    {<span class="dt">name</span><span class="op">:</span> exploreNames[<span class="dv">1</span>]<span class="op">,</span> <span class="op">...</span><span class="fu">runTestbed</span>({<span class="op">...</span>common<span class="op">,</span> <span class="dt">epsilon</span><span class="op">:</span> <span class="dv">0</span><span class="op">,</span> <span class="dt">alpha</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span> <span class="dt">q0</span><span class="op">:</span> explore<span class="op">.</span><span class="at">q0</span> <span class="op">+</span> common<span class="op">.</span><span class="at">offset</span>})}<span class="op">,</span></span>
+<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a>    {<span class="dt">name</span><span class="op">:</span> exploreNames[<span class="dv">2</span>]<span class="op">,</span> <span class="op">...</span><span class="fu">runTestbed</span>({<span class="op">...</span>common<span class="op">,</span> <span class="dt">method</span><span class="op">:</span> <span class="st">"ucb"</span><span class="op">,</span> <span class="dt">c</span><span class="op">:</span> explore<span class="op">.</span><span class="at">c</span>})}<span class="op">,</span></span>
+<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a>    {<span class="dt">name</span><span class="op">:</span> exploreNames[<span class="dv">3</span>]<span class="op">,</span> <span class="op">...</span><span class="fu">runTestbed</span>({<span class="op">...</span>common<span class="op">,</span> <span class="dt">method</span><span class="op">:</span> <span class="st">"gradient"</span><span class="op">,</span> <span class="dt">alpha</span><span class="op">:</span> explore<span class="op">.</span><span class="at">alpha</span><span class="op">,</span> <span class="dt">baseline</span><span class="op">:</span> explore<span class="op">.</span><span class="at">baseline</span>})}</span>
+<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a>  ]<span class="op">;</span></span>
+<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="fu">toRows</span>(series<span class="op">,</span> common<span class="op">.</span><span class="at">steps</span> <span class="op">/</span> <span class="dv">200</span>)<span class="op">;</span></span>
+<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-3-1" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-3-2" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb4" data-startfrom="134" data-source-offset="-0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 133;"><span id="cb4-134"><a href="#cb4-134" aria-hidden="true" tabindex="-1"></a>explorePlot <span class="op">=</span> (y<span class="op">,</span> label<span class="op">,</span> domain) <span class="kw">=&gt;</span> Plot<span class="op">.</span><span class="fu">plot</span>({</span>
+<span id="cb4-135"><a href="#cb4-135" aria-hidden="true" tabindex="-1"></a>  <span class="dt">width</span><span class="op">:</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">min</span>(width<span class="op">,</span> <span class="dv">760</span>)<span class="op">,</span></span>
+<span id="cb4-136"><a href="#cb4-136" aria-hidden="true" tabindex="-1"></a>  <span class="dt">height</span><span class="op">:</span> <span class="dv">250</span><span class="op">,</span></span>
+<span id="cb4-137"><a href="#cb4-137" aria-hidden="true" tabindex="-1"></a>  <span class="dt">marginLeft</span><span class="op">:</span> <span class="dv">50</span><span class="op">,</span></span>
+<span id="cb4-138"><a href="#cb4-138" aria-hidden="true" tabindex="-1"></a>  <span class="dt">style</span><span class="op">:</span> {<span class="dt">background</span><span class="op">:</span> <span class="st">"transparent"</span>}<span class="op">,</span></span>
+<span id="cb4-139"><a href="#cb4-139" aria-hidden="true" tabindex="-1"></a>  <span class="dt">x</span><span class="op">:</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"Step"</span>}<span class="op">,</span></span>
+<span id="cb4-140"><a href="#cb4-140" aria-hidden="true" tabindex="-1"></a>  <span class="dt">y</span><span class="op">:</span> {label<span class="op">,</span> <span class="dt">grid</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span> domain}<span class="op">,</span></span>
+<span id="cb4-141"><a href="#cb4-141" aria-hidden="true" tabindex="-1"></a>  <span class="dt">color</span><span class="op">:</span> {<span class="dt">domain</span><span class="op">:</span> exploreNames<span class="op">,</span> <span class="dt">range</span><span class="op">:</span> [pal<span class="op">.</span><span class="at">orange</span><span class="op">,</span> pal<span class="op">.</span><span class="at">magenta</span><span class="op">,</span> pal<span class="op">.</span><span class="at">blue</span><span class="op">,</span> pal<span class="op">.</span><span class="at">green</span>]<span class="op">,</span> <span class="dt">legend</span><span class="op">:</span> <span class="kw">true</span>}<span class="op">,</span></span>
+<span id="cb4-142"><a href="#cb4-142" aria-hidden="true" tabindex="-1"></a>  <span class="dt">marks</span><span class="op">:</span> [Plot<span class="op">.</span><span class="fu">lineY</span>(exploreRows<span class="op">,</span> {<span class="dt">x</span><span class="op">:</span> <span class="st">"step"</span><span class="op">,</span> y<span class="op">,</span> <span class="dt">stroke</span><span class="op">:</span> <span class="st">"series"</span><span class="op">,</span> <span class="dt">strokeWidth</span><span class="op">:</span> <span class="fl">1.5</span>})]</span>
+<span id="cb4-143"><a href="#cb4-143" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb4-144"><a href="#cb4-144" aria-hidden="true" tabindex="-1"></a><span class="fu">explorePlot</span>(<span class="st">"optimal"</span><span class="op">,</span> <span class="st">"% optimal action"</span><span class="op">,</span> [<span class="dv">0</span><span class="op">,</span> <span class="dv">100</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-4-1" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-4-2" data-nodetype="expression">
+
+</div>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb5" data-startfrom="148" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 147;"><span id="cb5-148"><a href="#cb5-148" aria-hidden="true" tabindex="-1"></a><span class="fu">explorePlot</span>(<span class="st">"reward"</span><span class="op">,</span> <span class="st">"Average reward"</span><span class="op">,</span> <span class="kw">undefined</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-5" data-nodetype="expression">
+
+</div>
+</div>
+</div>
+<p class="rl-note">
+The optimistic start is set relative to the shifted values, so Q₁ always means “this far above the average arm”.
+</p>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Common Misconception
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Misconception:</strong> “Exploratory steps are wasted reward.” <strong>Reality:</strong> An exploratory pull costs reward now but buys information: it narrows the uncertainty about an action, and that knowledge pays off on every later decision. Over a long horizon, directed exploration such as UCB gives up far less reward than either never exploring or exploring at random.</p>
+</div>
+</div>
+<hr>
+</section>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<section id="optimistic-initial-values-2.6" class="level3" data-number="0.5">
+<h3 data-number="0.5" class="anchored" data-anchor-id="optimistic-initial-values-2.6"><span class="header-section-number">0.5</span> Optimistic Initial Values (§2.6)</h3>
+<p>Let the initial action-value estimates be set to an optimistic bound:</p>
+<p><span class="math display">\[Q_1(a) = +\bar{r} \quad \forall a \in \{1, \dots, k\}, \quad \text{where } \bar{r} \gg \max_{a} q_*(a).\]</span></p>
+<p>Under a standard greedy selection policy <span class="math inline">\(A_t = \arg\max_a Q_t(a)\)</span>, the estimates are updated with a constant step size <span class="math inline">\(\alpha \in (0, 1)\)</span>:</p>
+<p><span class="math display">\[Q_{t+1}(A_t) = Q_t(A_t) + \alpha \Big[ R_t - Q_t(A_t) \Big].\]</span></p>
+<p>The constant step size matters. Under sample-averaging, the first update uses step size <span class="math inline">\(1/N_t(A_t) = 1\)</span>, so <span class="math inline">\(Q_2(A_t) = R_t\)</span> and the optimistic prior is erased after a single pull: optimism then only guarantees that every action is tried once. With constant <span class="math inline">\(\alpha\)</span>, the prior decays geometrically as <span class="math inline">\((1 - \alpha)^{N_t(a)} \bar{r}\)</span>, so it keeps influencing selection for several pulls of each action (Sutton &amp; Barto use <span class="math inline">\(Q_1 = 5\)</span> and <span class="math inline">\(\alpha = 0.1\)</span> in Figure 2.3).</p>
+<p>Because <span class="math inline">\(\bar{r}\)</span> greatly exceeds every <span class="math inline">\(q_*(a)\)</span>, early rewards satisfy <span class="math inline">\(R_t &lt; Q_t(A_t)\)</span> with high probability (not almost surely: Gaussian rewards are unbounded), so the error term <span class="math inline">\([R_t - Q_t(A_t)]\)</span> is typically negative. Consequently, each selected action suffers empirical degradation, driving the greedy argmax to cycle through the less-tried actions. Nonetheless, this mechanism is ill-suited for non-stationary environments where drifting distributions require persistent, recurring exploration.</p>
+<hr>
+</section>
+<section id="upper-confidence-bound-selection-2.7" class="level3" data-number="0.6">
+<h3 data-number="0.6" class="anchored" data-anchor-id="upper-confidence-bound-selection-2.7"><span class="header-section-number">0.6</span> Upper-Confidence-Bound Selection (§2.7)</h3>
+<p>The Upper Confidence Bound (UCB1) formalism chooses action <span class="math inline">\(A_t\)</span> according to:</p>
+<p><span class="math display">\[A_t \doteq \arg\max_{a} \left[ Q_t(a) + c \sqrt{\frac{\ln t}{N_t(a)}} \right],\]</span></p>
+<p>where <span class="math inline">\(t\)</span> denotes the total number of elapsed steps, <span class="math inline">\(N_t(a)\)</span> is the cumulative count of arm <span class="math inline">\(a\)</span> selections prior to step <span class="math inline">\(t\)</span>, and <span class="math inline">\(c &gt; 0\)</span> governs exploration intensity. If <span class="math inline">\(N_t(a) = 0\)</span>, action <span class="math inline">\(a\)</span> is deemed a maximising action <em>a priori</em>.</p>
+<section id="try-it-watching-the-confidence-bonus-shrink" class="level4" data-number="0.6.1">
+<h4 data-number="0.6.1" class="anchored" data-anchor-id="try-it-watching-the-confidence-bonus-shrink"><span class="header-section-number">0.6.1</span> Try It: Watching the Confidence Bonus Shrink</h4>
+<p>Step UCB through a five-armed problem one pull at a time. Each dot is the estimate <span class="math inline">\(Q_t(a)\)</span>; the bar above it is the bonus <span class="math inline">\(c\sqrt{\ln t / N_t(a)}\)</span>, and the highlighted arm is the one with the highest upper bound, which UCB pulls next.</p>
+<div class="rl-widget">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb6" data-startfrom="203" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 202;"><span id="cb6-203"><a href="#cb6-203" aria-hidden="true" tabindex="-1"></a>viewof ucbC <span class="op">=</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="dv">0</span><span class="op">,</span> <span class="dv">4</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="dv">2</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"c"</span>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-6" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb7" data-startfrom="208" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 207;"><span id="cb7-208"><a href="#cb7-208" aria-hidden="true" tabindex="-1"></a>ucbState <span class="op">=</span> {</span>
+<span id="cb7-209"><a href="#cb7-209" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> k <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb7-210"><a href="#cb7-210" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> s <span class="op">=</span> {k<span class="op">,</span> <span class="dt">reveal</span><span class="op">:</span> <span class="kw">false</span>}<span class="op">;</span></span>
+<span id="cb7-211"><a href="#cb7-211" aria-hidden="true" tabindex="-1"></a>  s<span class="op">.</span><span class="at">reset</span> <span class="op">=</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb7-212"><a href="#cb7-212" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">rng</span> <span class="op">=</span> <span class="fu">makeRng</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">floor</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">random</span>() <span class="op">*</span> <span class="fl">1e9</span>))<span class="op">;</span></span>
+<span id="cb7-213"><a href="#cb7-213" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">q</span> <span class="op">=</span> <span class="bu">Array</span><span class="op">.</span><span class="fu">from</span>({<span class="dt">length</span><span class="op">:</span> k}<span class="op">,</span> () <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">rng</span><span class="op">.</span><span class="fu">normal</span>(<span class="dv">0</span><span class="op">,</span> <span class="dv">1</span>))<span class="op">;</span></span>
+<span id="cb7-214"><a href="#cb7-214" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">Q</span> <span class="op">=</span> <span class="kw">new</span> <span class="bu">Array</span>(k)<span class="op">.</span><span class="fu">fill</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb7-215"><a href="#cb7-215" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">N</span> <span class="op">=</span> <span class="kw">new</span> <span class="bu">Array</span>(k)<span class="op">.</span><span class="fu">fill</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb7-216"><a href="#cb7-216" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">t</span> <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb7-217"><a href="#cb7-217" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">last</span> <span class="op">=</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb7-218"><a href="#cb7-218" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb7-219"><a href="#cb7-219" aria-hidden="true" tabindex="-1"></a>  s<span class="op">.</span><span class="at">upper</span> <span class="op">=</span> (c) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">Q</span><span class="op">.</span><span class="fu">map</span>((Q<span class="op">,</span> a) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">N</span>[a] <span class="op">===</span> <span class="dv">0</span> <span class="op">?</span> <span class="kw">Infinity</span> <span class="op">:</span> Q <span class="op">+</span> c <span class="op">*</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">sqrt</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">log</span>(s<span class="op">.</span><span class="at">t</span> <span class="op">+</span> <span class="dv">1</span>) <span class="op">/</span> s<span class="op">.</span><span class="at">N</span>[a]))<span class="op">;</span></span>
+<span id="cb7-220"><a href="#cb7-220" aria-hidden="true" tabindex="-1"></a>  s<span class="op">.</span><span class="at">step</span> <span class="op">=</span> (c) <span class="kw">=&gt;</span> {</span>
+<span id="cb7-221"><a href="#cb7-221" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> a <span class="op">=</span> <span class="fu">argmaxRandom</span>(s<span class="op">.</span><span class="fu">upper</span>(c)<span class="op">,</span> s<span class="op">.</span><span class="at">rng</span>)<span class="op">;</span></span>
+<span id="cb7-222"><a href="#cb7-222" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> R <span class="op">=</span> s<span class="op">.</span><span class="at">rng</span><span class="op">.</span><span class="fu">normal</span>(s<span class="op">.</span><span class="at">q</span>[a]<span class="op">,</span> <span class="dv">1</span>)<span class="op">;</span></span>
+<span id="cb7-223"><a href="#cb7-223" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">N</span>[a] <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb7-224"><a href="#cb7-224" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">Q</span>[a] <span class="op">+=</span> (R <span class="op">-</span> s<span class="op">.</span><span class="at">Q</span>[a]) <span class="op">/</span> s<span class="op">.</span><span class="at">N</span>[a]<span class="op">;</span></span>
+<span id="cb7-225"><a href="#cb7-225" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">t</span> <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb7-226"><a href="#cb7-226" aria-hidden="true" tabindex="-1"></a>    s<span class="op">.</span><span class="at">last</span> <span class="op">=</span> {a<span class="op">,</span> R}<span class="op">;</span></span>
+<span id="cb7-227"><a href="#cb7-227" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb7-228"><a href="#cb7-228" aria-hidden="true" tabindex="-1"></a>  s<span class="op">.</span><span class="fu">reset</span>()<span class="op">;</span></span>
+<span id="cb7-229"><a href="#cb7-229" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> s<span class="op">;</span></span>
+<span id="cb7-230"><a href="#cb7-230" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-7" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb8" data-startfrom="235" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 234;"><span id="cb8-235"><a href="#cb8-235" aria-hidden="true" tabindex="-1"></a>ucbStepper <span class="op">=</span> {</span>
+<span id="cb8-236"><a href="#cb8-236" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> s <span class="op">=</span> ucbState<span class="op">;</span></span>
+<span id="cb8-237"><a href="#cb8-237" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="bu">root</span> <span class="op">=</span> <span class="fu">html</span><span class="vs">`&lt;div&gt;</span></span>
+<span id="cb8-238"><a href="#cb8-238" aria-hidden="true" tabindex="-1"></a><span class="vs">    &lt;div class="rl-chart"&gt;&lt;/div&gt;</span></span>
+<span id="cb8-239"><a href="#cb8-239" aria-hidden="true" tabindex="-1"></a><span class="vs">    &lt;div class="rl-stats"&gt;&lt;/div&gt;</span></span>
+<span id="cb8-240"><a href="#cb8-240" aria-hidden="true" tabindex="-1"></a><span class="vs">    &lt;div&gt;</span></span>
+<span id="cb8-241"><a href="#cb8-241" aria-hidden="true" tabindex="-1"></a><span class="vs">      &lt;button data-n="1"&gt;Pull once&lt;/button&gt;</span></span>
+<span id="cb8-242"><a href="#cb8-242" aria-hidden="true" tabindex="-1"></a><span class="vs">      &lt;button data-n="10"&gt;Pull 10×&lt;/button&gt;</span></span>
+<span id="cb8-243"><a href="#cb8-243" aria-hidden="true" tabindex="-1"></a><span class="vs">      &lt;button data-n="100"&gt;Pull 100×&lt;/button&gt;</span></span>
+<span id="cb8-244"><a href="#cb8-244" aria-hidden="true" tabindex="-1"></a><span class="vs">      &lt;button data-act="reveal"&gt;Reveal q*&lt;/button&gt;</span></span>
+<span id="cb8-245"><a href="#cb8-245" aria-hidden="true" tabindex="-1"></a><span class="vs">      &lt;button data-act="reset"&gt;New problem&lt;/button&gt;</span></span>
+<span id="cb8-246"><a href="#cb8-246" aria-hidden="true" tabindex="-1"></a><span class="vs">    &lt;/div&gt;</span></span>
+<span id="cb8-247"><a href="#cb8-247" aria-hidden="true" tabindex="-1"></a><span class="vs">  &lt;/div&gt;`</span><span class="op">;</span></span>
+<span id="cb8-248"><a href="#cb8-248" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> render <span class="op">=</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-249"><a href="#cb8-249" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> upper <span class="op">=</span> s<span class="op">.</span><span class="fu">upper</span>(ucbC)<span class="op">;</span></span>
+<span id="cb8-250"><a href="#cb8-250" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> next <span class="op">=</span> upper<span class="op">.</span><span class="fu">indexOf</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(<span class="op">...</span>upper))<span class="op">;</span></span>
+<span id="cb8-251"><a href="#cb8-251" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> data <span class="op">=</span> s<span class="op">.</span><span class="at">Q</span><span class="op">.</span><span class="fu">map</span>((Q<span class="op">,</span> a) <span class="kw">=&gt;</span> ({</span>
+<span id="cb8-252"><a href="#cb8-252" aria-hidden="true" tabindex="-1"></a>      <span class="dt">arm</span><span class="op">:</span> <span class="vs">`Arm </span><span class="sc">${</span>a <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="vs">`</span><span class="op">,</span> Q<span class="op">,</span> <span class="dt">N</span><span class="op">:</span> s<span class="op">.</span><span class="at">N</span>[a]<span class="op">,</span> <span class="dt">q</span><span class="op">:</span> s<span class="op">.</span><span class="at">q</span>[a]<span class="op">,</span></span>
+<span id="cb8-253"><a href="#cb8-253" aria-hidden="true" tabindex="-1"></a>      <span class="dt">hi</span><span class="op">:</span> <span class="bu">Number</span><span class="op">.</span><span class="fu">isFinite</span>(upper[a]) <span class="op">?</span> upper[a] <span class="op">:</span> <span class="kw">null</span><span class="op">,</span> <span class="dt">next</span><span class="op">:</span> a <span class="op">===</span> next</span>
+<span id="cb8-254"><a href="#cb8-254" aria-hidden="true" tabindex="-1"></a>    }))<span class="op">;</span></span>
+<span id="cb8-255"><a href="#cb8-255" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> finite <span class="op">=</span> data<span class="op">.</span><span class="fu">filter</span>((d) <span class="kw">=&gt;</span> d<span class="op">.</span><span class="at">hi</span> <span class="op">!==</span> <span class="kw">null</span>)<span class="op">;</span></span>
+<span id="cb8-256"><a href="#cb8-256" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> top <span class="op">=</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(<span class="dv">3</span><span class="op">,</span> <span class="op">...</span>finite<span class="op">.</span><span class="fu">map</span>((d) <span class="kw">=&gt;</span> d<span class="op">.</span><span class="at">hi</span>))<span class="op">;</span></span>
+<span id="cb8-257"><a href="#cb8-257" aria-hidden="true" tabindex="-1"></a>    <span class="bu">root</span><span class="op">.</span><span class="fu">querySelector</span>(<span class="st">".rl-chart"</span>)<span class="op">.</span><span class="fu">replaceChildren</span>(Plot<span class="op">.</span><span class="fu">plot</span>({</span>
+<span id="cb8-258"><a href="#cb8-258" aria-hidden="true" tabindex="-1"></a>      <span class="dt">width</span><span class="op">:</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">min</span>(width<span class="op">,</span> <span class="dv">640</span>)<span class="op">,</span></span>
+<span id="cb8-259"><a href="#cb8-259" aria-hidden="true" tabindex="-1"></a>      <span class="dt">height</span><span class="op">:</span> <span class="dv">260</span><span class="op">,</span></span>
+<span id="cb8-260"><a href="#cb8-260" aria-hidden="true" tabindex="-1"></a>      <span class="dt">marginLeft</span><span class="op">:</span> <span class="dv">45</span><span class="op">,</span></span>
+<span id="cb8-261"><a href="#cb8-261" aria-hidden="true" tabindex="-1"></a>      <span class="dt">style</span><span class="op">:</span> {<span class="dt">background</span><span class="op">:</span> <span class="st">"transparent"</span>}<span class="op">,</span></span>
+<span id="cb8-262"><a href="#cb8-262" aria-hidden="true" tabindex="-1"></a>      <span class="dt">x</span><span class="op">:</span> {<span class="dt">label</span><span class="op">:</span> <span class="kw">null</span><span class="op">,</span> <span class="dt">padding</span><span class="op">:</span> <span class="fl">0.4</span>}<span class="op">,</span></span>
+<span id="cb8-263"><a href="#cb8-263" aria-hidden="true" tabindex="-1"></a>      <span class="dt">y</span><span class="op">:</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"Value"</span><span class="op">,</span> <span class="dt">grid</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span> <span class="dt">domain</span><span class="op">:</span> [<span class="op">-</span><span class="dv">3</span><span class="op">,</span> top]}<span class="op">,</span></span>
+<span id="cb8-264"><a href="#cb8-264" aria-hidden="true" tabindex="-1"></a>      <span class="dt">marks</span><span class="op">:</span> [</span>
+<span id="cb8-265"><a href="#cb8-265" aria-hidden="true" tabindex="-1"></a>        Plot<span class="op">.</span><span class="fu">barY</span>(finite<span class="op">,</span> {<span class="dt">x</span><span class="op">:</span> <span class="st">"arm"</span><span class="op">,</span> <span class="dt">y1</span><span class="op">:</span> <span class="st">"Q"</span><span class="op">,</span> <span class="dt">y2</span><span class="op">:</span> <span class="st">"hi"</span><span class="op">,</span> <span class="dt">fill</span><span class="op">:</span> (d) <span class="kw">=&gt;</span> d<span class="op">.</span><span class="at">next</span> <span class="op">?</span> pal<span class="op">.</span><span class="at">magenta</span> <span class="op">:</span> pal<span class="op">.</span><span class="at">blue</span><span class="op">,</span> <span class="dt">fillOpacity</span><span class="op">:</span> <span class="fl">0.35</span>})<span class="op">,</span></span>
+<span id="cb8-266"><a href="#cb8-266" aria-hidden="true" tabindex="-1"></a>        Plot<span class="op">.</span><span class="fu">dot</span>(finite<span class="op">,</span> {<span class="dt">x</span><span class="op">:</span> <span class="st">"arm"</span><span class="op">,</span> <span class="dt">y</span><span class="op">:</span> <span class="st">"Q"</span><span class="op">,</span> <span class="dt">r</span><span class="op">:</span> <span class="dv">5</span><span class="op">,</span> <span class="dt">fill</span><span class="op">:</span> (d) <span class="kw">=&gt;</span> d<span class="op">.</span><span class="at">next</span> <span class="op">?</span> pal<span class="op">.</span><span class="at">magenta</span> <span class="op">:</span> pal<span class="op">.</span><span class="at">blue</span>})<span class="op">,</span></span>
+<span id="cb8-267"><a href="#cb8-267" aria-hidden="true" tabindex="-1"></a>        Plot<span class="op">.</span><span class="fu">text</span>(data<span class="op">.</span><span class="fu">filter</span>((d) <span class="kw">=&gt;</span> d<span class="op">.</span><span class="at">hi</span> <span class="op">===</span> <span class="kw">null</span>)<span class="op">,</span> {<span class="dt">x</span><span class="op">:</span> <span class="st">"arm"</span><span class="op">,</span> <span class="dt">y</span><span class="op">:</span> <span class="dv">0</span><span class="op">,</span> <span class="dt">text</span><span class="op">:</span> () <span class="kw">=&gt;</span> <span class="st">"untried</span><span class="sc">\n</span><span class="st">(bonus ∞)"</span><span class="op">,</span> <span class="dt">fill</span><span class="op">:</span> pal<span class="op">.</span><span class="at">magenta</span>})<span class="op">,</span></span>
+<span id="cb8-268"><a href="#cb8-268" aria-hidden="true" tabindex="-1"></a>        Plot<span class="op">.</span><span class="fu">text</span>(data<span class="op">,</span> {<span class="dt">x</span><span class="op">:</span> <span class="st">"arm"</span><span class="op">,</span> <span class="dt">y</span><span class="op">:</span> <span class="op">-</span><span class="dv">3</span><span class="op">,</span> <span class="dt">dy</span><span class="op">:</span> <span class="op">-</span><span class="dv">8</span><span class="op">,</span> <span class="dt">text</span><span class="op">:</span> (d) <span class="kw">=&gt;</span> <span class="vs">`N = </span><span class="sc">${</span>d<span class="op">.</span><span class="at">N</span><span class="sc">}</span><span class="vs">`</span><span class="op">,</span> <span class="dt">fill</span><span class="op">:</span> pal<span class="op">.</span><span class="at">fg</span>})<span class="op">,</span></span>
+<span id="cb8-269"><a href="#cb8-269" aria-hidden="true" tabindex="-1"></a>        s<span class="op">.</span><span class="at">reveal</span> <span class="op">?</span> Plot<span class="op">.</span><span class="fu">tickY</span>(data<span class="op">,</span> {<span class="dt">x</span><span class="op">:</span> <span class="st">"arm"</span><span class="op">,</span> <span class="dt">y</span><span class="op">:</span> <span class="st">"q"</span><span class="op">,</span> <span class="dt">stroke</span><span class="op">:</span> pal<span class="op">.</span><span class="at">green</span><span class="op">,</span> <span class="dt">strokeWidth</span><span class="op">:</span> <span class="fl">2.5</span>}) <span class="op">:</span> <span class="kw">null</span></span>
+<span id="cb8-270"><a href="#cb8-270" aria-hidden="true" tabindex="-1"></a>      ]</span>
+<span id="cb8-271"><a href="#cb8-271" aria-hidden="true" tabindex="-1"></a>    }))<span class="op">;</span></span>
+<span id="cb8-272"><a href="#cb8-272" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> best <span class="op">=</span> s<span class="op">.</span><span class="at">q</span><span class="op">.</span><span class="fu">indexOf</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(<span class="op">...</span>s<span class="op">.</span><span class="at">q</span>))<span class="op">;</span></span>
+<span id="cb8-273"><a href="#cb8-273" aria-hidden="true" tabindex="-1"></a>    <span class="bu">root</span><span class="op">.</span><span class="fu">querySelector</span>(<span class="st">".rl-stats"</span>)<span class="op">.</span><span class="at">innerHTML</span> <span class="op">=</span> s<span class="op">.</span><span class="at">t</span> <span class="op">===</span> <span class="dv">0</span></span>
+<span id="cb8-274"><a href="#cb8-274" aria-hidden="true" tabindex="-1"></a>      <span class="op">?</span> <span class="st">"No pulls yet: every arm is untried, so UCB tries each once first."</span></span>
+<span id="cb8-275"><a href="#cb8-275" aria-hidden="true" tabindex="-1"></a>      <span class="op">:</span> <span class="vs">`t = </span><span class="sc">${</span>s<span class="op">.</span><span class="at">t</span><span class="sc">}</span><span class="vs">. Last pull: Arm </span><span class="sc">${</span>s<span class="op">.</span><span class="at">last</span><span class="op">.</span><span class="at">a</span> <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="vs">, reward </span><span class="sc">${</span>s<span class="op">.</span><span class="at">last</span><span class="op">.</span><span class="at">R</span><span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">2</span>)<span class="sc">}</span><span class="vs">. Next pull: &lt;b&gt;Arm </span><span class="sc">${</span>next <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="vs">&lt;/b&gt;.`</span> <span class="op">+</span></span>
+<span id="cb8-276"><a href="#cb8-276" aria-hidden="true" tabindex="-1"></a>        (s<span class="op">.</span><span class="at">reveal</span> <span class="op">?</span> <span class="vs">` Best arm is Arm </span><span class="sc">${</span>best <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="vs"> (green ticks show q*).`</span> <span class="op">:</span> <span class="st">""</span>)<span class="op">;</span></span>
+<span id="cb8-277"><a href="#cb8-277" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb8-278"><a href="#cb8-278" aria-hidden="true" tabindex="-1"></a>  <span class="bu">root</span><span class="op">.</span><span class="at">onclick</span> <span class="op">=</span> (e) <span class="kw">=&gt;</span> {</span>
+<span id="cb8-279"><a href="#cb8-279" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> {n<span class="op">,</span> act} <span class="op">=</span> e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">dataset</span> <span class="op">??</span> {}<span class="op">;</span></span>
+<span id="cb8-280"><a href="#cb8-280" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (n) <span class="cf">for</span> (<span class="kw">let</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> <span class="op">+</span>n<span class="op">;</span> i<span class="op">++</span>) s<span class="op">.</span><span class="fu">step</span>(ucbC)<span class="op">;</span></span>
+<span id="cb8-281"><a href="#cb8-281" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (act <span class="op">===</span> <span class="st">"reveal"</span>) s<span class="op">.</span><span class="at">reveal</span> <span class="op">=</span> <span class="op">!</span>s<span class="op">.</span><span class="at">reveal</span><span class="op">;</span></span>
+<span id="cb8-282"><a href="#cb8-282" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (act <span class="op">===</span> <span class="st">"reset"</span>) s<span class="op">.</span><span class="fu">reset</span>()<span class="op">;</span></span>
+<span id="cb8-283"><a href="#cb8-283" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (n <span class="op">||</span> act) <span class="fu">render</span>()<span class="op">;</span></span>
+<span id="cb8-284"><a href="#cb8-284" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb8-285"><a href="#cb8-285" aria-hidden="true" tabindex="-1"></a>  <span class="fu">render</span>()<span class="op">;</span></span>
+<span id="cb8-286"><a href="#cb8-286" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="bu">root</span><span class="op">;</span></span>
+<span id="cb8-287"><a href="#cb8-287" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-8" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="theoretical-regret-bounds" class="level4" data-number="0.6.2">
+<h4 data-number="0.6.2" class="anchored" data-anchor-id="theoretical-regret-bounds"><span class="header-section-number">0.6.2</span> Theoretical Regret Bounds</h4>
+<p>The analysis below assumes rewards with bounded support <span class="math inline">\(R_t \in [0, 1]\)</span>, as in Auer et al.; the Gaussian testbed violates this, so there the bounds are a guide rather than a guarantee. By the Chernoff-Hoeffding bound, the probability that the true expectation <span class="math inline">\(q_*(a)\)</span> exceeds the empirical mean by threshold <span class="math inline">\(\epsilon\)</span> decays exponentially:</p>
+<p><span class="math display">\[\Pr\left\{ q_*(a) \ge Q_t(a) + \epsilon \right\} \le e^{-2 N_t(a) \epsilon^2}.\]</span></p>
+<p>Setting <span class="math inline">\(\epsilon = \sqrt{\frac{2 \ln t}{N_t(a)}}\)</span> bounds this failure probability by <span class="math inline">\(t^{-4}\)</span>; this choice of bonus is UCB1, i.e.&nbsp;the selection rule above with <span class="math inline">\(c = \sqrt{2}\)</span>. Lai and Robbins demonstrated that for any consistent allocation policy, the asymptotic cumulative regret <span class="math inline">\(\mathcal{L}_T\)</span> is lower-bounded by <span class="citation" data-cites="lai1985asymptotically">(<a href="#ref-lai1985asymptotically" role="doc-biblioref">Lai and Robbins 1985</a>)</span>:</p>
+<p><span class="math display">\[\liminf_{T \to \infty} \frac{\mathcal{L}_T}{\ln T} \ge \sum_{a: \Delta_a &gt; 0} \frac{\Delta_a}{\mathrm{KL}(\nu_a \parallel \nu_{a^*})}.\]</span></p>
+<p>The UCB1 algorithm of Auer et al.&nbsp;guarantees finite-time logarithmic regret <span class="citation" data-cites="auer2002finite">(<a href="#ref-auer2002finite" role="doc-biblioref">Auer et al. 2002</a>)</span>:</p>
+<p><span class="math display">\[\mathbb{E}[\mathcal{L}_T] \le \sum_{a: \Delta_a &gt; 0} \frac{8 \ln T}{\Delta_a} + \left(1 + \frac{\pi^2}{3}\right) \sum_{a=1}^k \Delta_a.\]</span></p>
+<hr>
+</section>
+</section>
+<section id="gradient-bandit-algorithms-2.8" class="level3" data-number="0.7">
+<h3 data-number="0.7" class="anchored" data-anchor-id="gradient-bandit-algorithms-2.8"><span class="header-section-number">0.7</span> Gradient Bandit Algorithms (§2.8)</h3>
+<p>Rather than estimating action values directly, gradient bandit algorithms maintain numerical preferences <span class="math inline">\(H_t(a) \in \mathbb{R}\)</span>. Action probabilities are parameterised via a Gibbs / soft-max distribution:</p>
+<p><span class="math display">\[\pi_t(a) \doteq \Pr\{A_t = a\} = \frac{e^{H_t(a)}}{\sum_{b=1}^k e^{H_t(b)}}.\]</span></p>
+<section id="derivation-via-stochastic-gradient-ascent" class="level4" data-number="0.7.1">
+<h4 data-number="0.7.1" class="anchored" data-anchor-id="derivation-via-stochastic-gradient-ascent"><span class="header-section-number">0.7.1</span> Derivation via Stochastic Gradient Ascent</h4>
+<p>We seek to maximise the expected performance criterion <span class="math inline">\(\eta(H) \doteq \mathbb{E}[R_t] = \sum_{x} \pi_t(x) q_*(x)\)</span>. Taking the partial derivative with respect to preference <span class="math inline">\(H_t(a)\)</span>:</p>
+<p><span class="math display">\[\frac{\partial \mathbb{E}[R_t]}{\partial H_t(a)} = \sum_{x} q_*(x) \frac{\partial \pi_t(x)}{\partial H_t(a)}.\]</span></p>
+<p>Because <span class="math inline">\(\sum_x \pi_t(x) = 1\)</span>, the gradient of this total probability mass is zero: <span class="math inline">\(\sum_x \frac{\partial \pi_t(x)}{\partial H_t(a)} = 0\)</span>. Consequently, an arbitrary scalar baseline <span class="math inline">\(B_t\)</span> independent of <span class="math inline">\(x\)</span> may be subtracted without inducing bias:</p>
+<p><span class="math display">\[\frac{\partial \mathbb{E}[R_t]}{\partial H_t(a)} = \sum_{x} \Big( q_*(x) - B_t \Big) \frac{\partial \pi_t(x)}{\partial H_t(a)}.\]</span></p>
+<p>Recalling that the soft-max derivative is given by <span class="math inline">\(\frac{\partial \pi_t(x)}{\partial H_t(a)} = \pi_t(x) \big( \mathbb{1}_{a=x} - \pi_t(a) \big)\)</span>, we express the gradient as an expectation under policy <span class="math inline">\(\pi_t\)</span>:</p>
+<p><span class="math display">\[\begin{aligned}
+\frac{\partial \mathbb{E}[R_t]}{\partial H_t(a)} &amp;= \sum_{x} \pi_t(x) \Big( q_*(x) - B_t \Big) \big( \mathbb{1}_{a=x} - \pi_t(a) \big) \\
+&amp;= \mathbb{E}_{A_t \sim \pi_t} \left[ \Big( R_t - B_t \Big) \big( \mathbb{1}_{a=A_t} - \pi_t(a) \big) \right].
+\end{aligned}\]</span></p>
+<p>Replacing the expectation with an instantaneous empirical sample yields the update:</p>
+<p><span class="math display">\[\begin{aligned}
+H_{t+1}(A_t) &amp;= H_t(A_t) + \alpha (R_t - \bar{R}_t)(1 - \pi_t(A_t)), \\
+H_{t+1}(a) &amp;= H_t(a) - \alpha (R_t - \bar{R}_t)\pi_t(a), \quad \forall a \ne A_t,
+\end{aligned}\]</span></p>
+<p>where the baseline <span class="math inline">\(\bar{R}_t = \frac{1}{t-1}\sum_{i=1}^{t-1} R_i\)</span> (with <span class="math inline">\(\bar{R}_1 = R_1\)</span>), the average of the rewards <em>before</em> step <span class="math inline">\(t\)</span>, significantly attenuates variance. This formulation constitutes the stateless antecedent of the REINFORCE policy gradient algorithm <span class="citation" data-cites="williams1992simple">(<a href="#ref-williams1992simple" role="doc-biblioref">Williams 1992</a>)</span>.</p>
+<hr>
+</section>
+</section>
+<section id="associative-search-contextual-bandits-2.9" class="level3" data-number="0.8">
+<h3 data-number="0.8" class="anchored" data-anchor-id="associative-search-contextual-bandits-2.9"><span class="header-section-number">0.8</span> Associative Search / Contextual Bandits (§2.9)</h3>
+<p>When the agent observes a context vector <span class="math inline">\(X_t \in \mathcal{S}\)</span> prior to action selection, the task generalises to learning a contextual mapping <span class="math inline">\(X_t \mapsto A_t\)</span>. Crucially, while reward <span class="math inline">\(R_t\)</span> is contingent upon both state <span class="math inline">\(X_t\)</span> and action <span class="math inline">\(A_t\)</span>, action <span class="math inline">\(A_t\)</span> exerts no causal influence over the subsequent context <span class="math inline">\(X_{t+1}\)</span>. When action selection actively steers state transitions, the problem transitions formally from an associative bandit into a full Markov Decision Process.</p>
+<hr>
+</section>
+<section id="empirical-implementation-in-python-numpy" class="level3" data-number="0.9">
+<h3 data-number="0.9" class="anchored" data-anchor-id="empirical-implementation-in-python-numpy"><span class="header-section-number">0.9</span> Empirical Implementation in Python / NumPy</h3>
+<p>Below is a self-contained implementation of all four strategies on the 10-armed testbed, plus a contextual <span class="math inline">\(\varepsilon\)</span>-greedy agent for §2.9. Every method records whether it chose the optimal arm at each step, so the strategies can be compared directly.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> BanditTestbed:</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""k-armed Gaussian testbed (Sutton &amp; Barto §2.3), optionally drifting (Exercise 2.5)."""</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, k: <span class="bu">int</span> <span class="op">=</span> <span class="dv">10</span>, stationary: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span>, offset: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.0</span>, seed: <span class="bu">int</span> <span class="op">=</span> <span class="dv">42</span>):</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.k <span class="op">=</span> k</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.stationary <span class="op">=</span> stationary</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.q_true <span class="op">=</span> <span class="va">self</span>.rng.normal(offset, <span class="fl">1.0</span>, size<span class="op">=</span>k)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> optimal_action(<span class="va">self</span>) <span class="op">-&gt;</span> <span class="bu">int</span>:</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">int</span>(np.argmax(<span class="va">self</span>.q_true))</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> step(<span class="va">self</span>, action: <span class="bu">int</span>) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>        reward <span class="op">=</span> <span class="va">self</span>.rng.normal(<span class="va">self</span>.q_true[action], <span class="fl">1.0</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> <span class="va">self</span>.stationary:</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.q_true <span class="op">+=</span> <span class="va">self</span>.rng.normal(<span class="fl">0.0</span>, <span class="fl">0.01</span>, size<span class="op">=</span><span class="va">self</span>.k)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">float</span>(reward)</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> argmax_random(values: np.ndarray, rng: np.random.Generator) <span class="op">-&gt;</span> <span class="bu">int</span>:</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Argmax with ties broken uniformly at random (avoids a systematic left-arm bias)."""</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">int</span>(rng.choice(np.flatnonzero(values <span class="op">==</span> values.<span class="bu">max</span>())))</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_epsilon_greedy(env, steps<span class="op">=</span><span class="dv">1000</span>, epsilon<span class="op">=</span><span class="fl">0.1</span>, seed<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    q_est, counts <span class="op">=</span> np.zeros(env.k), np.zeros(env.k)</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    optimal <span class="op">=</span> np.empty(steps, dtype<span class="op">=</span><span class="bu">bool</span>)</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(steps):</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>        action <span class="op">=</span> <span class="bu">int</span>(rng.integers(env.k)) <span class="cf">if</span> rng.random() <span class="op">&lt;</span> epsilon <span class="cf">else</span> argmax_random(q_est, rng)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>        optimal[t] <span class="op">=</span> action <span class="op">==</span> env.optimal_action()</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>        r <span class="op">=</span> env.step(action)</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>        counts[action] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>        q_est[action] <span class="op">+=</span> (r <span class="op">-</span> q_est[action]) <span class="op">/</span> counts[action]</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> optimal</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_optimistic_greedy(env, steps<span class="op">=</span><span class="dv">1000</span>, q0<span class="op">=</span><span class="fl">5.0</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, seed<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Constant step size: with 1/n the optimistic prior is erased after one pull.</span></span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>    q_est <span class="op">=</span> np.full(env.k, q0)</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>    optimal <span class="op">=</span> np.empty(steps, dtype<span class="op">=</span><span class="bu">bool</span>)</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(steps):</span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>        action <span class="op">=</span> argmax_random(q_est, rng)</span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>        optimal[t] <span class="op">=</span> action <span class="op">==</span> env.optimal_action()</span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>        r <span class="op">=</span> env.step(action)</span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>        q_est[action] <span class="op">+=</span> alpha <span class="op">*</span> (r <span class="op">-</span> q_est[action])</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> optimal</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_ucb(env, steps<span class="op">=</span><span class="dv">1000</span>, c<span class="op">=</span><span class="fl">2.0</span>, seed<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>    q_est, counts <span class="op">=</span> np.zeros(env.k), np.zeros(env.k)</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>    optimal <span class="op">=</span> np.empty(steps, dtype<span class="op">=</span><span class="bu">bool</span>)</span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, steps <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Untried arms get an infinite bonus, so each is pulled once first.</span></span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> np.errstate(divide<span class="op">=</span><span class="st">"ignore"</span>, invalid<span class="op">=</span><span class="st">"ignore"</span>):</span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a>            ucb <span class="op">=</span> np.where(counts <span class="op">==</span> <span class="dv">0</span>, np.inf, q_est <span class="op">+</span> c <span class="op">*</span> np.sqrt(np.log(t) <span class="op">/</span> counts))</span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a>        action <span class="op">=</span> argmax_random(ucb, rng)</span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>        optimal[t <span class="op">-</span> <span class="dv">1</span>] <span class="op">=</span> action <span class="op">==</span> env.optimal_action()</span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>        r <span class="op">=</span> env.step(action)</span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>        counts[action] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a>        q_est[action] <span class="op">+=</span> (r <span class="op">-</span> q_est[action]) <span class="op">/</span> counts[action]</span>
+<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> optimal</span>
+<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_gradient(env, steps<span class="op">=</span><span class="dv">1000</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, baseline<span class="op">=</span><span class="va">True</span>, seed<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>    H <span class="op">=</span> np.zeros(env.k)</span>
+<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>    mean_reward <span class="op">=</span> <span class="fl">0.0</span>  <span class="co"># average of rewards before the current step</span></span>
+<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a>    optimal <span class="op">=</span> np.empty(steps, dtype<span class="op">=</span><span class="bu">bool</span>)</span>
+<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(steps):</span>
+<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a>        pi <span class="op">=</span> np.exp(H <span class="op">-</span> H.<span class="bu">max</span>())</span>
+<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a>        pi <span class="op">/=</span> pi.<span class="bu">sum</span>()</span>
+<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a>        action <span class="op">=</span> <span class="bu">int</span>(rng.choice(env.k, p<span class="op">=</span>pi))</span>
+<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>        optimal[t] <span class="op">=</span> action <span class="op">==</span> env.optimal_action()</span>
+<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>        r <span class="op">=</span> env.step(action)</span>
+<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>        b <span class="op">=</span> (r <span class="cf">if</span> t <span class="op">==</span> <span class="dv">0</span> <span class="cf">else</span> mean_reward) <span class="cf">if</span> baseline <span class="cf">else</span> <span class="fl">0.0</span></span>
+<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>        one_hot <span class="op">=</span> np.zeros(env.k)</span>
+<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a>        one_hot[action] <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a>        H <span class="op">+=</span> alpha <span class="op">*</span> (r <span class="op">-</span> b) <span class="op">*</span> (one_hot <span class="op">-</span> pi)</span>
+<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a>        mean_reward <span class="op">+=</span> (r <span class="op">-</span> mean_reward) <span class="op">/</span> (t <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> optimal</span>
+<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_contextual_epsilon_greedy(n_contexts<span class="op">=</span><span class="dv">2</span>, k<span class="op">=</span><span class="dv">10</span>, steps<span class="op">=</span><span class="dv">2000</span>, epsilon<span class="op">=</span><span class="fl">0.1</span>, seed<span class="op">=</span><span class="dv">0</span>):</span>
+<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Associative search: one action-value table per observed context (the lamp colour)."""</span></span>
+<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a>    q_true <span class="op">=</span> rng.normal(<span class="fl">0.0</span>, <span class="fl">1.0</span>, size<span class="op">=</span>(n_contexts, k))</span>
+<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a>    q_est, counts <span class="op">=</span> np.zeros((n_contexts, k)), np.zeros((n_contexts, k))</span>
+<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a>    optimal <span class="op">=</span> np.empty(steps, dtype<span class="op">=</span><span class="bu">bool</span>)</span>
+<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> t <span class="kw">in</span> <span class="bu">range</span>(steps):</span>
+<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="bu">int</span>(rng.integers(n_contexts))  <span class="co"># the context does not depend on past actions</span></span>
+<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a>        action <span class="op">=</span> <span class="bu">int</span>(rng.integers(k)) <span class="cf">if</span> rng.random() <span class="op">&lt;</span> epsilon <span class="cf">else</span> argmax_random(q_est[x], rng)</span>
+<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a>        optimal[t] <span class="op">=</span> action <span class="op">==</span> np.argmax(q_true[x])</span>
+<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a>        r <span class="op">=</span> rng.normal(q_true[x, action], <span class="fl">1.0</span>)</span>
+<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a>        counts[x, action] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a>        q_est[x, action] <span class="op">+=</span> (r <span class="op">-</span> q_est[x, action]) <span class="op">/</span> counts[x, action]</span>
+<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> optimal</span>
+<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compare(runs<span class="op">=</span><span class="dv">200</span>, steps<span class="op">=</span><span class="dv">1000</span>):</span>
+<span id="cb9-106"><a href="#cb9-106" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Percentage of optimal actions per step, averaged over independent testbeds."""</span></span>
+<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a>    methods <span class="op">=</span> {</span>
+<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a>        <span class="st">"epsilon-greedy (0.1)"</span>: run_epsilon_greedy,</span>
+<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a>        <span class="st">"optimistic greedy (Q1=5, alpha=0.1)"</span>: run_optimistic_greedy,</span>
+<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a>        <span class="st">"UCB (c=2)"</span>: run_ucb,</span>
+<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a>        <span class="st">"gradient (alpha=0.1, baseline)"</span>: run_gradient,</span>
+<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a>    pct <span class="op">=</span> {name: np.zeros(steps) <span class="cf">for</span> name <span class="kw">in</span> methods}</span>
+<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> run <span class="kw">in</span> <span class="bu">range</span>(runs):</span>
+<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> name, method <span class="kw">in</span> methods.items():</span>
+<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a>            pct[name] <span class="op">+=</span> method(BanditTestbed(seed<span class="op">=</span>run), steps, seed<span class="op">=</span>run)</span>
+<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {name: <span class="fl">100.0</span> <span class="op">*</span> total <span class="op">/</span> runs <span class="cf">for</span> name, total <span class="kw">in</span> pct.items()}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Running the comparison over 200 independent testbeds reproduces the ordering of Sutton &amp; Barto’s Figures 2.3 to 2.5:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> compare(runs<span class="op">=</span><span class="dv">200</span>, steps<span class="op">=</span><span class="dv">1000</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, curve <span class="kw">in</span> results.items():</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">:38s}</span><span class="ss"> last 100 steps: </span><span class="sc">{</span>curve[<span class="op">-</span><span class="dv">100</span>:]<span class="sc">.</span>mean()<span class="sc">:.1f}</span><span class="ss">% optimal"</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>ctx <span class="op">=</span> run_contextual_epsilon_greedy(steps<span class="op">=</span><span class="dv">2000</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"contextual epsilon-greedy, last 500 steps: </span><span class="sc">{</span><span class="dv">100</span> <span class="op">*</span> ctx[<span class="op">-</span><span class="dv">500</span>:]<span class="sc">.</span>mean()<span class="sc">:.1f}</span><span class="ss">% optimal"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<pre class="text"><code>epsilon-greedy (0.1)                   last 100 steps: 78.8% optimal
+optimistic greedy (Q1=5, alpha=0.1)    last 100 steps: 85.4% optimal
+UCB (c=2)                              last 100 steps: 84.6% optimal
+gradient (alpha=0.1, baseline)         last 100 steps: 81.8% optimal
+contextual epsilon-greedy, last 500 steps: 91.4% optimal</code></pre>
+</section>
+<section id="analytical-exercises" class="level3" data-number="0.10">
+<h3 data-number="0.10" class="anchored" data-anchor-id="analytical-exercises"><span class="header-section-number">0.10</span> Analytical Exercises</h3>
+<ol type="1">
+<li><strong>Exercise 2.1: The Optimistic Spike.</strong> In the optimistic-greedy curve, the percentage of optimal actions shows oscillations and spikes during the first few dozen steps. Explain why, using only the update rule and the fact that every estimate starts at <span class="math inline">\(Q_1 = 5\)</span> (Sutton &amp; Barto, Exercise 2.6).</li>
+<li><strong>Exercise 2.2: The UCB Spike at Step 11.</strong> With <span class="math inline">\(k = 10\)</span> and <span class="math inline">\(c = 2\)</span>, average reward under UCB jumps sharply at step 11 and then drops again. Why step 11, and why does the spike shrink as <span class="math inline">\(c\)</span> decreases (Exercise 2.8)?</li>
+<li><strong>Exercise 2.3: Two-Action Soft-Max.</strong> Show that with <span class="math inline">\(k = 2\)</span> the soft-max distribution reduces to the logistic (sigmoid) function of the preference difference <span class="math inline">\(H_t(1) - H_t(2)\)</span> (Exercise 2.9).</li>
+<li><strong>Exercise 2.4: Unbiased Constant Step Size.</strong> Optimistic initialisation works only because a constant step size retains a bias towards <span class="math inline">\(Q_1\)</span>. Show that the step size <span class="math inline">\(\beta_n = \alpha / \bar{o}_n\)</span>, with <span class="math inline">\(\bar{o}_n = \bar{o}_{n-1} + \alpha(1 - \bar{o}_{n-1})\)</span> and <span class="math inline">\(\bar{o}_0 = 0\)</span>, removes the initial bias while still weighting recent rewards exponentially (Exercise 2.7).</li>
+<li><strong>Exercise 2.5: Ignoring the Lamp.</strong> Modify <code>run_contextual_epsilon_greedy</code> so that the agent ignores the context and keeps a single table of estimates. What fraction of optimal actions can it reach at best, and how does this depend on how often the two contexts share the same best arm?</li>
+<li><strong>Exercise 2.6: Optimism Under Drift.</strong> Switch on drifting machines in the comparison widget. Explain why optimistic greedy loses its advantage over <span class="math inline">\(\varepsilon\)</span>-greedy, and propose a modification that restores persistent exploration.</li>
+</ol>
+</section>
+</div>
+</div>
+</div>
+<hr>
+<section id="game-theory-corner" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="game-theory-corner"><span class="header-section-number">1</span> Game Theory Corner</h2>
+<p>In multi-agent settings, deterministic greedy exploration frequently fails because adversarial opponents actively exploit predictable empirical routines. When opposing payoff surfaces adapt dynamically, optimal behaviour requires mixed strategies—randomising deliberately across action spaces (as in zero-sum games such as rock-paper-scissors) to prevent an opponent from driving value updates into degenerate equilibria.</p>
+<hr>
+</section>
+<section id="key-takeaways-glossary" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="key-takeaways-glossary"><span class="header-section-number">2</span> Key Takeaways &amp; Glossary</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Symbol / Concept</th>
+<th style="text-align: left;">Formal Definition</th>
+<th style="text-align: left;">Operational Significance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(Q_1(a) = \bar{r}\)</span></td>
+<td style="text-align: left;">Optimistic initial estimate, <span class="math inline">\(\bar{r} \gg \max_a q_*(a)\)</span></td>
+<td style="text-align: left;">Front-loads exploration; needs a constant step size to persist beyond one pull.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">UCB bonus</td>
+<td style="text-align: left;"><span class="math inline">\(c \sqrt{\ln t / N_t(a)}\)</span></td>
+<td style="text-align: left;">Directs exploration towards rarely tried actions; <span class="math inline">\(c = \sqrt{2}\)</span> gives UCB1.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Regret of UCB1</td>
+<td style="text-align: left;"><span class="math inline">\(\mathcal{O}\left(\sum_a \ln T / \Delta_a\right)\)</span></td>
+<td style="text-align: left;">Logarithmic, versus linear <span class="math inline">\(\Omega(T)\)</span> for constant <span class="math inline">\(\varepsilon\)</span>-greedy.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(H_t(a)\)</span></td>
+<td style="text-align: left;">Action preference</td>
+<td style="text-align: left;">Only differences matter; the soft-max turns preferences into probabilities.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\pi_t(a)\)</span></td>
+<td style="text-align: left;"><span class="math inline">\(e^{H_t(a)} / \sum_b e^{H_t(b)}\)</span></td>
+<td style="text-align: left;">Stochastic policy of the gradient bandit.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\bar{R}_t\)</span></td>
+<td style="text-align: left;">Mean of rewards before step <span class="math inline">\(t\)</span></td>
+<td style="text-align: left;">Baseline that reduces gradient variance without introducing bias.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Contextual bandit</td>
+<td style="text-align: left;">Policy <span class="math inline">\(X_t \mapsto A_t\)</span>; actions do not affect <span class="math inline">\(X_{t+1}\)</span></td>
+<td style="text-align: left;">Bridge between bandits and full Markov Decision Processes.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="next-in-the-series" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="next-in-the-series"><span class="header-section-number">3</span> Next in the Series</h2>
+<p>So far, actions have changed only the reward, never the situation the agent finds itself in next. In <strong>Season 1, Episode 03</strong> (upcoming), we let actions steer the state, formalising finite Markov Decision Processes, returns, and the Bellman equations <span class="citation" data-cites="sutton2018reinforcement">(<a href="#ref-sutton2018reinforcement" role="doc-biblioref">Sutton and Barto 2018, chap. 3</a>)</span>.</p>
+<ul>
+<li><strong>Previous Episode:</strong> <a href="../../posts/2026-10-20-which-candy-machine/index.html">01. Which Candy Machine? (Multi-Armed Bandits)</a></li>
+</ul>
+<hr>
+</section>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-auer2002finite" class="csl-entry" role="listitem">
+Auer, Peter, Nicolo Cesa-Bianchi, and Paul Fischer. 2002. <span>“Finite-Time Analysis of the Multiarmed Bandit Problem.”</span> <em>Machine Learning</em> 47 (2): 235–56. <a href="https://doi.org/10.1023/A:1013689704352">https://doi.org/10.1023/A:1013689704352</a>.
+</div>
+<div id="ref-lai1985asymptotically" class="csl-entry" role="listitem">
+Lai, T. L., and Herbert Robbins. 1985. <span>“Asymptotically Efficient Adaptive Allocation Rules.”</span> <em>Advances in Applied Mathematics</em> 6 (1): 4–22. <a href="https://doi.org/10.1016/0196-8858(85)90002-8">https://doi.org/10.1016/0196-8858(85)90002-8</a>.
+</div>
+<div id="ref-sutton2018reinforcement" class="csl-entry" role="listitem">
+Sutton, Richard S., and Andrew G. Barto. 2018. <em>Reinforcement Learning: An Introduction</em>. 2nd ed. MIT Press. <a href="http://incompleteideas.net/book/the-book-2nd.html">http://incompleteideas.net/book/the-book-2nd.html</a>.
+</div>
+<div id="ref-williams1992simple" class="csl-entry" role="listitem">
+Williams, Ronald J. 1992. <span>“Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning.”</span> <em>Machine Learning</em> 8 (3): 229–56. <a href="https://doi.org/10.1007/BF00992696">https://doi.org/10.1007/BF00992696</a>.
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script type="ojs-module-contents">
+eyJjb250ZW50cyI6W3sibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtMSIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6ImltcG9ydCB7bWFrZVJuZywgYXJnbWF4UmFuZG9tLCBydW5UZXN0YmVkLCB0b1Jvd3MsIG9ic2VydmVUaGVtZSwgcGFsZXR0ZX0gZnJvbSBcIi4uLy4uL2Fzc2V0cy9vanMvcmwuanNcIlxudGhlbWUgPSBHZW5lcmF0b3JzLm9ic2VydmUob2JzZXJ2ZVRoZW1lKVxucGFsID0gcGFsZXR0ZSh0aGVtZSlcbiJ9LHsibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtMiIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6InZpZXdvZiBleHBsb3JlID0gSW5wdXRzLmZvcm0oe1xuICBydW5zOiBJbnB1dHMucmFuZ2UoWzUwLCAxMDAwXSwge3N0ZXA6IDUwLCB2YWx1ZTogMjAwLCBsYWJlbDogXCJQcm9ibGVtcyBhdmVyYWdlZFwifSksXG4gIGVwc2lsb246IElucHV0cy5yYW5nZShbMCwgMC4zXSwge3N0ZXA6IDAuMDEsIHZhbHVlOiAwLjEsIGxhYmVsOiBcIs61ICjOtS1ncmVlZHkpXCJ9KSxcbiAgcTA6IElucHV0cy5yYW5nZShbMCwgMTBdLCB7c3RlcDogMC41LCB2YWx1ZTogNSwgbGFiZWw6IFwiUeKCgSAob3B0aW1pc3RpYylcIn0pLFxuICBjOiBJbnB1dHMucmFuZ2UoWzAsIDRdLCB7c3RlcDogMC4xLCB2YWx1ZTogMiwgbGFiZWw6IFwiYyAoVUNCKVwifSksXG4gIGFscGhhOiBJbnB1dHMucmFuZ2UoWzAuMDEsIDAuNV0sIHtzdGVwOiAwLjAxLCB2YWx1ZTogMC4xLCBsYWJlbDogXCLOsSAoZ3JhZGllbnQpXCJ9KSxcbiAgYmFzZWxpbmU6IElucHV0cy50b2dnbGUoe2xhYmVsOiBcIkdyYWRpZW50IGJhc2VsaW5lXCIsIHZhbHVlOiB0cnVlfSksXG4gIHNoaWZ0OiBJbnB1dHMudG9nZ2xlKHtsYWJlbDogXCJTaGlmdCBxKiBieSArNFwiLCB2YWx1ZTogZmFsc2V9KSxcbiAgZHJpZnQ6IElucHV0cy50b2dnbGUoe2xhYmVsOiBcIkRyaWZ0aW5nIG1hY2hpbmVzXCIsIHZhbHVlOiBmYWxzZX0pXG59KVxuIn0seyJtZXRob2ROYW1lIjoiaW50ZXJwcmV0IiwiY2VsbE5hbWUiOiJvanMtY2VsbC0zIiwiaW5saW5lIjpmYWxzZSwic291cmNlIjoiZXhwbG9yZU5hbWVzID0gW1wizrUtZ3JlZWR5XCIsIFwiT3B0aW1pc3RpYyBncmVlZHlcIiwgXCJVQ0JcIiwgXCJHcmFkaWVudCBiYW5kaXRcIl1cbmV4cGxvcmVSb3dzID0ge1xuICBjb25zdCBjb21tb24gPSB7XG4gICAgcnVuczogZXhwbG9yZS5ydW5zLCBzdGVwczogZXhwbG9yZS5kcmlmdCA/IDMwMDAgOiAxMDAwLCBzZWVkOiA3LFxuICAgIG5vbnN0YXRpb25hcnk6IGV4cGxvcmUuZHJpZnQsIG9mZnNldDogZXhwbG9yZS5zaGlmdCA/IDQgOiAwXG4gIH07XG4gIGNvbnN0IHNlcmllcyA9IFtcbiAgICB7bmFtZTogZXhwbG9yZU5hbWVzWzBdLCAuLi5ydW5UZXN0YmVkKHsuLi5jb21tb24sIGVwc2lsb246IGV4cGxvcmUuZXBzaWxvbn0pfSxcbiAgICB7bmFtZTogZXhwbG9yZU5hbWVzWzFdLCAuLi5ydW5UZXN0YmVkKHsuLi5jb21tb24sIGVwc2lsb246IDAsIGFscGhhOiAwLjEsIHEwOiBleHBsb3JlLnEwICsgY29tbW9uLm9mZnNldH0pfSxcbiAgICB7bmFtZTogZXhwbG9yZU5hbWVzWzJdLCAuLi5ydW5UZXN0YmVkKHsuLi5jb21tb24sIG1ldGhvZDogXCJ1Y2JcIiwgYzogZXhwbG9yZS5jfSl9LFxuICAgIHtuYW1lOiBleHBsb3JlTmFtZXNbM10sIC4uLnJ1blRlc3RiZWQoey4uLmNvbW1vbiwgbWV0aG9kOiBcImdyYWRpZW50XCIsIGFscGhhOiBleHBsb3JlLmFscGhhLCBiYXNlbGluZTogZXhwbG9yZS5iYXNlbGluZX0pfVxuICBdO1xuICByZXR1cm4gdG9Sb3dzKHNlcmllcywgY29tbW9uLnN0ZXBzIC8gMjAwKTtcbn1cbiJ9LHsibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtNCIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6ImV4cGxvcmVQbG90ID0gKHksIGxhYmVsLCBkb21haW4pID0+IFBsb3QucGxvdCh7XG4gIHdpZHRoOiBNYXRoLm1pbih3aWR0aCwgNzYwKSxcbiAgaGVpZ2h0OiAyNTAsXG4gIG1hcmdpbkxlZnQ6IDUwLFxuICBzdHlsZToge2JhY2tncm91bmQ6IFwidHJhbnNwYXJlbnRcIn0sXG4gIHg6IHtsYWJlbDogXCJTdGVwXCJ9LFxuICB5OiB7bGFiZWwsIGdyaWQ6IHRydWUsIGRvbWFpbn0sXG4gIGNvbG9yOiB7ZG9tYWluOiBleHBsb3JlTmFtZXMsIHJhbmdlOiBbcGFsLm9yYW5nZSwgcGFsLm1hZ2VudGEsIHBhbC5ibHVlLCBwYWwuZ3JlZW5dLCBsZWdlbmQ6IHRydWV9LFxuICBtYXJrczogW1Bsb3QubGluZVkoZXhwbG9yZVJvd3MsIHt4OiBcInN0ZXBcIiwgeSwgc3Ryb2tlOiBcInNlcmllc1wiLCBzdHJva2VXaWR0aDogMS41fSldXG59KVxuZXhwbG9yZVBsb3QoXCJvcHRpbWFsXCIsIFwiJSBvcHRpbWFsIGFjdGlvblwiLCBbMCwgMTAwXSlcbiJ9LHsibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtNSIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6ImV4cGxvcmVQbG90KFwicmV3YXJkXCIsIFwiQXZlcmFnZSByZXdhcmRcIiwgdW5kZWZpbmVkKVxuIn0seyJtZXRob2ROYW1lIjoiaW50ZXJwcmV0IiwiY2VsbE5hbWUiOiJvanMtY2VsbC02IiwiaW5saW5lIjpmYWxzZSwic291cmNlIjoidmlld29mIHVjYkMgPSBJbnB1dHMucmFuZ2UoWzAsIDRdLCB7c3RlcDogMC4xLCB2YWx1ZTogMiwgbGFiZWw6IFwiY1wifSlcbiJ9LHsibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtNyIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6InVjYlN0YXRlID0ge1xuICBjb25zdCBrID0gNTtcbiAgY29uc3QgcyA9IHtrLCByZXZlYWw6IGZhbHNlfTtcbiAgcy5yZXNldCA9ICgpID0+IHtcbiAgICBzLnJuZyA9IG1ha2VSbmcoTWF0aC5mbG9vcihNYXRoLnJhbmRvbSgpICogMWU5KSk7XG4gICAgcy5xID0gQXJyYXkuZnJvbSh7bGVuZ3RoOiBrfSwgKCkgPT4gcy5ybmcubm9ybWFsKDAsIDEpKTtcbiAgICBzLlEgPSBuZXcgQXJyYXkoaykuZmlsbCgwKTtcbiAgICBzLk4gPSBuZXcgQXJyYXkoaykuZmlsbCgwKTtcbiAgICBzLnQgPSAwO1xuICAgIHMubGFzdCA9IG51bGw7XG4gIH07XG4gIHMudXBwZXIgPSAoYykgPT4gcy5RLm1hcCgoUSwgYSkgPT4gcy5OW2FdID09PSAwID8gSW5maW5pdHkgOiBRICsgYyAqIE1hdGguc3FydChNYXRoLmxvZyhzLnQgKyAxKSAvIHMuTlthXSkpO1xuICBzLnN0ZXAgPSAoYykgPT4ge1xuICAgIGNvbnN0IGEgPSBhcmdtYXhSYW5kb20ocy51cHBlcihjKSwgcy5ybmcpO1xuICAgIGNvbnN0IFIgPSBzLnJuZy5ub3JtYWwocy5xW2FdLCAxKTtcbiAgICBzLk5bYV0gKz0gMTtcbiAgICBzLlFbYV0gKz0gKFIgLSBzLlFbYV0pIC8gcy5OW2FdO1xuICAgIHMudCArPSAxO1xuICAgIHMubGFzdCA9IHthLCBSfTtcbiAgfTtcbiAgcy5yZXNldCgpO1xuICByZXR1cm4gcztcbn1cbiJ9LHsibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtOCIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6InVjYlN0ZXBwZXIgPSB7XG4gIGNvbnN0IHMgPSB1Y2JTdGF0ZTtcbiAgY29uc3Qgcm9vdCA9IGh0bWxgPGRpdj5cbiAgICA8ZGl2IGNsYXNzPVwicmwtY2hhcnRcIj48L2Rpdj5cbiAgICA8ZGl2IGNsYXNzPVwicmwtc3RhdHNcIj48L2Rpdj5cbiAgICA8ZGl2PlxuICAgICAgPGJ1dHRvbiBkYXRhLW49XCIxXCI+UHVsbCBvbmNlPC9idXR0b24+XG4gICAgICA8YnV0dG9uIGRhdGEtbj1cIjEwXCI+UHVsbCAxMMOXPC9idXR0b24+XG4gICAgICA8YnV0dG9uIGRhdGEtbj1cIjEwMFwiPlB1bGwgMTAww5c8L2J1dHRvbj5cbiAgICAgIDxidXR0b24gZGF0YS1hY3Q9XCJyZXZlYWxcIj5SZXZlYWwgcSo8L2J1dHRvbj5cbiAgICAgIDxidXR0b24gZGF0YS1hY3Q9XCJyZXNldFwiPk5ldyBwcm9ibGVtPC9idXR0b24+XG4gICAgPC9kaXY+XG4gIDwvZGl2PmA7XG4gIGNvbnN0IHJlbmRlciA9ICgpID0+IHtcbiAgICBjb25zdCB1cHBlciA9IHMudXBwZXIodWNiQyk7XG4gICAgY29uc3QgbmV4dCA9IHVwcGVyLmluZGV4T2YoTWF0aC5tYXgoLi4udXBwZXIpKTtcbiAgICBjb25zdCBkYXRhID0gcy5RLm1hcCgoUSwgYSkgPT4gKHtcbiAgICAgIGFybTogYEFybSAke2EgKyAxfWAsIFEsIE46IHMuTlthXSwgcTogcy5xW2FdLFxuICAgICAgaGk6IE51bWJlci5pc0Zpbml0ZSh1cHBlclthXSkgPyB1cHBlclthXSA6IG51bGwsIG5leHQ6IGEgPT09IG5leHRcbiAgICB9KSk7XG4gICAgY29uc3QgZmluaXRlID0gZGF0YS5maWx0ZXIoKGQpID0+IGQuaGkgIT09IG51bGwpO1xuICAgIGNvbnN0IHRvcCA9IE1hdGgubWF4KDMsIC4uLmZpbml0ZS5tYXAoKGQpID0+IGQuaGkpKTtcbiAgICByb290LnF1ZXJ5U2VsZWN0b3IoXCIucmwtY2hhcnRcIikucmVwbGFjZUNoaWxkcmVuKFBsb3QucGxvdCh7XG4gICAgICB3aWR0aDogTWF0aC5taW4od2lkdGgsIDY0MCksXG4gICAgICBoZWlnaHQ6IDI2MCxcbiAgICAgIG1hcmdpbkxlZnQ6IDQ1LFxuICAgICAgc3R5bGU6IHtiYWNrZ3JvdW5kOiBcInRyYW5zcGFyZW50XCJ9LFxuICAgICAgeDoge2xhYmVsOiBudWxsLCBwYWRkaW5nOiAwLjR9LFxuICAgICAgeToge2xhYmVsOiBcIlZhbHVlXCIsIGdyaWQ6IHRydWUsIGRvbWFpbjogWy0zLCB0b3BdfSxcbiAgICAgIG1hcmtzOiBbXG4gICAgICAgIFBsb3QuYmFyWShmaW5pdGUsIHt4OiBcImFybVwiLCB5MTogXCJRXCIsIHkyOiBcImhpXCIsIGZpbGw6IChkKSA9PiBkLm5leHQgPyBwYWwubWFnZW50YSA6IHBhbC5ibHVlLCBmaWxsT3BhY2l0eTogMC4zNX0pLFxuICAgICAgICBQbG90LmRvdChmaW5pdGUsIHt4OiBcImFybVwiLCB5OiBcIlFcIiwgcjogNSwgZmlsbDogKGQpID0+IGQubmV4dCA/IHBhbC5tYWdlbnRhIDogcGFsLmJsdWV9KSxcbiAgICAgICAgUGxvdC50ZXh0KGRhdGEuZmlsdGVyKChkKSA9PiBkLmhpID09PSBudWxsKSwge3g6IFwiYXJtXCIsIHk6IDAsIHRleHQ6ICgpID0+IFwidW50cmllZFxcbihib251cyDiiJ4pXCIsIGZpbGw6IHBhbC5tYWdlbnRhfSksXG4gICAgICAgIFBsb3QudGV4dChkYXRhLCB7eDogXCJhcm1cIiwgeTogLTMsIGR5OiAtOCwgdGV4dDogKGQpID0+IGBOID0gJHtkLk59YCwgZmlsbDogcGFsLmZnfSksXG4gICAgICAgIHMucmV2ZWFsID8gUGxvdC50aWNrWShkYXRhLCB7eDogXCJhcm1cIiwgeTogXCJxXCIsIHN0cm9rZTogcGFsLmdyZWVuLCBzdHJva2VXaWR0aDogMi41fSkgOiBudWxsXG4gICAgICBdXG4gICAgfSkpO1xuICAgIGNvbnN0IGJlc3QgPSBzLnEuaW5kZXhPZihNYXRoLm1heCguLi5zLnEpKTtcbiAgICByb290LnF1ZXJ5U2VsZWN0b3IoXCIucmwtc3RhdHNcIikuaW5uZXJIVE1MID0gcy50ID09PSAwXG4gICAgICA/IFwiTm8gcHVsbHMgeWV0OiBldmVyeSBhcm0gaXMgdW50cmllZCwgc28gVUNCIHRyaWVzIGVhY2ggb25jZSBmaXJzdC5cIlxuICAgICAgOiBgdCA9ICR7cy50fS4gTGFzdCBwdWxsOiBBcm0gJHtzLmxhc3QuYSArIDF9LCByZXdhcmQgJHtzLmxhc3QuUi50b0ZpeGVkKDIpfS4gTmV4dCBwdWxsOiA8Yj5Bcm0gJHtuZXh0ICsgMX08L2I+LmAgK1xuICAgICAgICAocy5yZXZlYWwgPyBgIEJlc3QgYXJtIGlzIEFybSAke2Jlc3QgKyAxfSAoZ3JlZW4gdGlja3Mgc2hvdyBxKikuYCA6IFwiXCIpO1xuICB9O1xuICByb290Lm9uY2xpY2sgPSAoZSkgPT4ge1xuICAgIGNvbnN0IHtuLCBhY3R9ID0gZS50YXJnZXQuZGF0YXNldCA/PyB7fTtcbiAgICBpZiAobikgZm9yIChsZXQgaSA9IDA7IGkgPCArbjsgaSsrKSBzLnN0ZXAodWNiQyk7XG4gICAgaWYgKGFjdCA9PT0gXCJyZXZlYWxcIikgcy5yZXZlYWwgPSAhcy5yZXZlYWw7XG4gICAgaWYgKGFjdCA9PT0gXCJyZXNldFwiKSBzLnJlc2V0KCk7XG4gICAgaWYgKG4gfHwgYWN0KSByZW5kZXIoKTtcbiAgfTtcbiAgcmVuZGVyKCk7XG4gIHJldHVybiByb290O1xufVxuIn0seyJtZXRob2ROYW1lIjoiaW50ZXJwcmV0UXVpZXQiLCJzb3VyY2UiOiJzaGlueUlucHV0KCdleHBsb3JlJykifSx7Im1ldGhvZE5hbWUiOiJpbnRlcnByZXRRdWlldCIsInNvdXJjZSI6InNoaW55SW5wdXQoJ3VjYkMnKSJ9XX0=
+</script>
+<script type="module">
+if (window.location.protocol === "file:") { alert("The OJS runtime does not work with file:// URLs. Please use a web server to view this document."); }
+window._ojs.paths.runtimeToDoc = "../../posts/2026-10-27-curious-but-clever";
+window._ojs.paths.runtimeToRoot = "../..";
+window._ojs.paths.docToRoot = "../..";
+window._ojs.selfContained = false;
+window._ojs.runtime.interpretFromScriptTags();
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/v3rm1\.github\.io\/blog\/");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<div id="reading-progress"></div>
+<script>
+  window.addEventListener("scroll", function () {
+    var h = document.documentElement;
+    var st = h.scrollTop || document.body.scrollTop;
+    var sh = h.scrollHeight || document.body.scrollHeight;
+    var p = (st / (sh - h.clientHeight)) * 100;
+    var el = document.getElementById("reading-progress");
+    if (el) el.style.width = p + "%";
+  });
+  // Add theme toggle button to navbar
+  (function () {
+    var nav = document.querySelector(".navbar-nav.navbar-nav-scroll.ms-auto");
+    if (nav) {
+      var li = document.createElement("li");
+      li.className = "nav-item";
+      var curTheme = document.documentElement.getAttribute("data-theme");
+      var label = curTheme === "light" ? "☀️ Light" : "🌙 Dark";
+      li.innerHTML = '<button type="button" id="blog-theme-toggle" class="nav-link theme-toggle-btn" style="background:none;border:none;cursor:pointer;" aria-label="Toggle theme">' + label + '</button>';
+      nav.appendChild(li);
+      document.getElementById("blog-theme-toggle").addEventListener("click", function () {
+        var cur = document.documentElement.getAttribute("data-theme");
+        var next = cur === "light" ? "dark" : "light";
+        if (next === "light") {
+          document.documentElement.setAttribute("data-theme", "light");
+          localStorage.setItem("theme", "light");
+          this.textContent = "☀️ Light";
+        } else {
+          document.documentElement.removeAttribute("data-theme");
+          localStorage.setItem("theme", "dark");
+          this.textContent = "🌙 Dark";
+        }
+      });
+    }
+  })();
+  (function () {
+    var s = document.createElement("script");
+    s.src = "/js/track.js";
+    document.body.appendChild(s);
+  })();
+</script>
+
+
+
+
+<script src="../../site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

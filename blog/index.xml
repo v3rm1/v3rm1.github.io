@@ -10,7 +10,3340 @@
 <atom:link href="https://v3rm1.github.io/blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>Notes on reinforcement learning, multi-agent systems and interpretable AI.</description>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Mon, 19 Oct 2026 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Mon, 26 Oct 2026 23:00:00 GMT</lastBuildDate>
+<item>
+  <title>Curious, but Clever: Uncertainty-Directed Exploration and Preference Gradient Bandits</title>
+  <dc:creator>Varun Ravi Varma</dc:creator>
+  <link>https://v3rm1.github.io/blog/posts/2026-10-27-curious-but-clever/</link>
+  <description><![CDATA[ 
+
+
+
+
+<div class="callout callout-style-simple callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>In brief
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In the preceding episode, we established how sample-average updates and <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon">-greedy action selection navigate the tension between empirical exploitation and stochastic exploration. Nonetheless, selecting actions uniformly at random during exploratory intervals incurs linear regret because the agent samples known inferior actions with equal likelihood. This episode formalises <strong>uncertainty-directed exploration</strong> and <strong>preference-based gradient learning</strong>. Specifically, we delineate optimistic initialisation, derive the Upper Confidence Bound (UCB1) algorithm to achieve logarithmic regret, substantiate soft-max policy gradient updates via stochastic gradient ascent, and introduce associative search as the conceptual bridge toward full Markov Decision Processes <span class="citation" data-cites="sutton2018reinforcement auer2002finite lai1985asymptotically">(Sutton and Barto 2018; Auer et al. 2002; Lai and Robbins 1985)</span>.</p>
+<section id="episode-metadata" class="level3" data-number="0.1">
+<h3 data-number="0.1" class="anchored" data-anchor-id="episode-metadata"><span class="header-section-number">0.1</span> Episode Metadata</h3>
+<ul>
+<li><strong>Game:</strong> Candy machines with a twist</li>
+<li><strong>Source:</strong> Sutton &amp; Barto, <em>Reinforcement Learning: An Introduction</em> (2nd ed.), Chapter 2, §2.6–2.10 <span class="citation" data-cites="sutton2018reinforcement">(Sutton and Barto 2018)</span></li>
+<li><strong>Series Index:</strong> <a href="../../index.html#rl-first-principles">RL from First Principles</a></li>
+</ul>
+</section>
+</div>
+</div>
+<div class="tabset-margin-container"></div><div class="panel-tabset" data-group="depth">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">Story</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">Idea</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" aria-controls="tabset-1-3" aria-selected="false" href="">Maths &amp; Code</a></li></ul>
+<div class="tab-content" data-group="depth">
+<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<p>The following weekend, Ada and Grandpa Leo return to the autumn fairground. The candy booth has expanded substantially: an extended row of colourful vintage dispensers now stretches across the pavilion.</p>
+<p>“Too many to check one by one with a handful of tokens,” Ada observes, surveying the line with dismay.</p>
+<p>Grandpa Leo retrieves a piece of chalk and draws a conspicuous question mark over each dispenser that Ada has barely touched. “A dispenser you know very little about might harbour an extraordinary payout,” he notes with a smile. “To discover its potential, we must provide those unfamiliar levers with a fair appraisal.”</p>
+<p>Ada conceives a methodical heuristic. She begins her trial by pretending every single dispenser is exceptionally generous, recording an initial tally of ten sweets beside every machine on her napkin. Each time a machine dispenses merely one or two sweets, the disappointing outcome pulls its running average downwards. Consequently, this initial optimism compels her to test every machine at least once or twice before settling upon an apparent favourite.</p>
+<p>Furthermore, Ada refines her exploratory strategy. Instead of pulling levers entirely at random when curious, she prioritises the dispensers enveloped by the greatest uncertainty. A dispenser pulled forty times has yielded its secrets; its empirical performance is corroborated with high confidence. Conversely, a dispenser pulled only once remains an enigma whose true distribution might easily eclipse the current front-runner.</p>
+<p>“Curious,” Grandpa Leo observes, admiring her napkin, “yet genuinely clever in where you direct that curiosity.”</p>
+<p>By late afternoon, the booth keeper introduces a final twist. Each dispenser is equipped with an overhead indicator lamp that alternates between red and blue. When the illumination is red, the dispensers on the left flank prove consistently superior; when blue, the rightmost bank yields the greatest bounty.</p>
+<p>Ada ceases asking “Which dispenser is universally superior?” Instead, she conditions her decision upon the immediate context: “Which dispenser manifests the highest payout when the lamp glows this colour?” Within moments, she glances at the context lamp and navigates directly to the optimal machine.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>What Would You Do?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Is it more advantageous to explore options entirely at random, or to deliberately allocate exploratory trials to the options about which you possess the least empirical evidence?</p>
+</div>
+</div>
+<hr>
+</div>
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
+<section id="moving-beyond-undirected-exploration" class="level3" data-number="0.2">
+<h3 data-number="0.2" class="anchored" data-anchor-id="moving-beyond-undirected-exploration"><span class="header-section-number">0.2</span> Moving Beyond Undirected Exploration</h3>
+<p>While an <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon">-greedy policy guarantees asymptotic convergence to true action values by perturbing decisions uniformly with probability <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon">, its exploratory mechanism is fundamentally undirected. The agent expends valuable trials pulling alternatives regardless of whether an alternative has been tested a thousand times or never touched.</p>
+<p>To mitigate this inefficiency, we employ two distinct paradigms:</p>
+<ol type="1">
+<li><strong>Optimism in the Face of Uncertainty:</strong> By instilling an initial prior belief that all actions yield maximal reward (<img src="https://latex.codecogs.com/png.latex?Q_1(a)%20%5Cgg%20q_*(a)">), the agent is systematically driven by empirical disappointment to sample every untried action during early iterations.</li>
+<li><strong>Confidence-Directed Selection (UCB):</strong> By augmenting each value estimate with an uncertainty bonus proportional to <img src="https://latex.codecogs.com/png.latex?%5Csqrt%7B%5Cln%20t%20/%20N_t(a)%7D">, action selection leverages the upper bound of a statistical confidence interval. An action is selected either because its empirical payoff estimate is superior or because its estimate remains heavily unverified.</li>
+</ol>
+<div id="fig-exploration-paradigms" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-exploration-paradigms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://v3rm1.github.io/blog/posts/2026-10-27-curious-but-clever/exploration-paradigms.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-exploration-paradigms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Taxonomy of action selection paradigms in stateless bandit problems.
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="what-to-notice" class="level3" data-number="0.3">
+<h3 data-number="0.3" class="anchored" data-anchor-id="what-to-notice"><span class="header-section-number">0.3</span> What to Notice</h3>
+<ul>
+<li><strong>Optimism Fades Naturally:</strong> Optimistic initial values drive heavy exploration early on, but the drive is temporary: once the estimates fall to realistic levels it vanishes, so optimism alone cannot track machines whose payouts drift.</li>
+<li><strong>Logarithmic Regret:</strong> Under UCB1, the expected number of pulls of any suboptimal action <img src="https://latex.codecogs.com/png.latex?a"> grows only as <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BO%7D(%5Cln%20T%20/%20%5CDelta_a%5E2)">, so its contribution to regret is <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BO%7D(%5Cln%20T%20/%20%5CDelta_a)">, in contrast to the <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BO%7D(T)"> linear regret incurred by constant <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon">-greedy policies.</li>
+<li><strong>Preferences vs Absolute Values:</strong> Gradient bandits do not estimate expected returns directly; instead, they optimise a relative preference manifold invariant to global reward translation when an empirical baseline is subtracted.</li>
+</ul>
+</section>
+<section id="try-it-four-ways-to-explore" class="level3" data-number="0.4">
+<h3 data-number="0.4" class="anchored" data-anchor-id="try-it-four-ways-to-explore"><span class="header-section-number">0.4</span> Try It: Four Ways to Explore</h3>
+<p>All four strategies on the 10-armed testbed, simulated live in your browser and averaged over many independent problems. Defaults follow Sutton &amp; Barto: optimistic greedy uses <img src="https://latex.codecogs.com/png.latex?Q_1%20=%205">, <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon%20=%200"> and <img src="https://latex.codecogs.com/png.latex?%5Calpha%20=%200.1"> (Figure 2.3), UCB uses <img src="https://latex.codecogs.com/png.latex?c%20=%202"> (Figure 2.4). Shift every true value up by <img src="https://latex.codecogs.com/png.latex?+4"> and untick the baseline to reproduce Figure 2.5; switch on drift to watch optimism fade.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb1" data-startfrom="93" data-source-offset="-0" style="background: #f1f3f5;"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 92;"><span id="cb1-93"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> {makeRng<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> argmaxRandom<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> runTestbed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> toRows<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> observeTheme<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> palette} <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"../../assets/ojs/rl.js"</span></span>
+<span id="cb1-94">theme <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> Generators<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">observe</span>(observeTheme)</span>
+<span id="cb1-95">pal <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">palette</span>(theme)</span></code></pre></div></div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-1-1" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-1-2" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-1-3" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+</div>
+<div class="rl-widget">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb2" data-startfrom="101" data-source-offset="0" style="background: #f1f3f5;"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 100;"><span id="cb2-101">viewof explore <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">form</span>({</span>
+<span id="cb2-102">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">runs</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">range</span>([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">50</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">step</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">50</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">value</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Problems averaged"</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-103">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">epsilon</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">range</span>([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.3</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">step</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.01</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">value</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ε (ε-greedy)"</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-104">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">q0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">range</span>([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">step</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">value</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Q₁ (optimistic)"</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-105">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">c</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">range</span>([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">step</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">value</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"c (UCB)"</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-106">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">alpha</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">range</span>([<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.01</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">step</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.01</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">value</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"α (gradient)"</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-107">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">baseline</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">toggle</span>({<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Gradient baseline"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">value</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">true</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-108">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">shift</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">toggle</span>({<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Shift q* by +4"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">value</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">false</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-109">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">drift</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">toggle</span>({<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Drifting machines"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">value</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">false</span>})</span>
+<span id="cb2-110">})</span></code></pre></div></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-2" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb3" data-startfrom="116" data-source-offset="-0" style="background: #f1f3f5;"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 115;"><span id="cb3-116">exploreNames <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ε-greedy"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Optimistic greedy"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"UCB"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Gradient bandit"</span>]</span>
+<span id="cb3-117">exploreRows <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {</span>
+<span id="cb3-118">  <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> common <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {</span>
+<span id="cb3-119">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">runs</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">runs</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">steps</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">drift</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3000</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">seed</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">7</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-120">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">nonstationary</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">drift</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">offset</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">shift</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb3-121">  }<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb3-122">  <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> series <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [</span>
+<span id="cb3-123">    {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">name</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> exploreNames[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">runTestbed</span>({<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span>common<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">epsilon</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">epsilon</span>})}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-124">    {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">name</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> exploreNames[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">runTestbed</span>({<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span>common<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">epsilon</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">alpha</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">q0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">q0</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> common<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">offset</span>})}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-125">    {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">name</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> exploreNames[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">runTestbed</span>({<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span>common<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">method</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ucb"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">c</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">c</span>})}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-126">    {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">name</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> exploreNames[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">runTestbed</span>({<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span>common<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">method</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gradient"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">alpha</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">alpha</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">baseline</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> explore<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">baseline</span>})}</span>
+<span id="cb3-127">  ]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb3-128">  <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">toRows</span>(series<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> common<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">steps</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb3-129">}</span></code></pre></div></div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-3-1" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-3-2" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb4" data-startfrom="134" data-source-offset="-0" style="background: #f1f3f5;"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 133;"><span id="cb4-134">explorePlot <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (y<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> domain) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> Plot<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>({</span>
+<span id="cb4-135">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">width</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Math</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">min</span>(width<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">760</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-136">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">height</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">250</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-137">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">marginLeft</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">50</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-138">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">style</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">background</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"transparent"</span>}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-139">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">x</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Step"</span>}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-140">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">y</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> {label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">grid</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">true</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> domain}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-141">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">color</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">domain</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> exploreNames<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">range</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> [pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">orange</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">magenta</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">blue</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">green</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">legend</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">true</span>}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb4-142">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">marks</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> [Plot<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">lineY</span>(exploreRows<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">x</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"step"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> y<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">stroke</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"series"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">strokeWidth</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.5</span>})]</span>
+<span id="cb4-143">})</span>
+<span id="cb4-144"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">explorePlot</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"optimal"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"% optimal action"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>])</span></code></pre></div></div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-4-1" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-4-2" data-nodetype="expression">
+
+</div>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb5" data-startfrom="148" data-source-offset="0" style="background: #f1f3f5;"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 147;"><span id="cb5-148"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">explorePlot</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"reward"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Average reward"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">undefined</span>)</span></code></pre></div></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-5" data-nodetype="expression">
+
+</div>
+</div>
+</div>
+<p class="rl-note">
+The optimistic start is set relative to the shifted values, so Q₁ always means “this far above the average arm”.
+</p>
+</div>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Common Misconception
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Misconception:</strong> “Exploratory steps are wasted reward.” <strong>Reality:</strong> An exploratory pull costs reward now but buys information: it narrows the uncertainty about an action, and that knowledge pays off on every later decision. Over a long horizon, directed exploration such as UCB gives up far less reward than either never exploring or exploring at random.</p>
+</div>
+</div>
+<hr>
+</section>
+</div>
+<div id="tabset-1-3" class="tab-pane" aria-labelledby="tabset-1-3-tab">
+<section id="optimistic-initial-values-2.6" class="level3" data-number="0.5">
+<h3 data-number="0.5" class="anchored" data-anchor-id="optimistic-initial-values-2.6"><span class="header-section-number">0.5</span> Optimistic Initial Values (§2.6)</h3>
+<p>Let the initial action-value estimates be set to an optimistic bound:</p>
+<p><img src="https://latex.codecogs.com/png.latex?Q_1(a)%20=%20+%5Cbar%7Br%7D%20%5Cquad%20%5Cforall%20a%20%5Cin%20%5C%7B1,%20%5Cdots,%20k%5C%7D,%20%5Cquad%20%5Ctext%7Bwhere%20%7D%20%5Cbar%7Br%7D%20%5Cgg%20%5Cmax_%7Ba%7D%20q_*(a)."></p>
+<p>Under a standard greedy selection policy <img src="https://latex.codecogs.com/png.latex?A_t%20=%20%5Carg%5Cmax_a%20Q_t(a)">, the estimates are updated with a constant step size <img src="https://latex.codecogs.com/png.latex?%5Calpha%20%5Cin%20(0,%201)">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?Q_%7Bt+1%7D(A_t)%20=%20Q_t(A_t)%20+%20%5Calpha%20%5CBig%5B%20R_t%20-%20Q_t(A_t)%20%5CBig%5D."></p>
+<p>The constant step size matters. Under sample-averaging, the first update uses step size <img src="https://latex.codecogs.com/png.latex?1/N_t(A_t)%20=%201">, so <img src="https://latex.codecogs.com/png.latex?Q_2(A_t)%20=%20R_t"> and the optimistic prior is erased after a single pull: optimism then only guarantees that every action is tried once. With constant <img src="https://latex.codecogs.com/png.latex?%5Calpha">, the prior decays geometrically as <img src="https://latex.codecogs.com/png.latex?(1%20-%20%5Calpha)%5E%7BN_t(a)%7D%20%5Cbar%7Br%7D">, so it keeps influencing selection for several pulls of each action (Sutton &amp; Barto use <img src="https://latex.codecogs.com/png.latex?Q_1%20=%205"> and <img src="https://latex.codecogs.com/png.latex?%5Calpha%20=%200.1"> in Figure 2.3).</p>
+<p>Because <img src="https://latex.codecogs.com/png.latex?%5Cbar%7Br%7D"> greatly exceeds every <img src="https://latex.codecogs.com/png.latex?q_*(a)">, early rewards satisfy <img src="https://latex.codecogs.com/png.latex?R_t%20%3C%20Q_t(A_t)"> with high probability (not almost surely: Gaussian rewards are unbounded), so the error term <img src="https://latex.codecogs.com/png.latex?%5BR_t%20-%20Q_t(A_t)%5D"> is typically negative. Consequently, each selected action suffers empirical degradation, driving the greedy argmax to cycle through the less-tried actions. Nonetheless, this mechanism is ill-suited for non-stationary environments where drifting distributions require persistent, recurring exploration.</p>
+<hr>
+</section>
+<section id="upper-confidence-bound-selection-2.7" class="level3" data-number="0.6">
+<h3 data-number="0.6" class="anchored" data-anchor-id="upper-confidence-bound-selection-2.7"><span class="header-section-number">0.6</span> Upper-Confidence-Bound Selection (§2.7)</h3>
+<p>The Upper Confidence Bound (UCB1) formalism chooses action <img src="https://latex.codecogs.com/png.latex?A_t"> according to:</p>
+<p><img src="https://latex.codecogs.com/png.latex?A_t%20%5Cdoteq%20%5Carg%5Cmax_%7Ba%7D%20%5Cleft%5B%20Q_t(a)%20+%20c%20%5Csqrt%7B%5Cfrac%7B%5Cln%20t%7D%7BN_t(a)%7D%7D%20%5Cright%5D,"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?t"> denotes the total number of elapsed steps, <img src="https://latex.codecogs.com/png.latex?N_t(a)"> is the cumulative count of arm <img src="https://latex.codecogs.com/png.latex?a"> selections prior to step <img src="https://latex.codecogs.com/png.latex?t">, and <img src="https://latex.codecogs.com/png.latex?c%20%3E%200"> governs exploration intensity. If <img src="https://latex.codecogs.com/png.latex?N_t(a)%20=%200">, action <img src="https://latex.codecogs.com/png.latex?a"> is deemed a maximising action <em>a priori</em>.</p>
+<section id="try-it-watching-the-confidence-bonus-shrink" class="level4" data-number="0.6.1">
+<h4 data-number="0.6.1" class="anchored" data-anchor-id="try-it-watching-the-confidence-bonus-shrink"><span class="header-section-number">0.6.1</span> Try It: Watching the Confidence Bonus Shrink</h4>
+<p>Step UCB through a five-armed problem one pull at a time. Each dot is the estimate <img src="https://latex.codecogs.com/png.latex?Q_t(a)">; the bar above it is the bonus <img src="https://latex.codecogs.com/png.latex?c%5Csqrt%7B%5Cln%20t%20/%20N_t(a)%7D">, and the highlighted arm is the one with the highest upper bound, which UCB pulls next.</p>
+<div class="rl-widget">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb6" data-startfrom="203" data-source-offset="0" style="background: #f1f3f5;"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 202;"><span id="cb6-203">viewof ucbC <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> Inputs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">range</span>([<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">step</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">value</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"c"</span>})</span></code></pre></div></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-6" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb7" data-startfrom="208" data-source-offset="0" style="background: #f1f3f5;"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 207;"><span id="cb7-208">ucbState <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {</span>
+<span id="cb7-209">  <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> k <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-210">  <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> s <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {k<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">reveal</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">false</span>}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-211">  s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">reset</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> () <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> {</span>
+<span id="cb7-212">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">rng</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">makeRng</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Math</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">floor</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Math</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">random</span>() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1e9</span>))<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-213">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">q</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Array</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">from</span>({<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">length</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> k}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> () <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">rng</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">normal</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>))<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-214">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Q</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">new</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Array</span>(k)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">fill</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-215">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">N</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">new</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Array</span>(k)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">fill</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-216">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">t</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-217">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">last</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">null</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-218">  }<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-219">  s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">upper</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (c) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Q</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">map</span>((Q<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> a) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">N</span>[a] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">===</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Infinity</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> Q <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> c <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Math</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sqrt</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Math</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">log</span>(s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">t</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">N</span>[a]))<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-220">  s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">step</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (c) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> {</span>
+<span id="cb7-221">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">argmaxRandom</span>(s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">upper</span>(c)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">rng</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-222">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> R <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">rng</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">normal</span>(s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">q</span>[a]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-223">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">N</span>[a] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-224">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Q</span>[a] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> (R <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Q</span>[a]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">N</span>[a]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-225">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">t</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-226">    s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">last</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {a<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> R}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-227">  }<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-228">  s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">reset</span>()<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-229">  <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb7-230">}</span></code></pre></div></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-7" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb8" data-startfrom="235" data-source-offset="0" style="background: #f1f3f5;"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 234;"><span id="cb8-235">ucbStepper <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {</span>
+<span id="cb8-236">  <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> s <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> ucbState<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-237">  <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">root</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">`&lt;div&gt;</span></span>
+<span id="cb8-238"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    &lt;div class="rl-chart"&gt;&lt;/div&gt;</span></span>
+<span id="cb8-239"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    &lt;div class="rl-stats"&gt;&lt;/div&gt;</span></span>
+<span id="cb8-240"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    &lt;div&gt;</span></span>
+<span id="cb8-241"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">      &lt;button data-n="1"&gt;Pull once&lt;/button&gt;</span></span>
+<span id="cb8-242"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">      &lt;button data-n="10"&gt;Pull 10×&lt;/button&gt;</span></span>
+<span id="cb8-243"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">      &lt;button data-n="100"&gt;Pull 100×&lt;/button&gt;</span></span>
+<span id="cb8-244"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">      &lt;button data-act="reveal"&gt;Reveal q*&lt;/button&gt;</span></span>
+<span id="cb8-245"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">      &lt;button data-act="reset"&gt;New problem&lt;/button&gt;</span></span>
+<span id="cb8-246"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    &lt;/div&gt;</span></span>
+<span id="cb8-247"><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  &lt;/div&gt;`</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-248">  <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> render <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> () <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> {</span>
+<span id="cb8-249">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> upper <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">upper</span>(ucbC)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-250">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> next <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> upper<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">indexOf</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Math</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">max</span>(<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span>upper))<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-251">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> data <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Q</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">map</span>((Q<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> a) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> ({</span>
+<span id="cb8-252">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">arm</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">`Arm </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">${</span>a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">`</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> Q<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">N</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">N</span>[a]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">q</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">q</span>[a]<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-253">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">hi</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Number</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">isFinite</span>(upper[a]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> upper[a] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">null</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">next</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> a <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">===</span> next</span>
+<span id="cb8-254">    }))<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-255">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> finite <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>((d) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> d<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">hi</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!==</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">null</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-256">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> top <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Math</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">max</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span>finite<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">map</span>((d) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> d<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">hi</span>))<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-257">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">root</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">querySelector</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">".rl-chart"</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">replaceChildren</span>(Plot<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>({</span>
+<span id="cb8-258">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">width</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Math</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">min</span>(width<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">640</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-259">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">height</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">260</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-260">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">marginLeft</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">45</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-261">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">style</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">background</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"transparent"</span>}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-262">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">x</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">null</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">padding</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.4</span>}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-263">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">y</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">label</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Value"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">grid</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">true</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">domain</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> [<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> top]}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-264">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">marks</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> [</span>
+<span id="cb8-265">        Plot<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">barY</span>(finite<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">x</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"arm"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">y1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Q"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">y2</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"hi"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">fill</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> (d) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> d<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">next</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">magenta</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">blue</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">fillOpacity</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.35</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-266">        Plot<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dot</span>(finite<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">x</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"arm"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">y</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Q"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">r</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">fill</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> (d) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> d<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">next</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">magenta</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">blue</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-267">        Plot<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">text</span>(data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>((d) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> d<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">hi</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">===</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">null</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">x</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"arm"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">y</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">text</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> () <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"untried</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">(bonus ∞)"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">fill</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">magenta</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-268">        Plot<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">text</span>(data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">x</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"arm"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">y</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">dy</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">text</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> (d) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> <span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">`N = </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">${</span>d<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">N</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">`</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">fill</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">fg</span>})<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb8-269">        s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">reveal</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> Plot<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tickY</span>(data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> {<span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">x</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"arm"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">y</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"q"</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">stroke</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> pal<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">green</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">strokeWidth</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.5</span>}) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">null</span></span>
+<span id="cb8-270">      ]</span>
+<span id="cb8-271">    }))<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-272">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> best <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">q</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">indexOf</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">Math</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">max</span>(<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span>s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">q</span>))<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-273">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">root</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">querySelector</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">".rl-stats"</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">innerHTML</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">t</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">===</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb8-274">      <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"No pulls yet: every arm is untried, so UCB tries each once first."</span></span>
+<span id="cb8-275">      <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">`t = </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">${</span>s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">t</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">. Last pull: Arm </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">${</span>s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">last</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">a</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">, reward </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">${</span>s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">last</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">R</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">toFixed</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">. Next pull: &lt;b&gt;Arm </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">${</span>next <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">&lt;/b&gt;.`</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb8-276">        (s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">reveal</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> <span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">` Best arm is Arm </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">${</span>best <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> (green ticks show q*).`</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-277">  }<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-278">  <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">root</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">onclick</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (e) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">=&gt;</span> {</span>
+<span id="cb8-279">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">const</span> {n<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> act} <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> e<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">target</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dataset</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">??</span> {}<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-280">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> (n) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> (<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">let</span> i <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span> i <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span>n<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span> i<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">++</span>) s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">step</span>(ucbC)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-281">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> (act <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">===</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"reveal"</span>) s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">reveal</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!</span>s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">reveal</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-282">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> (act <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">===</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"reset"</span>) s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">reset</span>()<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-283">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> (n <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">||</span> act) <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">render</span>()<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-284">  }<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-285">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">render</span>()<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-286">  <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">root</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb8-287">}</span></code></pre></div></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-8" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="theoretical-regret-bounds" class="level4" data-number="0.6.2">
+<h4 data-number="0.6.2" class="anchored" data-anchor-id="theoretical-regret-bounds"><span class="header-section-number">0.6.2</span> Theoretical Regret Bounds</h4>
+<p>The analysis below assumes rewards with bounded support <img src="https://latex.codecogs.com/png.latex?R_t%20%5Cin%20%5B0,%201%5D">, as in Auer et al.; the Gaussian testbed violates this, so there the bounds are a guide rather than a guarantee. By the Chernoff-Hoeffding bound, the probability that the true expectation <img src="https://latex.codecogs.com/png.latex?q_*(a)"> exceeds the empirical mean by threshold <img src="https://latex.codecogs.com/png.latex?%5Cepsilon"> decays exponentially:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5CPr%5Cleft%5C%7B%20q_*(a)%20%5Cge%20Q_t(a)%20+%20%5Cepsilon%20%5Cright%5C%7D%20%5Cle%20e%5E%7B-2%20N_t(a)%20%5Cepsilon%5E2%7D."></p>
+<p>Setting <img src="https://latex.codecogs.com/png.latex?%5Cepsilon%20=%20%5Csqrt%7B%5Cfrac%7B2%20%5Cln%20t%7D%7BN_t(a)%7D%7D"> bounds this failure probability by <img src="https://latex.codecogs.com/png.latex?t%5E%7B-4%7D">; this choice of bonus is UCB1, i.e.&nbsp;the selection rule above with <img src="https://latex.codecogs.com/png.latex?c%20=%20%5Csqrt%7B2%7D">. Lai and Robbins demonstrated that for any consistent allocation policy, the asymptotic cumulative regret <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BL%7D_T"> is lower-bounded by <span class="citation" data-cites="lai1985asymptotically">(Lai and Robbins 1985)</span>:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Climinf_%7BT%20%5Cto%20%5Cinfty%7D%20%5Cfrac%7B%5Cmathcal%7BL%7D_T%7D%7B%5Cln%20T%7D%20%5Cge%20%5Csum_%7Ba:%20%5CDelta_a%20%3E%200%7D%20%5Cfrac%7B%5CDelta_a%7D%7B%5Cmathrm%7BKL%7D(%5Cnu_a%20%5Cparallel%20%5Cnu_%7Ba%5E*%7D)%7D."></p>
+<p>The UCB1 algorithm of Auer et al.&nbsp;guarantees finite-time logarithmic regret <span class="citation" data-cites="auer2002finite">(Auer et al. 2002)</span>:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Cmathbb%7BE%7D%5B%5Cmathcal%7BL%7D_T%5D%20%5Cle%20%5Csum_%7Ba:%20%5CDelta_a%20%3E%200%7D%20%5Cfrac%7B8%20%5Cln%20T%7D%7B%5CDelta_a%7D%20+%20%5Cleft(1%20+%20%5Cfrac%7B%5Cpi%5E2%7D%7B3%7D%5Cright)%20%5Csum_%7Ba=1%7D%5Ek%20%5CDelta_a."></p>
+<hr>
+</section>
+</section>
+<section id="gradient-bandit-algorithms-2.8" class="level3" data-number="0.7">
+<h3 data-number="0.7" class="anchored" data-anchor-id="gradient-bandit-algorithms-2.8"><span class="header-section-number">0.7</span> Gradient Bandit Algorithms (§2.8)</h3>
+<p>Rather than estimating action values directly, gradient bandit algorithms maintain numerical preferences <img src="https://latex.codecogs.com/png.latex?H_t(a)%20%5Cin%20%5Cmathbb%7BR%7D">. Action probabilities are parameterised via a Gibbs / soft-max distribution:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Cpi_t(a)%20%5Cdoteq%20%5CPr%5C%7BA_t%20=%20a%5C%7D%20=%20%5Cfrac%7Be%5E%7BH_t(a)%7D%7D%7B%5Csum_%7Bb=1%7D%5Ek%20e%5E%7BH_t(b)%7D%7D."></p>
+<section id="derivation-via-stochastic-gradient-ascent" class="level4" data-number="0.7.1">
+<h4 data-number="0.7.1" class="anchored" data-anchor-id="derivation-via-stochastic-gradient-ascent"><span class="header-section-number">0.7.1</span> Derivation via Stochastic Gradient Ascent</h4>
+<p>We seek to maximise the expected performance criterion <img src="https://latex.codecogs.com/png.latex?%5Ceta(H)%20%5Cdoteq%20%5Cmathbb%7BE%7D%5BR_t%5D%20=%20%5Csum_%7Bx%7D%20%5Cpi_t(x)%20q_*(x)">. Taking the partial derivative with respect to preference <img src="https://latex.codecogs.com/png.latex?H_t(a)">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Cfrac%7B%5Cpartial%20%5Cmathbb%7BE%7D%5BR_t%5D%7D%7B%5Cpartial%20H_t(a)%7D%20=%20%5Csum_%7Bx%7D%20q_*(x)%20%5Cfrac%7B%5Cpartial%20%5Cpi_t(x)%7D%7B%5Cpartial%20H_t(a)%7D."></p>
+<p>Because <img src="https://latex.codecogs.com/png.latex?%5Csum_x%20%5Cpi_t(x)%20=%201">, the gradient of this total probability mass is zero: <img src="https://latex.codecogs.com/png.latex?%5Csum_x%20%5Cfrac%7B%5Cpartial%20%5Cpi_t(x)%7D%7B%5Cpartial%20H_t(a)%7D%20=%200">. Consequently, an arbitrary scalar baseline <img src="https://latex.codecogs.com/png.latex?B_t"> independent of <img src="https://latex.codecogs.com/png.latex?x"> may be subtracted without inducing bias:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Cfrac%7B%5Cpartial%20%5Cmathbb%7BE%7D%5BR_t%5D%7D%7B%5Cpartial%20H_t(a)%7D%20=%20%5Csum_%7Bx%7D%20%5CBig(%20q_*(x)%20-%20B_t%20%5CBig)%20%5Cfrac%7B%5Cpartial%20%5Cpi_t(x)%7D%7B%5Cpartial%20H_t(a)%7D."></p>
+<p>Recalling that the soft-max derivative is given by <img src="https://latex.codecogs.com/png.latex?%5Cfrac%7B%5Cpartial%20%5Cpi_t(x)%7D%7B%5Cpartial%20H_t(a)%7D%20=%20%5Cpi_t(x)%20%5Cbig(%20%5Cmathbb%7B1%7D_%7Ba=x%7D%20-%20%5Cpi_t(a)%20%5Cbig)">, we express the gradient as an expectation under policy <img src="https://latex.codecogs.com/png.latex?%5Cpi_t">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Cbegin%7Baligned%7D%0A%5Cfrac%7B%5Cpartial%20%5Cmathbb%7BE%7D%5BR_t%5D%7D%7B%5Cpartial%20H_t(a)%7D%20&amp;=%20%5Csum_%7Bx%7D%20%5Cpi_t(x)%20%5CBig(%20q_*(x)%20-%20B_t%20%5CBig)%20%5Cbig(%20%5Cmathbb%7B1%7D_%7Ba=x%7D%20-%20%5Cpi_t(a)%20%5Cbig)%20%5C%5C%0A&amp;=%20%5Cmathbb%7BE%7D_%7BA_t%20%5Csim%20%5Cpi_t%7D%20%5Cleft%5B%20%5CBig(%20R_t%20-%20B_t%20%5CBig)%20%5Cbig(%20%5Cmathbb%7B1%7D_%7Ba=A_t%7D%20-%20%5Cpi_t(a)%20%5Cbig)%20%5Cright%5D.%0A%5Cend%7Baligned%7D"></p>
+<p>Replacing the expectation with an instantaneous empirical sample yields the update:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Cbegin%7Baligned%7D%0AH_%7Bt+1%7D(A_t)%20&amp;=%20H_t(A_t)%20+%20%5Calpha%20(R_t%20-%20%5Cbar%7BR%7D_t)(1%20-%20%5Cpi_t(A_t)),%20%5C%5C%0AH_%7Bt+1%7D(a)%20&amp;=%20H_t(a)%20-%20%5Calpha%20(R_t%20-%20%5Cbar%7BR%7D_t)%5Cpi_t(a),%20%5Cquad%20%5Cforall%20a%20%5Cne%20A_t,%0A%5Cend%7Baligned%7D"></p>
+<p>where the baseline <img src="https://latex.codecogs.com/png.latex?%5Cbar%7BR%7D_t%20=%20%5Cfrac%7B1%7D%7Bt-1%7D%5Csum_%7Bi=1%7D%5E%7Bt-1%7D%20R_i"> (with <img src="https://latex.codecogs.com/png.latex?%5Cbar%7BR%7D_1%20=%20R_1">), the average of the rewards <em>before</em> step <img src="https://latex.codecogs.com/png.latex?t">, significantly attenuates variance. This formulation constitutes the stateless antecedent of the REINFORCE policy gradient algorithm <span class="citation" data-cites="williams1992simple">(Williams 1992)</span>.</p>
+<hr>
+</section>
+</section>
+<section id="associative-search-contextual-bandits-2.9" class="level3" data-number="0.8">
+<h3 data-number="0.8" class="anchored" data-anchor-id="associative-search-contextual-bandits-2.9"><span class="header-section-number">0.8</span> Associative Search / Contextual Bandits (§2.9)</h3>
+<p>When the agent observes a context vector <img src="https://latex.codecogs.com/png.latex?X_t%20%5Cin%20%5Cmathcal%7BS%7D"> prior to action selection, the task generalises to learning a contextual mapping <img src="https://latex.codecogs.com/png.latex?X_t%20%5Cmapsto%20A_t">. Crucially, while reward <img src="https://latex.codecogs.com/png.latex?R_t"> is contingent upon both state <img src="https://latex.codecogs.com/png.latex?X_t"> and action <img src="https://latex.codecogs.com/png.latex?A_t">, action <img src="https://latex.codecogs.com/png.latex?A_t"> exerts no causal influence over the subsequent context <img src="https://latex.codecogs.com/png.latex?X_%7Bt+1%7D">. When action selection actively steers state transitions, the problem transitions formally from an associative bandit into a full Markov Decision Process.</p>
+<hr>
+</section>
+<section id="empirical-implementation-in-python-numpy" class="level3" data-number="0.9">
+<h3 data-number="0.9" class="anchored" data-anchor-id="empirical-implementation-in-python-numpy"><span class="header-section-number">0.9</span> Empirical Implementation in Python / NumPy</h3>
+<p>Below is a self-contained implementation of all four strategies on the 10-armed testbed, plus a contextual <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon">-greedy agent for §2.9. Every method records whether it chose the optimal arm at each step, so the strategies can be compared directly.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb9-2"></span>
+<span id="cb9-3"></span>
+<span id="cb9-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">class</span> BanditTestbed:</span>
+<span id="cb9-5">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""k-armed Gaussian testbed (Sutton &amp; Barto §2.3), optionally drifting (Exercise 2.5)."""</span></span>
+<span id="cb9-6"></span>
+<span id="cb9-7">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">__init__</span>(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, k: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>, stationary: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bool</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, offset: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">float</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.0</span>, seed: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span>):</span>
+<span id="cb9-8">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.k <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> k</span>
+<span id="cb9-9">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.stationary <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> stationary</span>
+<span id="cb9-10">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-11">        <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.q_true <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.rng.normal(offset, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span>, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>k)</span>
+<span id="cb9-12"></span>
+<span id="cb9-13">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> optimal_action(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>:</span>
+<span id="cb9-14">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>(np.argmax(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.q_true))</span>
+<span id="cb9-15"></span>
+<span id="cb9-16">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> step(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>, action: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">float</span>:</span>
+<span id="cb9-17">        reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.rng.normal(<span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.q_true[action], <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span>)</span>
+<span id="cb9-18">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.stationary:</span>
+<span id="cb9-19">            <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.q_true <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.rng.normal(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.0</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.01</span>, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">self</span>.k)</span>
+<span id="cb9-20">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">float</span>(reward)</span>
+<span id="cb9-21"></span>
+<span id="cb9-22"></span>
+<span id="cb9-23"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> argmax_random(values: np.ndarray, rng: np.random.Generator) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>:</span>
+<span id="cb9-24">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Argmax with ties broken uniformly at random (avoids a systematic left-arm bias)."""</span></span>
+<span id="cb9-25">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>(rng.choice(np.flatnonzero(values <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> values.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span>())))</span>
+<span id="cb9-26"></span>
+<span id="cb9-27"></span>
+<span id="cb9-28"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> run_epsilon_greedy(env, steps<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>, epsilon<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>):</span>
+<span id="cb9-29">    rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-30">    q_est, counts <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.zeros(env.k), np.zeros(env.k)</span>
+<span id="cb9-31">    optimal <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.empty(steps, dtype<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bool</span>)</span>
+<span id="cb9-32">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> t <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(steps):</span>
+<span id="cb9-33">        action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>(rng.integers(env.k)) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> rng.random() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> epsilon <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> argmax_random(q_est, rng)</span>
+<span id="cb9-34">        optimal[t] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> env.optimal_action()</span>
+<span id="cb9-35">        r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.step(action)</span>
+<span id="cb9-36">        counts[action] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb9-37">        q_est[action] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> (r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> q_est[action]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> counts[action]</span>
+<span id="cb9-38">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> optimal</span>
+<span id="cb9-39"></span>
+<span id="cb9-40"></span>
+<span id="cb9-41"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> run_optimistic_greedy(env, steps<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>, q0<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5.0</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>):</span>
+<span id="cb9-42">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Constant step size: with 1/n the optimistic prior is erased after one pull.</span></span>
+<span id="cb9-43">    rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-44">    q_est <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.full(env.k, q0)</span>
+<span id="cb9-45">    optimal <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.empty(steps, dtype<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bool</span>)</span>
+<span id="cb9-46">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> t <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(steps):</span>
+<span id="cb9-47">        action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> argmax_random(q_est, rng)</span>
+<span id="cb9-48">        optimal[t] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> env.optimal_action()</span>
+<span id="cb9-49">        r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.step(action)</span>
+<span id="cb9-50">        q_est[action] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> alpha <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> q_est[action])</span>
+<span id="cb9-51">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> optimal</span>
+<span id="cb9-52"></span>
+<span id="cb9-53"></span>
+<span id="cb9-54"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> run_ucb(env, steps<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>, c<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.0</span>, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>):</span>
+<span id="cb9-55">    rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-56">    q_est, counts <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.zeros(env.k), np.zeros(env.k)</span>
+<span id="cb9-57">    optimal <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.empty(steps, dtype<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bool</span>)</span>
+<span id="cb9-58">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> t <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, steps <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>):</span>
+<span id="cb9-59">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Untried arms get an infinite bonus, so each is pulled once first.</span></span>
+<span id="cb9-60">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span> np.errstate(divide<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ignore"</span>, invalid<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ignore"</span>):</span>
+<span id="cb9-61">            ucb <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.where(counts <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, np.inf, q_est <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> c <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> np.sqrt(np.log(t) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> counts))</span>
+<span id="cb9-62">        action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> argmax_random(ucb, rng)</span>
+<span id="cb9-63">        optimal[t <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> env.optimal_action()</span>
+<span id="cb9-64">        r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.step(action)</span>
+<span id="cb9-65">        counts[action] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb9-66">        q_est[action] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> (r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> q_est[action]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> counts[action]</span>
+<span id="cb9-67">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> optimal</span>
+<span id="cb9-68"></span>
+<span id="cb9-69"></span>
+<span id="cb9-70"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> run_gradient(env, steps<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, baseline<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>):</span>
+<span id="cb9-71">    rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-72">    H <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.zeros(env.k)</span>
+<span id="cb9-73">    mean_reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.0</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># average of rewards before the current step</span></span>
+<span id="cb9-74">    optimal <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.empty(steps, dtype<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bool</span>)</span>
+<span id="cb9-75">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> t <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(steps):</span>
+<span id="cb9-76">        pi <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.exp(H <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> H.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">max</span>())</span>
+<span id="cb9-77">        pi <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/=</span> pi.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>()</span>
+<span id="cb9-78">        action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>(rng.choice(env.k, p<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>pi))</span>
+<span id="cb9-79">        optimal[t] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> env.optimal_action()</span>
+<span id="cb9-80">        r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> env.step(action)</span>
+<span id="cb9-81">        b <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (r <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> t <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> mean_reward) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> baseline <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.0</span></span>
+<span id="cb9-82">        one_hot <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.zeros(env.k)</span>
+<span id="cb9-83">        one_hot[action] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span></span>
+<span id="cb9-84">        H <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> alpha <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> b) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (one_hot <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> pi)</span>
+<span id="cb9-85">        mean_reward <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> (r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> mean_reward) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> (t <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb9-86">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> optimal</span>
+<span id="cb9-87"></span>
+<span id="cb9-88"></span>
+<span id="cb9-89"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> run_contextual_epsilon_greedy(n_contexts<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, k<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>, steps<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2000</span>, epsilon<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.1</span>, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>):</span>
+<span id="cb9-90">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Associative search: one action-value table per observed context (the lamp colour)."""</span></span>
+<span id="cb9-91">    rng <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.random.default_rng(seed)</span>
+<span id="cb9-92">    q_true <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> rng.normal(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.0</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span>, size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(n_contexts, k))</span>
+<span id="cb9-93">    q_est, counts <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.zeros((n_contexts, k)), np.zeros((n_contexts, k))</span>
+<span id="cb9-94">    optimal <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.empty(steps, dtype<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bool</span>)</span>
+<span id="cb9-95">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> t <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(steps):</span>
+<span id="cb9-96">        x <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>(rng.integers(n_contexts))  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># the context does not depend on past actions</span></span>
+<span id="cb9-97">        action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>(rng.integers(k)) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> rng.random() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> epsilon <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> argmax_random(q_est[x], rng)</span>
+<span id="cb9-98">        optimal[t] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> action <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> np.argmax(q_true[x])</span>
+<span id="cb9-99">        r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> rng.normal(q_true[x, action], <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.0</span>)</span>
+<span id="cb9-100">        counts[x, action] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb9-101">        q_est[x, action] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> (r <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> q_est[x, action]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> counts[x, action]</span>
+<span id="cb9-102">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> optimal</span>
+<span id="cb9-103"></span>
+<span id="cb9-104"></span>
+<span id="cb9-105"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> compare(runs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>, steps<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>):</span>
+<span id="cb9-106">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Percentage of optimal actions per step, averaged over independent testbeds."""</span></span>
+<span id="cb9-107">    methods <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {</span>
+<span id="cb9-108">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"epsilon-greedy (0.1)"</span>: run_epsilon_greedy,</span>
+<span id="cb9-109">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"optimistic greedy (Q1=5, alpha=0.1)"</span>: run_optimistic_greedy,</span>
+<span id="cb9-110">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"UCB (c=2)"</span>: run_ucb,</span>
+<span id="cb9-111">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gradient (alpha=0.1, baseline)"</span>: run_gradient,</span>
+<span id="cb9-112">    }</span>
+<span id="cb9-113">    pct <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {name: np.zeros(steps) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> name <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> methods}</span>
+<span id="cb9-114">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> run <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(runs):</span>
+<span id="cb9-115">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> name, method <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> methods.items():</span>
+<span id="cb9-116">            pct[name] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> method(BanditTestbed(seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>run), steps, seed<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>run)</span>
+<span id="cb9-117">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> {name: <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100.0</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> total <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> runs <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> name, total <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> pct.items()}</span></code></pre></div></div>
+<p>Running the comparison over 200 independent testbeds reproduces the ordering of Sutton &amp; Barto’s Figures 2.3 to 2.5:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">results <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> compare(runs<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>, steps<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>)</span>
+<span id="cb10-2"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> name, curve <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> results.items():</span>
+<span id="cb10-3">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>name<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:38s}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> last 100 steps: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>curve[<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>:]<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>mean()<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.1f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">% optimal"</span>)</span>
+<span id="cb10-4">ctx <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> run_contextual_epsilon_greedy(steps<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2000</span>)</span>
+<span id="cb10-5"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"contextual epsilon-greedy, last 500 steps: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> ctx[<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>:]<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span>mean()<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.1f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">% optimal"</span>)</span></code></pre></div></div>
+<pre class="text"><code>epsilon-greedy (0.1)                   last 100 steps: 78.8% optimal
+optimistic greedy (Q1=5, alpha=0.1)    last 100 steps: 85.4% optimal
+UCB (c=2)                              last 100 steps: 84.6% optimal
+gradient (alpha=0.1, baseline)         last 100 steps: 81.8% optimal
+contextual epsilon-greedy, last 500 steps: 91.4% optimal</code></pre>
+</section>
+<section id="analytical-exercises" class="level3" data-number="0.10">
+<h3 data-number="0.10" class="anchored" data-anchor-id="analytical-exercises"><span class="header-section-number">0.10</span> Analytical Exercises</h3>
+<ol type="1">
+<li><strong>Exercise 2.1: The Optimistic Spike.</strong> In the optimistic-greedy curve, the percentage of optimal actions shows oscillations and spikes during the first few dozen steps. Explain why, using only the update rule and the fact that every estimate starts at <img src="https://latex.codecogs.com/png.latex?Q_1%20=%205"> (Sutton &amp; Barto, Exercise 2.6).</li>
+<li><strong>Exercise 2.2: The UCB Spike at Step 11.</strong> With <img src="https://latex.codecogs.com/png.latex?k%20=%2010"> and <img src="https://latex.codecogs.com/png.latex?c%20=%202">, average reward under UCB jumps sharply at step 11 and then drops again. Why step 11, and why does the spike shrink as <img src="https://latex.codecogs.com/png.latex?c"> decreases (Exercise 2.8)?</li>
+<li><strong>Exercise 2.3: Two-Action Soft-Max.</strong> Show that with <img src="https://latex.codecogs.com/png.latex?k%20=%202"> the soft-max distribution reduces to the logistic (sigmoid) function of the preference difference <img src="https://latex.codecogs.com/png.latex?H_t(1)%20-%20H_t(2)"> (Exercise 2.9).</li>
+<li><strong>Exercise 2.4: Unbiased Constant Step Size.</strong> Optimistic initialisation works only because a constant step size retains a bias towards <img src="https://latex.codecogs.com/png.latex?Q_1">. Show that the step size <img src="https://latex.codecogs.com/png.latex?%5Cbeta_n%20=%20%5Calpha%20/%20%5Cbar%7Bo%7D_n">, with <img src="https://latex.codecogs.com/png.latex?%5Cbar%7Bo%7D_n%20=%20%5Cbar%7Bo%7D_%7Bn-1%7D%20+%20%5Calpha(1%20-%20%5Cbar%7Bo%7D_%7Bn-1%7D)"> and <img src="https://latex.codecogs.com/png.latex?%5Cbar%7Bo%7D_0%20=%200">, removes the initial bias while still weighting recent rewards exponentially (Exercise 2.7).</li>
+<li><strong>Exercise 2.5: Ignoring the Lamp.</strong> Modify <code>run_contextual_epsilon_greedy</code> so that the agent ignores the context and keeps a single table of estimates. What fraction of optimal actions can it reach at best, and how does this depend on how often the two contexts share the same best arm?</li>
+<li><strong>Exercise 2.6: Optimism Under Drift.</strong> Switch on drifting machines in the comparison widget. Explain why optimistic greedy loses its advantage over <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon">-greedy, and propose a modification that restores persistent exploration.</li>
+</ol>
+</section>
+</div>
+</div>
+</div>
+<hr>
+<section id="game-theory-corner" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="game-theory-corner"><span class="header-section-number">1</span> Game Theory Corner</h2>
+<p>In multi-agent settings, deterministic greedy exploration frequently fails because adversarial opponents actively exploit predictable empirical routines. When opposing payoff surfaces adapt dynamically, optimal behaviour requires mixed strategies—randomising deliberately across action spaces (as in zero-sum games such as rock-paper-scissors) to prevent an opponent from driving value updates into degenerate equilibria.</p>
+<hr>
+</section>
+<section id="key-takeaways-glossary" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="key-takeaways-glossary"><span class="header-section-number">2</span> Key Takeaways &amp; Glossary</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Symbol / Concept</th>
+<th style="text-align: left;">Formal Definition</th>
+<th style="text-align: left;">Operational Significance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?Q_1(a)%20=%20%5Cbar%7Br%7D"></td>
+<td style="text-align: left;">Optimistic initial estimate, <img src="https://latex.codecogs.com/png.latex?%5Cbar%7Br%7D%20%5Cgg%20%5Cmax_a%20q_*(a)"></td>
+<td style="text-align: left;">Front-loads exploration; needs a constant step size to persist beyond one pull.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">UCB bonus</td>
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?c%20%5Csqrt%7B%5Cln%20t%20/%20N_t(a)%7D"></td>
+<td style="text-align: left;">Directs exploration towards rarely tried actions; <img src="https://latex.codecogs.com/png.latex?c%20=%20%5Csqrt%7B2%7D"> gives UCB1.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Regret of UCB1</td>
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BO%7D%5Cleft(%5Csum_a%20%5Cln%20T%20/%20%5CDelta_a%5Cright)"></td>
+<td style="text-align: left;">Logarithmic, versus linear <img src="https://latex.codecogs.com/png.latex?%5COmega(T)"> for constant <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon">-greedy.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?H_t(a)"></td>
+<td style="text-align: left;">Action preference</td>
+<td style="text-align: left;">Only differences matter; the soft-max turns preferences into probabilities.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cpi_t(a)"></td>
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?e%5E%7BH_t(a)%7D%20/%20%5Csum_b%20e%5E%7BH_t(b)%7D"></td>
+<td style="text-align: left;">Stochastic policy of the gradient bandit.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?%5Cbar%7BR%7D_t"></td>
+<td style="text-align: left;">Mean of rewards before step <img src="https://latex.codecogs.com/png.latex?t"></td>
+<td style="text-align: left;">Baseline that reduces gradient variance without introducing bias.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Contextual bandit</td>
+<td style="text-align: left;">Policy <img src="https://latex.codecogs.com/png.latex?X_t%20%5Cmapsto%20A_t">; actions do not affect <img src="https://latex.codecogs.com/png.latex?X_%7Bt+1%7D"></td>
+<td style="text-align: left;">Bridge between bandits and full Markov Decision Processes.</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="next-in-the-series" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="next-in-the-series"><span class="header-section-number">3</span> Next in the Series</h2>
+<p>So far, actions have changed only the reward, never the situation the agent finds itself in next. In <strong>Season 1, Episode 03</strong> (upcoming), we let actions steer the state, formalising finite Markov Decision Processes, returns, and the Bellman equations <span class="citation" data-cites="sutton2018reinforcement">(Sutton and Barto 2018, chap. 3)</span>.</p>
+<ul>
+<li><strong>Previous Episode:</strong> <a href="../../posts/2026-10-20-which-candy-machine/index.html">01. Which Candy Machine? (Multi-Armed Bandits)</a></li>
+</ul>
+<hr>
+</section>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-auer2002finite" class="csl-entry">
+Auer, Peter, Nicolo Cesa-Bianchi, and Paul Fischer. 2002. <span>“Finite-Time Analysis of the Multiarmed Bandit Problem.”</span> <em>Machine Learning</em> 47 (2): 235–56. <a href="https://doi.org/10.1023/A:1013689704352">https://doi.org/10.1023/A:1013689704352</a>.
+</div>
+<div id="ref-lai1985asymptotically" class="csl-entry">
+Lai, T. L., and Herbert Robbins. 1985. <span>“Asymptotically Efficient Adaptive Allocation Rules.”</span> <em>Advances in Applied Mathematics</em> 6 (1): 4–22. <a href="https://doi.org/10.1016/0196-8858(85)90002-8">https://doi.org/10.1016/0196-8858(85)90002-8</a>.
+</div>
+<div id="ref-sutton2018reinforcement" class="csl-entry">
+Sutton, Richard S., and Andrew G. Barto. 2018. <em>Reinforcement Learning: An Introduction</em>. 2nd ed. MIT Press. <a href="http://incompleteideas.net/book/the-book-2nd.html">http://incompleteideas.net/book/the-book-2nd.html</a>.
+</div>
+<div id="ref-williams1992simple" class="csl-entry">
+Williams, Ronald J. 1992. <span>“Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning.”</span> <em>Machine Learning</em> 8 (3): 229–56. <a href="https://doi.org/10.1007/BF00992696">https://doi.org/10.1007/BF00992696</a>.
+</div>
+</div>
+
+
+</section>
+
+ ]]></description>
+  <category>reinforcement-learning</category>
+  <category>bandits</category>
+  <category>exploration</category>
+  <category>ucb</category>
+  <category>policy-gradient</category>
+  <category>first-principles</category>
+  <guid>https://v3rm1.github.io/blog/posts/2026-10-27-curious-but-clever/</guid>
+  <pubDate>Mon, 26 Oct 2026 23:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Which Candy Machine? Multi-Armed Bandits and Exploration</title>
   <dc:creator>Varun Ravi Varma</dc:creator>
@@ -2098,7 +5431,7 @@ font-style: inherit;">return</span> results_reward, results_optimal</span></code
 </section>
 <section id="what-comes-next" class="level3" data-number="0.14">
 <h3 data-number="0.14" class="anchored" data-anchor-id="what-comes-next"><span class="header-section-number">0.14</span> What Comes Next?</h3>
-<p>While <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon">-greedy action selection guarantees asymptotic exploration, its randomised choices are indiscriminate: it explores promising and dismal alternatives with equal likelihood. In <strong>Season 1, Episode 02: Curious, but Clever</strong> (upcoming), we formulate guided, directed exploration mechanisms: - <strong>Optimism in the Face of Uncertainty:</strong> Initial value biases that encourage transient, self-terminating exploration. - <strong>Upper Confidence Bound (UCB):</strong> Quantifying epistemic uncertainty via concentration bounds to attain logarithmic regret <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BO%7D(%5Clog%20T)">. - <strong>Gradient Bandits:</strong> Learning continuous action preference probabilities through softmax stochastic gradient ascent.</p>
+<p>While <img src="https://latex.codecogs.com/png.latex?%5Cvarepsilon">-greedy action selection guarantees asymptotic exploration, its randomised choices are indiscriminate: it explores promising and dismal alternatives with equal likelihood. In <strong>Season 1, Episode 02: <a href="../../posts/2026-10-27-curious-but-clever/index.html">Curious, but Clever</a></strong>, we formulate guided, directed exploration mechanisms: - <strong>Optimism in the Face of Uncertainty:</strong> Initial value biases that encourage transient, self-terminating exploration. - <strong>Upper Confidence Bound (UCB):</strong> Quantifying epistemic uncertainty via concentration bounds to attain logarithmic regret <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BO%7D(%5Clog%20T)">. - <strong>Gradient Bandits:</strong> Learning continuous action preference probabilities through softmax stochastic gradient ascent.</p>
 
 
 

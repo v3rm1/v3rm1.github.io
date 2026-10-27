@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" width="100%" height="100%">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#7a82ab"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <style>
+    .node-box { fill: #1f2335; stroke-width: 2px; filter: url(#shadow); }
+    .node-title { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; font-weight: 700; text-anchor: middle; }
+    .node-sub { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12.5px; fill: #9aa5ce; text-anchor: middle; }
+    .flow-line { fill: none; stroke: #7a82ab; stroke-width: 2px; }
+  </style>
+  <!-- Root -->
+  <g transform="translate(320, 20)">
+    <rect class="node-box" stroke="#c0caf5" width="260" height="52" rx="12"/>
+    <text class="node-title" fill="#c0caf5" x="130" y="32">Stateless Action Selection</text>
+  </g>
+  <!-- Root to paradigms -->
+  <path class="flow-line" marker-end="url(#arrow)" d="M 450 72 L 90 128" />
+  <path class="flow-line" marker-end="url(#arrow)" d="M 450 72 L 360 128" />
+  <path class="flow-line" marker-end="url(#arrow)" d="M 450 72 L 630 128" />
+  <path class="flow-line" marker-end="url(#arrow)" d="M 450 72 L 810 128" />
+  <!-- Paradigms -->
+  <g transform="translate(5, 132)">
+    <rect class="node-box" stroke="#ff9e64" width="170" height="58" rx="12"/>
+    <text class="node-title" fill="#ff9e64" x="85" y="25">Undirected</text>
+    <text class="node-title" fill="#ff9e64" x="85" y="45">Perturbation</text>
+  </g>
+  <g transform="translate(275, 132)">
+    <rect class="node-box" stroke="#7aa2f7" width="170" height="58" rx="12"/>
+    <text class="node-title" fill="#7aa2f7" x="85" y="25">Uncertainty-</text>
+    <text class="node-title" fill="#7aa2f7" x="85" y="45">Directed</text>
+  </g>
+  <g transform="translate(545, 132)">
+    <rect class="node-box" stroke="#9ece6a" width="170" height="58" rx="12"/>
+    <text class="node-title" fill="#9ece6a" x="85" y="25">Preference</text>
+    <text class="node-title" fill="#9ece6a" x="85" y="45">Optimisation</text>
+  </g>
+  <g transform="translate(725, 132)">
+    <rect class="node-box" stroke="#bb9af7" width="170" height="58" rx="12"/>
+    <text class="node-title" fill="#bb9af7" x="85" y="25">Associative</text>
+    <text class="node-title" fill="#bb9af7" x="85" y="45">Context</text>
+  </g>
+  <!-- Paradigms to methods -->
+  <path class="flow-line" marker-end="url(#arrow)" d="M 90 190 L 90 246" />
+  <path class="flow-line" marker-end="url(#arrow)" d="M 360 190 L 270 246" />
+  <path class="flow-line" marker-end="url(#arrow)" d="M 360 190 L 450 246" />
+  <path class="flow-line" marker-end="url(#arrow)" d="M 630 190 L 630 246" />
+  <path class="flow-line" marker-end="url(#arrow)" d="M 810 190 L 810 246" />
+  <!-- Methods -->
+  <g transform="translate(8, 250)">
+    <rect class="node-box" stroke="#ff9e64" width="164" height="88" rx="12"/>
+    <text class="node-title" fill="#ff9e64" x="82" y="28">ε-Greedy</text>
+    <text class="node-sub" x="82" y="52">Uniform random</text>
+    <text class="node-sub" x="82" y="70">selection</text>
+  </g>
+  <g transform="translate(188, 250)">
+    <rect class="node-box" stroke="#7aa2f7" width="164" height="88" rx="12"/>
+    <text class="node-title" fill="#7aa2f7" x="82" y="28">Optimistic Values</text>
+    <text class="node-sub" x="82" y="52">Inflated Q₁ forces</text>
+    <text class="node-sub" x="82" y="70">front-loaded trials</text>
+  </g>
+  <g transform="translate(368, 250)">
+    <rect class="node-box" stroke="#7aa2f7" width="164" height="88" rx="12"/>
+    <text class="node-title" fill="#7aa2f7" x="82" y="28">UCB1</text>
+    <text class="node-sub" x="82" y="52">Action value +</text>
+    <text class="node-sub" x="82" y="70">confidence bonus</text>
+  </g>
+  <g transform="translate(548, 250)">
+    <rect class="node-box" stroke="#9ece6a" width="164" height="88" rx="12"/>
+    <text class="node-title" fill="#9ece6a" x="82" y="28">Gradient Bandits</text>
+    <text class="node-sub" x="82" y="52">Soft-max stochastic</text>
+    <text class="node-sub" x="82" y="70">gradient ascent</text>
+  </g>
+  <g transform="translate(728, 250)">
+    <rect class="node-box" stroke="#bb9af7" width="164" height="88" rx="12"/>
+    <text class="node-title" fill="#bb9af7" x="82" y="28">Contextual Bandits</text>
+    <text class="node-sub" x="82" y="52">Policy conditioned</text>
+    <text class="node-sub" x="82" y="70">on context Xₜ</text>
+  </g>
+</svg>
