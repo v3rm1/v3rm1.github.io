@@ -497,25 +497,6 @@ gradient (alpha=0.1, baseline)         last 100 steps: 81.8% optimal
 contextual epsilon-greedy, last 500 steps: 91.4% optimal
 ```
 
-### Analytical Exercises
-
-1. **Exercise 2.1: The Optimistic Spike.**
-   In the optimistic-greedy curve, the percentage of optimal actions shows oscillations and spikes during the first few dozen steps.
-   Explain why, using only the update rule and the fact that every estimate starts at $Q_1 = 5$ (Sutton & Barto, Exercise 2.6).
-2. **Exercise 2.2: The UCB Spike at Step 11.**
-   With $k = 10$ and $c = 2$, average reward under UCB jumps sharply at step 11 and then drops again.
-   Why step 11, and why does the spike shrink as $c$ decreases (Exercise 2.8)?
-3. **Exercise 2.3: Two-Action Soft-Max.**
-   Show that with $k = 2$ the soft-max distribution reduces to the logistic (sigmoid) function of the preference difference $H_t(1) - H_t(2)$ (Exercise 2.9).
-4. **Exercise 2.4: Unbiased Constant Step Size.**
-   Optimistic initialisation works only because a constant step size retains a bias towards $Q_1$.
-   Show that the step size $\beta_n = \alpha / \bar{o}_n$, with $\bar{o}_n = \bar{o}_{n-1} + \alpha(1 - \bar{o}_{n-1})$ and $\bar{o}_0 = 0$, removes the initial bias while still weighting recent rewards exponentially (Exercise 2.7).
-5. **Exercise 2.5: Ignoring the Lamp.**
-   Modify `run_contextual_epsilon_greedy` so that the agent ignores the context and keeps a single table of estimates.
-   What fraction of optimal actions can it reach at best, and how does this depend on how often the two contexts share the same best arm?
-6. **Exercise 2.6: Optimism Under Drift.**
-   Switch on drifting machines in the comparison widget.
-   Explain why optimistic greedy loses its advantage over $\varepsilon$-greedy, and propose a modification that restores persistent exploration.
 
 :::
 

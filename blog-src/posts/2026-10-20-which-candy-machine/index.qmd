@@ -203,7 +203,7 @@ candyBooth = {
 
 The same comparison as Sutton & Barto's Figure 2.2, simulated live in your browser.
 Each curve averages many independent 10-armed problems with $q_*(a) \sim \mathcal{N}(0, 1)$ and rewards $R_t \sim \mathcal{N}(q_*(A_t), 1)$.
-Switch on drifting machines to run Exercise 2.5, and compare the two step-size rules.
+Switch on drifting machines (Sutton & Barto's Exercise 2.5: all true values start equal and take small Gaussian random-walk steps) and compare the two step-size rules: the sample average freezes, while constant $\alpha$ keeps tracking the moving optimum.
 
 ::: {.rl-widget}
 
@@ -434,13 +434,6 @@ def run_bandit_experiment(
 
     return results_reward, results_optimal
 ```
-
-::: {.callout-note}
-## Programming Exercise: Non-Stationary Drift (Exercise 2.5)
-Modify the testbed so all true action values start equal at $q_0(a) = 0$ and drift at each step via independent zero-mean Gaussian random walks:
-$$q_{t+1}(a) = q_t(a) + \eta_t(a), \qquad \eta_t(a) \sim \mathcal{N}(0, 0.01^2)$$
-Compare the empirical average return of the sample-average method ($\alpha = 1/n$) against the constant step-size method ($\alpha = 0.1$). Observe how the sample-average freezes while constant $\alpha$ reliably tracks the shifting optimum.
-:::
 
 :::
 

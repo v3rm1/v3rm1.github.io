@@ -798,17 +798,6 @@ UCB (c=2)                              last 100 steps: 84.6% optimal
 gradient (alpha=0.1, baseline)         last 100 steps: 81.8% optimal
 contextual epsilon-greedy, last 500 steps: 91.4% optimal</code></pre>
 </section>
-<section id="analytical-exercises" class="level3" data-number="0.10">
-<h3 data-number="0.10" class="anchored" data-anchor-id="analytical-exercises"><span class="header-section-number">0.10</span> Analytical Exercises</h3>
-<ol type="1">
-<li><strong>Exercise 2.1: The Optimistic Spike.</strong> In the optimistic-greedy curve, the percentage of optimal actions shows oscillations and spikes during the first few dozen steps. Explain why, using only the update rule and the fact that every estimate starts at <span class="math inline">\(Q_1 = 5\)</span> (Sutton &amp; Barto, Exercise 2.6).</li>
-<li><strong>Exercise 2.2: The UCB Spike at Step 11.</strong> With <span class="math inline">\(k = 10\)</span> and <span class="math inline">\(c = 2\)</span>, average reward under UCB jumps sharply at step 11 and then drops again. Why step 11, and why does the spike shrink as <span class="math inline">\(c\)</span> decreases (Exercise 2.8)?</li>
-<li><strong>Exercise 2.3: Two-Action Soft-Max.</strong> Show that with <span class="math inline">\(k = 2\)</span> the soft-max distribution reduces to the logistic (sigmoid) function of the preference difference <span class="math inline">\(H_t(1) - H_t(2)\)</span> (Exercise 2.9).</li>
-<li><strong>Exercise 2.4: Unbiased Constant Step Size.</strong> Optimistic initialisation works only because a constant step size retains a bias towards <span class="math inline">\(Q_1\)</span>. Show that the step size <span class="math inline">\(\beta_n = \alpha / \bar{o}_n\)</span>, with <span class="math inline">\(\bar{o}_n = \bar{o}_{n-1} + \alpha(1 - \bar{o}_{n-1})\)</span> and <span class="math inline">\(\bar{o}_0 = 0\)</span>, removes the initial bias while still weighting recent rewards exponentially (Exercise 2.7).</li>
-<li><strong>Exercise 2.5: Ignoring the Lamp.</strong> Modify <code>run_contextual_epsilon_greedy</code> so that the agent ignores the context and keeps a single table of estimates. What fraction of optimal actions can it reach at best, and how does this depend on how often the two contexts share the same best arm?</li>
-<li><strong>Exercise 2.6: Optimism Under Drift.</strong> Switch on drifting machines in the comparison widget. Explain why optimistic greedy loses its advantage over <span class="math inline">\(\varepsilon\)</span>-greedy, and propose a modification that restores persistent exploration.</li>
-</ol>
-</section>
 </div>
 </div>
 </div>

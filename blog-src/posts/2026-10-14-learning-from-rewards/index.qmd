@@ -543,19 +543,6 @@ print(f"  Draw Rate: {np.mean(hist[-1000:] == 0) * 100:.1f}%")
 print(f"  Loss Rate: {np.mean(hist[-1000:] == -1) * 100:.1f}%")
 ```
 
-### Analytical Exercises
-
-1. **Exercise 1.1: Self-Play Dynamics.**
-   If both players utilise value iteration simultaneously, how does non-stationarity manifest?
-   Will the system converge to an unexploitable minimax equilibrium, or can cycling occur?
-2. **Exercise 1.2: State-Space Reduction via Symmetries.**
-   The board exhibits the dihedral symmetry group $D_4$ of order 8 (rotations and reflections).
-   By quotienting the state space $\mathcal{S} / D_4$, by what factor is the tabular parameter size compressed, and how does this accelerate convergence?
-3. **Exercise 1.3: Greedy Exploitation Pathology.**
-   If $\epsilon = 0$ throughout training against an imperfect opponent, construct a concrete counterexample where the agent acquires a policy that wins reliably yet remains vulnerable to an unobserved defensive response.
-4. **Exercise 1.4: Off-Policy Bootstrapping.**
-   Suppose the agent updates $V(S_t)$ from $S_{t+1}$ even when $A_t$ was selected exploratively.
-   Formally demonstrate how this contaminates value estimates with exploratory regret.
 
 :::
 

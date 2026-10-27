@@ -833,15 +833,6 @@ For each training episode:
 <span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Draw Rate: </span><span class="sc">{</span>np<span class="sc">.</span>mean(hist[<span class="op">-</span><span class="dv">1000</span>:] <span class="op">==</span> <span class="dv">0</span>) <span class="op">*</span> <span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
 <span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Loss Rate: </span><span class="sc">{</span>np<span class="sc">.</span>mean(hist[<span class="op">-</span><span class="dv">1000</span>:] <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>) <span class="op">*</span> <span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">%"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="analytical-exercises" class="level3" data-number="0.12">
-<h3 data-number="0.12" class="anchored" data-anchor-id="analytical-exercises"><span class="header-section-number">0.12</span> Analytical Exercises</h3>
-<ol type="1">
-<li><strong>Exercise 1.1: Self-Play Dynamics.</strong> If both players utilise value iteration simultaneously, how does non-stationarity manifest? Will the system converge to an unexploitable minimax equilibrium, or can cycling occur?</li>
-<li><strong>Exercise 1.2: State-Space Reduction via Symmetries.</strong> The board exhibits the dihedral symmetry group <span class="math inline">\(D_4\)</span> of order 8 (rotations and reflections). By quotienting the state space <span class="math inline">\(\mathcal{S} / D_4\)</span>, by what factor is the tabular parameter size compressed, and how does this accelerate convergence?</li>
-<li><strong>Exercise 1.3: Greedy Exploitation Pathology.</strong> If <span class="math inline">\(\epsilon = 0\)</span> throughout training against an imperfect opponent, construct a concrete counterexample where the agent acquires a policy that wins reliably yet remains vulnerable to an unobserved defensive response.</li>
-<li><strong>Exercise 1.4: Off-Policy Bootstrapping.</strong> Suppose the agent updates <span class="math inline">\(V(S_t)\)</span> from <span class="math inline">\(S_{t+1}\)</span> even when <span class="math inline">\(A_t\)</span> was selected exploratively. Formally demonstrate how this contaminates value estimates with exploratory regret.</li>
-</ol>
-</section>
 </div>
 </div>
 </div>
