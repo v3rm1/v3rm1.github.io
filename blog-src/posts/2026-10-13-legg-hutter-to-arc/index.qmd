@@ -85,6 +85,77 @@ where $\mathcal{U}$ is a universal prefix Turing machine, the inner sum runs ove
 Prefix Kolmogorov complexity is uncomputable (computing it would solve the halting problem), and AIXI is not even limit-computable, so it cannot be approximated arbitrarily well with finite computation [@leike2015].
 It is best read as a theoretical reference point for bounded agents rather than a blueprint.
 
+### Try It: Where Does the Occam Prior Put Its Weight?
+
+$\Upsilon(\pi)$ itself is uncomputable, but its shape is easy to explore with a toy.
+Below, each complexity level $K = 1, \dots, 20$ bits stands in for one environment, with prior mass proportional to $2^{-K}$.
+A *specialist* scores almost perfectly in a narrow band of complexities and poorly elsewhere; a *generalist* is decent everywhere, degrading as environments become more complex.
+Move the specialist's band and see how much (or how little) its expertise is worth.
+
+```{ojs}
+//| echo: false
+import {observeTheme, palette, SYMMETRY_GROUPS, countStates} from "../../assets/ojs/rl.js"
+theme = Generators.observe(observeTheme)
+pal = palette(theme)
+```
+
+::: {.rl-widget}
+
+```{ojs}
+//| echo: false
+viewof occam = Inputs.form({
+  centre: Inputs.range([1, 20], {step: 1, value: 12, label: "Specialist band centre K"}),
+  breadth: Inputs.range([1, 10], {step: 1, value: 3, label: "Specialist band width"}),
+  lambda: Inputs.range([1, 20], {step: 0.5, value: 6, label: "Generalist decay scale"}),
+  view: Inputs.radio(["weighted contribution 2^−K·V", "raw score V"], {value: "weighted contribution 2^−K·V", label: "Show"})
+})
+```
+
+```{ojs}
+//| echo: false
+occamRows = {
+  const Ks = Array.from({length: 20}, (_, i) => i + 1);
+  const Z = Ks.reduce((s, K) => s + 2 ** -K, 0);
+  const lo = occam.centre - (occam.breadth - 1) / 2, hi = occam.centre + (occam.breadth - 1) / 2;
+  const agents = {
+    Specialist: (K) => (K >= lo - 1e-9 && K <= hi + 1e-9 ? 0.95 : 0.05),
+    Generalist: (K) => 0.95 * Math.exp(-(K - 1) / occam.lambda)
+  };
+  return Object.entries(agents).flatMap(([agent, V]) =>
+    Ks.map((K) => ({agent, K, V: V(K), contribution: (2 ** -K / Z) * V(K)})));
+}
+occamScores = Object.fromEntries(["Specialist", "Generalist"].map((a) =>
+  [a, occamRows.filter((r) => r.agent === a).reduce((s, r) => s + r.contribution, 0)]))
+```
+
+```{ojs}
+//| echo: false
+{
+  const weighted = occam.view.startsWith("weighted");
+  return Plot.plot({
+    width: Math.min(width, 760),
+    height: 250,
+    marginLeft: 55,
+    style: {background: "transparent"},
+    x: {label: "Environment complexity K (bits)", tickFormat: "d"},
+    y: weighted ? {label: "Weighted contribution (log scale)", type: "log", grid: true} : {label: "Score V", grid: true, domain: [0, 1]},
+    color: {domain: ["Specialist", "Generalist"], range: [pal.orange, pal.blue], legend: true},
+    marks: [
+      Plot.lineY(occamRows, {x: "K", y: weighted ? "contribution" : "V", stroke: "agent", strokeWidth: 1.5}),
+      Plot.dot(occamRows, {x: "K", y: weighted ? "contribution" : "V", fill: "agent", r: 3})
+    ]
+  });
+}
+```
+
+```{ojs}
+//| echo: false
+html`<p class="rl-stats">Toy universal intelligence Υ: specialist <b>${occamScores.Specialist.toFixed(3)}</b>, generalist <b>${occamScores.Generalist.toFixed(3)}</b>.</p>
+<p class="rl-note">Half the prior mass sits on K = 1 alone, so competence on the simplest environments dominates the score. This toy collapses the many environments at each complexity into one; it illustrates the weighting, not a real measurement.</p>`
+```
+
+:::
+
 ---
 
 ## Chollet’s ARC: Intelligence as Skill Acquisition Efficiency
@@ -160,6 +231,31 @@ flowchart TD
 
 At Tier 3, discovering invariance under translation, rotation or permutation shrinks the effective state space: quotienting by a symmetry group $\mathcal{G}$ that acts freely divides the number of distinct states by $|\mathcal{G}|$.
 At Tier 4, the architecture avoids static heuristics entirely, actively generating and validating verification routines at inference time.
+
+#### Try It: Quotienting Tic-Tac-Toe by Its Symmetries
+
+A concrete Tier-3 example: the positions reachable in legal tic-tac-toe play, counted live by exhaustive search, before and after identifying boards that are rotations or reflections of each other.
+Because some boards are themselves symmetric (the group does not act freely on them), the reduction is a little less than the full group order.
+
+::: {.rl-widget}
+
+```{ojs}
+//| echo: false
+viewof symGroup = Inputs.radio(Object.keys(SYMMETRY_GROUPS), {value: "full dihedral D4", label: "Identify boards under"})
+```
+
+```{ojs}
+//| echo: false
+{
+  const g = SYMMETRY_GROUPS[symGroup];
+  const {raw, reduced} = countStates(g);
+  return html`<p class="rl-stats">Group order |G| = ${g.length}.
+    Reachable positions: <b>${raw}</b>, distinct up to symmetry: <b>${reduced}</b>,
+    a ${(raw / reduced).toFixed(2)}× reduction (the free-action bound would be ${g.length}×).</p>`;
+}
+```
+
+:::
 
 ### A Thermodynamic Analogy
 There is a suggestive analogy between compressing uncertainty in search and thermodynamics.

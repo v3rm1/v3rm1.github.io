@@ -103,7 +103,7 @@ div.csl-indent {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-19954d71dda9073188f2520a411f1fcd.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-6b10c50ce77f14c89897809601b5b5ff.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-d3cd74dfbf34dce192e337426adc9413.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -132,6 +132,8 @@ div.csl-indent {
   }
 }</script>
 <style>html{ scroll-behavior: smooth; }</style>
+<script type="module" src="../../site_libs/quarto-ojs/quarto-ojs-runtime.js"></script>
+<link href="../../site_libs/quarto-ojs/quarto-ojs.css" rel="stylesheet">
 <meta name="theme-color" content="#16161e">
 <script>
   (function () {
@@ -418,14 +420,189 @@ Figure&nbsp;2: The closed-loop interaction cycle between agent and environment.
 <p><strong>Misconception:</strong> “Reinforcement learning is merely unstructured trial and error at random.” <strong>Reality:</strong> While random sampling initiates exploration, the errors are systematically captured by the value function. Subsequent decisions are biased toward high-value basins, converting random variance into guided, goal-directed improvement.</p>
 </div>
 </div>
+</section>
+<section id="try-it-train-ada-in-your-browser" class="level3" data-number="0.6">
+<h3 data-number="0.6" class="anchored" data-anchor-id="try-it-train-ada-in-your-browser"><span class="header-section-number">0.6</span> Try It: Train Ada in Your Browser</h3>
+<p>The agent below plays crosses (moving first) against a uniformly random opponent and learns <span class="math inline">\(V(s)\)</span> with the temporal-difference rule above, skipping updates after exploratory moves. Values are kept for <em>afterstates</em>, the boards right after the agent moves, as in Sutton &amp; Barto §1.5. Change <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\varepsilon\)</span> and watch the outcome rates shift.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb1" data-startfrom="159" data-source-offset="-0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 158;"><span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> {trainTicTacToe<span class="op">,</span> moveValues<span class="op">,</span> greedyMove<span class="op">,</span> winner<span class="op">,</span> LINES<span class="op">,</span> rolling<span class="op">,</span> makeRng<span class="op">,</span> observeTheme<span class="op">,</span> palette} <span class="im">from</span> <span class="st">"../../assets/ojs/rl.js"</span></span>
+<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a>theme <span class="op">=</span> Generators<span class="op">.</span><span class="fu">observe</span>(observeTheme)</span>
+<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a>pal <span class="op">=</span> <span class="fu">palette</span>(theme)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-1-1" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-1-2" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-1-3" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+</div>
+<div class="rl-widget">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb2" data-startfrom="167" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 166;"><span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>viewof ttt <span class="op">=</span> Inputs<span class="op">.</span><span class="fu">form</span>({</span>
+<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a>  <span class="dt">episodes</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="dv">500</span><span class="op">,</span> <span class="dv">20000</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="dv">500</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="dv">5000</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"Games"</span>})<span class="op">,</span></span>
+<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a>  <span class="dt">alpha</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="fl">0.01</span><span class="op">,</span> <span class="dv">1</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="fl">0.01</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"α (step size)"</span>})<span class="op">,</span></span>
+<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a>  <span class="dt">epsilon</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="dv">0</span><span class="op">,</span> <span class="fl">0.5</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="fl">0.01</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="fl">0.1</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"ε (exploration)"</span>})<span class="op">,</span></span>
+<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a>  <span class="dt">seed</span><span class="op">:</span> Inputs<span class="op">.</span><span class="fu">range</span>([<span class="dv">1</span><span class="op">,</span> <span class="dv">100</span>]<span class="op">,</span> {<span class="dt">step</span><span class="op">:</span> <span class="dv">1</span><span class="op">,</span> <span class="dt">value</span><span class="op">:</span> <span class="dv">42</span><span class="op">,</span> <span class="dt">label</span><span class="op">:</span> <span class="st">"Seed"</span>})</span>
+<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-2" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb3" data-startfrom="178" data-source-offset="-0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 177;"><span id="cb3-178"><a href="#cb3-178" aria-hidden="true" tabindex="-1"></a>tttAgent <span class="op">=</span> <span class="fu">trainTicTacToe</span>(ttt)</span>
+<span id="cb3-179"><a href="#cb3-179" aria-hidden="true" tabindex="-1"></a>tttRows <span class="op">=</span> {</span>
+<span id="cb3-180"><a href="#cb3-180" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="bu">window</span> <span class="op">=</span> <span class="dv">250</span><span class="op">;</span></span>
+<span id="cb3-181"><a href="#cb3-181" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> h <span class="op">=</span> tttAgent<span class="op">.</span><span class="at">history</span><span class="op">;</span></span>
+<span id="cb3-182"><a href="#cb3-182" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> rows <span class="op">=</span> []<span class="op">;</span></span>
+<span id="cb3-183"><a href="#cb3-183" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (<span class="kw">const</span> [name<span class="op">,</span> v] <span class="kw">of</span> [[<span class="st">"Win"</span><span class="op">,</span> <span class="dv">1</span>]<span class="op">,</span> [<span class="st">"Draw"</span><span class="op">,</span> <span class="dv">0</span>]<span class="op">,</span> [<span class="st">"Loss"</span><span class="op">,</span> <span class="op">-</span><span class="dv">1</span>]]) {</span>
+<span id="cb3-184"><a href="#cb3-184" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> rate <span class="op">=</span> <span class="fu">rolling</span>(<span class="bu">Array</span><span class="op">.</span><span class="fu">from</span>(h<span class="op">,</span> (x) <span class="kw">=&gt;</span> (x <span class="op">===</span> v <span class="op">?</span> <span class="dv">100</span> <span class="op">:</span> <span class="dv">0</span>))<span class="op">,</span> <span class="bu">window</span>)<span class="op">;</span></span>
+<span id="cb3-185"><a href="#cb3-185" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (<span class="kw">let</span> i <span class="op">=</span> <span class="bu">window</span> <span class="op">-</span> <span class="dv">1</span><span class="op">;</span> i <span class="op">&lt;</span> h<span class="op">.</span><span class="at">length</span><span class="op">;</span> i <span class="op">+=</span> <span class="dv">10</span>) rows<span class="op">.</span><span class="fu">push</span>({<span class="dt">outcome</span><span class="op">:</span> name<span class="op">,</span> <span class="dt">game</span><span class="op">:</span> i <span class="op">+</span> <span class="dv">1</span><span class="op">,</span> <span class="dt">rate</span><span class="op">:</span> rate[i]})<span class="op">;</span></span>
+<span id="cb3-186"><a href="#cb3-186" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-187"><a href="#cb3-187" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> rows<span class="op">;</span></span>
+<span id="cb3-188"><a href="#cb3-188" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-3-1" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<div id="ojs-cell-3-2" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb4" data-startfrom="192" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 191;"><span id="cb4-192"><a href="#cb4-192" aria-hidden="true" tabindex="-1"></a>Plot<span class="op">.</span><span class="fu">plot</span>({</span>
+<span id="cb4-193"><a href="#cb4-193" aria-hidden="true" tabindex="-1"></a>  <span class="dt">width</span><span class="op">:</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">min</span>(width<span class="op">,</span> <span class="dv">760</span>)<span class="op">,</span></span>
+<span id="cb4-194"><a href="#cb4-194" aria-hidden="true" tabindex="-1"></a>  <span class="dt">height</span><span class="op">:</span> <span class="dv">250</span><span class="op">,</span></span>
+<span id="cb4-195"><a href="#cb4-195" aria-hidden="true" tabindex="-1"></a>  <span class="dt">marginLeft</span><span class="op">:</span> <span class="dv">45</span><span class="op">,</span></span>
+<span id="cb4-196"><a href="#cb4-196" aria-hidden="true" tabindex="-1"></a>  <span class="dt">style</span><span class="op">:</span> {<span class="dt">background</span><span class="op">:</span> <span class="st">"transparent"</span>}<span class="op">,</span></span>
+<span id="cb4-197"><a href="#cb4-197" aria-hidden="true" tabindex="-1"></a>  <span class="dt">x</span><span class="op">:</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"Game"</span>}<span class="op">,</span></span>
+<span id="cb4-198"><a href="#cb4-198" aria-hidden="true" tabindex="-1"></a>  <span class="dt">y</span><span class="op">:</span> {<span class="dt">label</span><span class="op">:</span> <span class="st">"% of last 250 games"</span><span class="op">,</span> <span class="dt">grid</span><span class="op">:</span> <span class="kw">true</span><span class="op">,</span> <span class="dt">domain</span><span class="op">:</span> [<span class="dv">0</span><span class="op">,</span> <span class="dv">100</span>]}<span class="op">,</span></span>
+<span id="cb4-199"><a href="#cb4-199" aria-hidden="true" tabindex="-1"></a>  <span class="dt">color</span><span class="op">:</span> {<span class="dt">domain</span><span class="op">:</span> [<span class="st">"Win"</span><span class="op">,</span> <span class="st">"Draw"</span><span class="op">,</span> <span class="st">"Loss"</span>]<span class="op">,</span> <span class="dt">range</span><span class="op">:</span> [pal<span class="op">.</span><span class="at">green</span><span class="op">,</span> pal<span class="op">.</span><span class="at">blue</span><span class="op">,</span> pal<span class="op">.</span><span class="at">red</span>]<span class="op">,</span> <span class="dt">legend</span><span class="op">:</span> <span class="kw">true</span>}<span class="op">,</span></span>
+<span id="cb4-200"><a href="#cb4-200" aria-hidden="true" tabindex="-1"></a>  <span class="dt">marks</span><span class="op">:</span> [Plot<span class="op">.</span><span class="fu">lineY</span>(tttRows<span class="op">,</span> {<span class="dt">x</span><span class="op">:</span> <span class="st">"game"</span><span class="op">,</span> <span class="dt">y</span><span class="op">:</span> <span class="st">"rate"</span><span class="op">,</span> <span class="dt">stroke</span><span class="op">:</span> <span class="st">"outcome"</span><span class="op">,</span> <span class="dt">strokeWidth</span><span class="op">:</span> <span class="fl">1.5</span>})]</span>
+<span id="cb4-201"><a href="#cb4-201" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-4" data-nodetype="expression">
+
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb5" data-startfrom="206" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 205;"><span id="cb5-206"><a href="#cb5-206" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb5-207"><a href="#cb5-207" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> last <span class="op">=</span> tttAgent<span class="op">.</span><span class="at">history</span><span class="op">.</span><span class="fu">slice</span>(<span class="op">-</span><span class="dv">1000</span>)<span class="op">;</span></span>
+<span id="cb5-208"><a href="#cb5-208" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> pct <span class="op">=</span> (v) <span class="kw">=&gt;</span> (<span class="dv">100</span> <span class="op">*</span> last<span class="op">.</span><span class="fu">filter</span>((x) <span class="kw">=&gt;</span> x <span class="op">===</span> v)<span class="op">.</span><span class="at">length</span> <span class="op">/</span> last<span class="op">.</span><span class="at">length</span>)<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">1</span>)<span class="op">;</span></span>
+<span id="cb5-209"><a href="#cb5-209" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="fu">html</span><span class="vs">`&lt;p class="rl-stats"&gt;Last </span><span class="sc">${</span>last<span class="op">.</span><span class="at">length</span><span class="sc">}</span><span class="vs"> training games: win </span><span class="sc">${</span><span class="fu">pct</span>(<span class="dv">1</span>)<span class="sc">}</span><span class="vs">%, draw </span><span class="sc">${</span><span class="fu">pct</span>(<span class="dv">0</span>)<span class="sc">}</span><span class="vs">%, loss </span><span class="sc">${</span><span class="fu">pct</span>(<span class="op">-</span><span class="dv">1</span>)<span class="sc">}</span><span class="vs">%.</span></span>
+<span id="cb5-210"><a href="#cb5-210" aria-hidden="true" tabindex="-1"></a><span class="vs">    </span><span class="sc">${</span>tttAgent<span class="op">.</span><span class="at">values</span><span class="op">.</span><span class="at">size</span><span class="sc">}</span><span class="vs"> afterstates visited.&lt;/p&gt;</span></span>
+<span id="cb5-211"><a href="#cb5-211" aria-hidden="true" tabindex="-1"></a><span class="vs">    &lt;p class="rl-note"&gt;Losses never vanish entirely while ε &gt; 0: the agent keeps making deliberate random moves during training.&lt;/p&gt;`</span><span class="op">;</span></span>
+<span id="cb5-212"><a href="#cb5-212" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-5" data-nodetype="expression">
+
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="try-it-play-against-the-trained-agent" class="level3" data-number="0.7">
+<h3 data-number="0.7" class="anchored" data-anchor-id="try-it-play-against-the-trained-agent"><span class="header-section-number">0.7</span> Try It: Play Against the Trained Agent</h3>
+<p>Now play noughts yourself against the agent trained above (it plays greedily here, with no exploration). Before each of its moves, the agent’s estimate <span class="math inline">\(V\)</span> of every candidate square is shown in that square’s corner. An agent trained only against a random opponent may still have blind spots against deliberate play: can you find one?</p>
+<div class="rl-widget">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code hidden" id="cb6" data-startfrom="227" data-source-offset="0"><pre class="sourceCode js code-with-copy"><code class="sourceCode javascript" style="counter-reset: source-line 226;"><span id="cb6-227"><a href="#cb6-227" aria-hidden="true" tabindex="-1"></a>tttPlay <span class="op">=</span> {</span>
+<span id="cb6-228"><a href="#cb6-228" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> values <span class="op">=</span> tttAgent<span class="op">.</span><span class="at">values</span><span class="op">;</span></span>
+<span id="cb6-229"><a href="#cb6-229" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> rng <span class="op">=</span> <span class="fu">makeRng</span>(<span class="bu">Date</span><span class="op">.</span><span class="fu">now</span>() <span class="op">&gt;&gt;&gt;</span> <span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb6-230"><a href="#cb6-230" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> board<span class="op">,</span> status<span class="op">,</span> shown<span class="op">,</span> lastCell<span class="op">;</span></span>
+<span id="cb6-231"><a href="#cb6-231" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> <span class="bu">root</span> <span class="op">=</span> <span class="fu">html</span><span class="vs">`&lt;div&gt;</span></span>
+<span id="cb6-232"><a href="#cb6-232" aria-hidden="true" tabindex="-1"></a><span class="vs">    &lt;div class="rl-board"&gt;&lt;/div&gt;</span></span>
+<span id="cb6-233"><a href="#cb6-233" aria-hidden="true" tabindex="-1"></a><span class="vs">    &lt;div class="rl-stats"&gt;&lt;/div&gt;</span></span>
+<span id="cb6-234"><a href="#cb6-234" aria-hidden="true" tabindex="-1"></a><span class="vs">    &lt;div&gt;&lt;button data-act="new"&gt;New game&lt;/button&gt;&lt;/div&gt;</span></span>
+<span id="cb6-235"><a href="#cb6-235" aria-hidden="true" tabindex="-1"></a><span class="vs">  &lt;/div&gt;`</span><span class="op">;</span></span>
+<span id="cb6-236"><a href="#cb6-236" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> grid <span class="op">=</span> <span class="bu">root</span><span class="op">.</span><span class="fu">querySelector</span>(<span class="st">".rl-board"</span>)<span class="op">;</span></span>
+<span id="cb6-237"><a href="#cb6-237" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> cells <span class="op">=</span> <span class="bu">Array</span><span class="op">.</span><span class="fu">from</span>({<span class="dt">length</span><span class="op">:</span> <span class="dv">9</span>}<span class="op">,</span> (_<span class="op">,</span> i) <span class="kw">=&gt;</span> {</span>
+<span id="cb6-238"><a href="#cb6-238" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> b <span class="op">=</span> <span class="fu">html</span><span class="vs">`&lt;button aria-label="Square </span><span class="sc">${</span>i <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="vs">"&gt;&lt;/button&gt;`</span><span class="op">;</span></span>
+<span id="cb6-239"><a href="#cb6-239" aria-hidden="true" tabindex="-1"></a>    b<span class="op">.</span><span class="at">onclick</span> <span class="op">=</span> () <span class="kw">=&gt;</span> <span class="fu">humanMove</span>(i)<span class="op">;</span></span>
+<span id="cb6-240"><a href="#cb6-240" aria-hidden="true" tabindex="-1"></a>    grid<span class="op">.</span><span class="fu">append</span>(b)<span class="op">;</span></span>
+<span id="cb6-241"><a href="#cb6-241" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> b<span class="op">;</span></span>
+<span id="cb6-242"><a href="#cb6-242" aria-hidden="true" tabindex="-1"></a>  })<span class="op">;</span></span>
+<span id="cb6-243"><a href="#cb6-243" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> winLine <span class="op">=</span> () <span class="kw">=&gt;</span> LINES<span class="op">.</span><span class="fu">find</span>(([a<span class="op">,</span> b<span class="op">,</span> c]) <span class="kw">=&gt;</span> board[a] <span class="op">!==</span> <span class="dv">0</span> <span class="op">&amp;&amp;</span> board[a] <span class="op">===</span> board[b] <span class="op">&amp;&amp;</span> board[a] <span class="op">===</span> board[c]) <span class="op">??</span> []<span class="op">;</span></span>
+<span id="cb6-244"><a href="#cb6-244" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> finish <span class="op">=</span> (w) <span class="kw">=&gt;</span> {</span>
+<span id="cb6-245"><a href="#cb6-245" aria-hidden="true" tabindex="-1"></a>    status <span class="op">=</span> w <span class="op">===</span> <span class="dv">1</span> <span class="op">?</span> <span class="st">"Agent wins."</span> <span class="op">:</span> w <span class="op">===</span> <span class="op">-</span><span class="dv">1</span> <span class="op">?</span> <span class="st">"You win! You found a hole in its value table."</span> <span class="op">:</span> <span class="st">"Draw."</span><span class="op">;</span></span>
+<span id="cb6-246"><a href="#cb6-246" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb6-247"><a href="#cb6-247" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> agentMove <span class="op">=</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb6-248"><a href="#cb6-248" aria-hidden="true" tabindex="-1"></a>    shown <span class="op">=</span> <span class="kw">new</span> <span class="bu">Map</span>(<span class="fu">moveValues</span>(values<span class="op">,</span> board)<span class="op">.</span><span class="fu">map</span>((m) <span class="kw">=&gt;</span> [m<span class="op">.</span><span class="at">cell</span><span class="op">,</span> m<span class="op">.</span><span class="at">value</span>]))<span class="op">;</span></span>
+<span id="cb6-249"><a href="#cb6-249" aria-hidden="true" tabindex="-1"></a>    lastCell <span class="op">=</span> <span class="fu">greedyMove</span>(values<span class="op">,</span> board<span class="op">,</span> rng)<span class="op">;</span></span>
+<span id="cb6-250"><a href="#cb6-250" aria-hidden="true" tabindex="-1"></a>    board[lastCell] <span class="op">=</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb6-251"><a href="#cb6-251" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> w <span class="op">=</span> <span class="fu">winner</span>(board)<span class="op">;</span></span>
+<span id="cb6-252"><a href="#cb6-252" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (w <span class="op">!==</span> <span class="kw">null</span>) <span class="fu">finish</span>(w)<span class="op">;</span> <span class="cf">else</span> status <span class="op">=</span> <span class="st">"Your move (O)."</span><span class="op">;</span></span>
+<span id="cb6-253"><a href="#cb6-253" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb6-254"><a href="#cb6-254" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> humanMove <span class="op">=</span> (i) <span class="kw">=&gt;</span> {</span>
+<span id="cb6-255"><a href="#cb6-255" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (board[i] <span class="op">!==</span> <span class="dv">0</span> <span class="op">||</span> <span class="fu">winner</span>(board) <span class="op">!==</span> <span class="kw">null</span>) <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb6-256"><a href="#cb6-256" aria-hidden="true" tabindex="-1"></a>    board[i] <span class="op">=</span> <span class="op">-</span><span class="dv">1</span><span class="op">;</span></span>
+<span id="cb6-257"><a href="#cb6-257" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> w <span class="op">=</span> <span class="fu">winner</span>(board)<span class="op">;</span></span>
+<span id="cb6-258"><a href="#cb6-258" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (w <span class="op">!==</span> <span class="kw">null</span>) { <span class="fu">finish</span>(w)<span class="op">;</span> shown <span class="op">=</span> <span class="kw">new</span> <span class="bu">Map</span>()<span class="op">;</span> } <span class="cf">else</span> <span class="fu">agentMove</span>()<span class="op">;</span></span>
+<span id="cb6-259"><a href="#cb6-259" aria-hidden="true" tabindex="-1"></a>    <span class="fu">render</span>()<span class="op">;</span></span>
+<span id="cb6-260"><a href="#cb6-260" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb6-261"><a href="#cb6-261" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> render <span class="op">=</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb6-262"><a href="#cb6-262" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> line <span class="op">=</span> <span class="fu">winLine</span>()<span class="op">;</span></span>
+<span id="cb6-263"><a href="#cb6-263" aria-hidden="true" tabindex="-1"></a>    cells<span class="op">.</span><span class="fu">forEach</span>((b<span class="op">,</span> i) <span class="kw">=&gt;</span> {</span>
+<span id="cb6-264"><a href="#cb6-264" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> v <span class="op">=</span> board[i]<span class="op">;</span></span>
+<span id="cb6-265"><a href="#cb6-265" aria-hidden="true" tabindex="-1"></a>      b<span class="op">.</span><span class="at">className</span> <span class="op">=</span> v <span class="op">===</span> <span class="dv">1</span> <span class="op">?</span> <span class="st">"x"</span> <span class="op">:</span> v <span class="op">===</span> <span class="op">-</span><span class="dv">1</span> <span class="op">?</span> <span class="st">"o"</span> <span class="op">:</span> <span class="st">""</span><span class="op">;</span></span>
+<span id="cb6-266"><a href="#cb6-266" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (line<span class="op">.</span><span class="fu">includes</span>(i)) b<span class="op">.</span><span class="at">classList</span><span class="op">.</span><span class="fu">add</span>(<span class="st">"win"</span>)<span class="op">;</span></span>
+<span id="cb6-267"><a href="#cb6-267" aria-hidden="true" tabindex="-1"></a>      <span class="kw">const</span> est <span class="op">=</span> v <span class="op">===</span> <span class="dv">0</span> <span class="op">||</span> i <span class="op">===</span> lastCell <span class="op">?</span> shown<span class="op">.</span><span class="fu">get</span>(i) <span class="op">:</span> <span class="kw">undefined</span><span class="op">;</span></span>
+<span id="cb6-268"><a href="#cb6-268" aria-hidden="true" tabindex="-1"></a>      b<span class="op">.</span><span class="at">innerHTML</span> <span class="op">=</span> (v <span class="op">===</span> <span class="dv">1</span> <span class="op">?</span> <span class="st">"X"</span> <span class="op">:</span> v <span class="op">===</span> <span class="op">-</span><span class="dv">1</span> <span class="op">?</span> <span class="st">"O"</span> <span class="op">:</span> <span class="st">""</span>) <span class="op">+</span></span>
+<span id="cb6-269"><a href="#cb6-269" aria-hidden="true" tabindex="-1"></a>        (est <span class="op">!==</span> <span class="kw">undefined</span> <span class="op">?</span> <span class="vs">`&lt;span class="rl-v"&gt;</span><span class="sc">${</span>est<span class="op">.</span><span class="fu">toFixed</span>(<span class="dv">2</span>)<span class="sc">}</span><span class="vs">&lt;/span&gt;`</span> <span class="op">:</span> <span class="st">""</span>)<span class="op">;</span></span>
+<span id="cb6-270"><a href="#cb6-270" aria-hidden="true" tabindex="-1"></a>      b<span class="op">.</span><span class="at">disabled</span> <span class="op">=</span> v <span class="op">!==</span> <span class="dv">0</span> <span class="op">||</span> <span class="fu">winner</span>(board) <span class="op">!==</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb6-271"><a href="#cb6-271" aria-hidden="true" tabindex="-1"></a>    })<span class="op">;</span></span>
+<span id="cb6-272"><a href="#cb6-272" aria-hidden="true" tabindex="-1"></a>    <span class="bu">root</span><span class="op">.</span><span class="fu">querySelector</span>(<span class="st">".rl-stats"</span>)<span class="op">.</span><span class="at">textContent</span> <span class="op">=</span> status<span class="op">;</span></span>
+<span id="cb6-273"><a href="#cb6-273" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb6-274"><a href="#cb6-274" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> newGame <span class="op">=</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb6-275"><a href="#cb6-275" aria-hidden="true" tabindex="-1"></a>    board <span class="op">=</span> <span class="kw">new</span> <span class="bu">Array</span>(<span class="dv">9</span>)<span class="op">.</span><span class="fu">fill</span>(<span class="dv">0</span>)<span class="op">;</span></span>
+<span id="cb6-276"><a href="#cb6-276" aria-hidden="true" tabindex="-1"></a>    <span class="fu">agentMove</span>()<span class="op">;</span></span>
+<span id="cb6-277"><a href="#cb6-277" aria-hidden="true" tabindex="-1"></a>    <span class="fu">render</span>()<span class="op">;</span></span>
+<span id="cb6-278"><a href="#cb6-278" aria-hidden="true" tabindex="-1"></a>  }<span class="op">;</span></span>
+<span id="cb6-279"><a href="#cb6-279" aria-hidden="true" tabindex="-1"></a>  <span class="bu">root</span><span class="op">.</span><span class="fu">querySelector</span>(<span class="st">"[data-act=new]"</span>)<span class="op">.</span><span class="at">onclick</span> <span class="op">=</span> newGame<span class="op">;</span></span>
+<span id="cb6-280"><a href="#cb6-280" aria-hidden="true" tabindex="-1"></a>  <span class="fu">newGame</span>()<span class="op">;</span></span>
+<span id="cb6-281"><a href="#cb6-281" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="bu">root</span><span class="op">;</span></span>
+<span id="cb6-282"><a href="#cb6-282" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="ojs-cell-6" data-nodetype="declaration">
+
+</div>
+</div>
+</div>
+<p class="rl-note">
+Corner numbers are the values the agent saw for each square just before its last move, including the square it chose.
+</p>
+</div>
 <hr>
 </section>
 </div>
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
-<section id="mathematical-formalisation" class="level3" data-number="0.6">
-<h3 data-number="0.6" class="anchored" data-anchor-id="mathematical-formalisation"><span class="header-section-number">0.6</span> Mathematical Formalisation</h3>
-<section id="foundational-elements-of-reinforcement-learning" class="level4" data-number="0.6.1">
-<h4 data-number="0.6.1" class="anchored" data-anchor-id="foundational-elements-of-reinforcement-learning"><span class="header-section-number">0.6.1</span> Foundational Elements of Reinforcement Learning</h4>
+<section id="mathematical-formalisation" class="level3" data-number="0.8">
+<h3 data-number="0.8" class="anchored" data-anchor-id="mathematical-formalisation"><span class="header-section-number">0.8</span> Mathematical Formalisation</h3>
+<section id="foundational-elements-of-reinforcement-learning" class="level4" data-number="0.8.1">
+<h4 data-number="0.8.1" class="anchored" data-anchor-id="foundational-elements-of-reinforcement-learning"><span class="header-section-number">0.8.1</span> Foundational Elements of Reinforcement Learning</h4>
 <p>Following Sutton and Barto <span class="citation" data-cites="sutton2018reinforcement">(<a href="#ref-sutton2018reinforcement" role="doc-biblioref">2018, sec. 1.3</a>)</span>, a reinforcement learning system is characterised by four integral sub-elements:</p>
 <ol type="1">
 <li><strong>Policy (<span class="math inline">\(\pi\)</span>):</strong> A mapping <span class="math inline">\(\pi: \mathcal{S} \times \mathcal{A} \to [0, 1]\)</span>, where <span class="math inline">\(\pi(a \mid s) \triangleq \mathbb{P}(A_t = a \mid S_t = s)\)</span> delineates the agent’s behavioural disposition across valid actions.</li>
@@ -434,8 +611,8 @@ Figure&nbsp;2: The closed-loop interaction cycle between agent and environment.
 <li><strong>Model of the Environment:</strong> An internal representation of transition dynamics. In tic-tac-toe, the agent leverages a simple 1-step lookahead model of the game rules to evaluate candidate moves directly via state values <span class="math inline">\(V(s')\)</span>, circumventing the requirement for model-free action-value functions <span class="math inline">\(Q(s, a)\)</span>.</li>
 </ol>
 </section>
-<section id="the-markov-decision-process-formalism" class="level4" data-number="0.6.2">
-<h4 data-number="0.6.2" class="anchored" data-anchor-id="the-markov-decision-process-formalism"><span class="header-section-number">0.6.2</span> The Markov Decision Process Formalism</h4>
+<section id="the-markov-decision-process-formalism" class="level4" data-number="0.8.2">
+<h4 data-number="0.8.2" class="anchored" data-anchor-id="the-markov-decision-process-formalism"><span class="header-section-number">0.8.2</span> The Markov Decision Process Formalism</h4>
 <p>We model the learning agent under the formalism of a discrete-time Markov Decision Process (MDP) defined by the 5-tuple <span class="math inline">\((\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)\)</span>:</p>
 <ul>
 <li><strong>State Space (<span class="math inline">\(\mathcal{S}\)</span>):</strong> The finite set of valid 9-cell board configurations, with <span class="math inline">\(S_t \in \mathcal{S}\)</span> representing the board state at turn <span class="math inline">\(t\)</span>.</li>
@@ -445,15 +622,15 @@ Figure&nbsp;2: The closed-loop interaction cycle between agent and environment.
 <li><strong>Discount Factor (<span class="math inline">\(\gamma\)</span>):</strong> The parameter <span class="math inline">\(\gamma \in [0, 1]\)</span> weighting future vs immediate returns. Because tic-tac-toe is an episodic game with guaranteed finite termination (<span class="math inline">\(T \le 9\)</span>), we set <span class="math inline">\(\gamma = 1\)</span> (undiscounted episodic return).</li>
 </ul>
 </section>
-<section id="trajectory-return-and-state-value" class="level4" data-number="0.6.3">
-<h4 data-number="0.6.3" class="anchored" data-anchor-id="trajectory-return-and-state-value"><span class="header-section-number">0.6.3</span> Trajectory, Return, and State Value</h4>
+<section id="trajectory-return-and-state-value" class="level4" data-number="0.8.3">
+<h4 data-number="0.8.3" class="anchored" data-anchor-id="trajectory-return-and-state-value"><span class="header-section-number">0.8.3</span> Trajectory, Return, and State Value</h4>
 <p>An episode generates a finite trajectory <span class="math inline">\(\tau = (S_0, A_0, R_1, S_1, A_1, \dots, R_T, S_T)\)</span>. The return <span class="math inline">\(G_t\)</span> denotes the cumulative discounted reward accumulated from time step <span class="math inline">\(t\)</span>:</p>
 <p><span class="math display">\[G_t \triangleq \sum_{k=0}^{T-t-1} \gamma^k R_{t+k+1}\]</span></p>
 <p>With <span class="math inline">\(\gamma = 1\)</span> and zero intermediate rewards, <span class="math inline">\(G_t = R_T\)</span>. The state-value function <span class="math inline">\(V^\pi(s)\)</span> under policy <span class="math inline">\(\pi\)</span> represents the expected return contingent upon starting from state <span class="math inline">\(s\)</span>:</p>
 <p><span class="math display">\[V^\pi(s) \triangleq \mathbb{E}_\pi \left[ G_t \mid S_t = s \right] = \mathbb{P}(\text{Win} \mid S_t = s, \pi)\]</span></p>
 </section>
-<section id="why-supervised-loss-fails-empirical-risk-vs-bellman-consistency" class="level4" data-number="0.6.4">
-<h4 data-number="0.6.4" class="anchored" data-anchor-id="why-supervised-loss-fails-empirical-risk-vs-bellman-consistency"><span class="header-section-number">0.6.4</span> Why Supervised Loss Fails: Empirical Risk vs Bellman Consistency</h4>
+<section id="why-supervised-loss-fails-empirical-risk-vs-bellman-consistency" class="level4" data-number="0.8.4">
+<h4 data-number="0.8.4" class="anchored" data-anchor-id="why-supervised-loss-fails-empirical-risk-vs-bellman-consistency"><span class="header-section-number">0.8.4</span> Why Supervised Loss Fails: Empirical Risk vs Bellman Consistency</h4>
 <p>In supervised learning, an agent minimises empirical cross-entropy loss over a static dataset of teacher transitions <span class="math inline">\(\mathcal{D} = \{(s_i, a_i^*)\}_{i=1}^N\)</span>:</p>
 <p><span class="math display">\[\min_\theta \mathbb{E}_{(s, a^*) \sim \mathcal{D}} \left[ -\ln \pi_\theta(a^* \mid s) \right]\]</span></p>
 <p>This objective treats transitions as independent and identically distributed. Under sequential rollouts, however, policy deviations induce covariate shift: the true visitation distribution <span class="math inline">\(d^{\pi_\theta}(s)\)</span> diverges from the demonstration distribution <span class="math inline">\(d^{\pi^*}(s)\)</span>, causing error growth proportional to <span class="math inline">\(\mathcal{O}(\epsilon T^2)\)</span> over horizon <span class="math inline">\(T\)</span> (the compounding error bound of behavioural cloning).</p>
@@ -461,9 +638,9 @@ Figure&nbsp;2: The closed-loop interaction cycle between agent and environment.
 <p><span class="math display">\[\min_V \mathbb{E}_{s \sim d^\pi} \left[ \Big( V(s) - \mathbb{E}\left[ R_{t+1} + \gamma V(S_{t+1}) \mid S_t = s \right] \Big)^2 \right]\]</span></p>
 <p>Because the state distribution <span class="math inline">\(d^\pi\)</span> is generated by the agent’s own interaction, any trajectory diversion automatically populates the value table with corrective feedback, ensuring stability and surpassing human demonstration bounds.</p>
 </section>
-<section id="the-temporal-difference-update-rule" class="level4" data-number="0.6.5">
-<h4 data-number="0.6.5" class="anchored" data-anchor-id="the-temporal-difference-update-rule"><span class="header-section-number">0.6.5</span> The Temporal-Difference Update Rule</h4>
-<p>Following each non-exploratory state transition <span class="math inline">\(S_t \to S_{t+1}\)</span> (accounting for the opponent’s subsequent counter-move), the value estimate is updated via:</p>
+<section id="the-temporal-difference-update-rule" class="level4" data-number="0.8.5">
+<h4 data-number="0.8.5" class="anchored" data-anchor-id="the-temporal-difference-update-rule"><span class="header-section-number">0.8.5</span> The Temporal-Difference Update Rule</h4>
+<p>Here <span class="math inline">\(S_t\)</span> denotes the <em>afterstate</em>, the board immediately after the agent’s move at turn <span class="math inline">\(t\)</span>, so the transition <span class="math inline">\(S_t \to S_{t+1}\)</span> spans the opponent’s counter-move and the agent’s next move. Following each non-exploratory transition, the value estimate is updated via:</p>
 <p><span class="math display">\[V(S_t) \leftarrow V(S_t) + \alpha \Big( V(S_{t+1}) - V(S_t) \Big)\]</span></p>
 <p>where:</p>
 <ul>
@@ -488,175 +665,176 @@ Figure&nbsp;2: The closed-loop interaction cycle between agent and environment.
 </div>
 </section>
 </section>
-<section id="algorithmic-specification" class="level3" data-number="0.7">
-<h3 data-number="0.7" class="anchored" data-anchor-id="algorithmic-specification"><span class="header-section-number">0.7</span> Algorithmic Specification</h3>
+<section id="algorithmic-specification" class="level3" data-number="0.9">
+<h3 data-number="0.9" class="anchored" data-anchor-id="algorithmic-specification"><span class="header-section-number">0.9</span> Algorithmic Specification</h3>
 <pre class="text"><code>Algorithm: Tabular TD(0) Value Learning for Tic-Tac-Toe
 Initialize V(s) = 0.5 for all non-terminal states s in S
 Initialize V(s) = 1.0 for winning terminal states
 Initialize V(s) = 0.0 for losing terminal states
 Initialize V(s) = 0.5 for draw terminal states
 
+V is indexed by afterstates: boards immediately after the agent has moved.
+
 For each training episode:
-    s = Initial empty board state
-    trajectory = [s]
-    While s is not terminal:
+    board = Initial empty board
+    prev = None                      # last greedy afterstate awaiting its target
+    Loop:
         With probability epsilon:
-            a = UniformRandomChoice(legal_actions(s))
+            a = UniformRandomChoice(legal_actions(board))
             exploratory = True
         Else:
-            a = argmax_{a' in legal_actions(s)} V(successor(s, a'))
+            a = argmax_{a' in legal_actions(board)} V(successor(board, a'))
             exploratory = False
-        
-        Execute a, observe intermediate board s_mid
-        If s_mid is terminal:
-            s_next = s_mid
-        Else:
-            Opponent chooses move a_opp
-            s_next = successor(s_mid, a_opp)
-        
-        If not exploratory:
-            V(s) &lt;- V(s) + alpha * [V(s_next) - V(s)]
-        
-        s = s_next</code></pre>
+
+        after = successor(board, a)
+        If prev is not None and not exploratory:
+            V(prev) &lt;- V(prev) + alpha * [V(after) - V(prev)]
+        prev = None if exploratory else after
+        If after is terminal: stop
+
+        Opponent chooses move a_opp
+        board = successor(after, a_opp)
+        If board is terminal:
+            If prev is not None:
+                V(prev) &lt;- V(prev) + alpha * [V_terminal(board) - V(prev)]
+            stop</code></pre>
 </section>
-<section id="complete-numpy-implementation" class="level3" data-number="0.8">
-<h3 data-number="0.8" class="anchored" data-anchor-id="complete-numpy-implementation"><span class="header-section-number">0.8</span> Complete NumPy Implementation</h3>
+<section id="complete-numpy-implementation" class="level3" data-number="0.10">
+<h3 data-number="0.10" class="anchored" data-anchor-id="complete-numpy-implementation"><span class="header-section-number">0.10</span> Complete NumPy Implementation</h3>
 <p>Below is a self-contained, reproducible Python implementation of the tabular value iteration agent playing against both random and heuristic opponents:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TicTacToe:</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.board <span class="op">=</span> np.zeros(<span class="dv">9</span>, dtype<span class="op">=</span><span class="bu">int</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> reset(<span class="va">self</span>):</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.board.fill(<span class="dv">0</span>)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.get_state()</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> get_state(<span class="va">self</span>):</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">tuple</span>(<span class="va">self</span>.board)</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> legal_moves(<span class="va">self</span>):</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.where(<span class="va">self</span>.board <span class="op">==</span> <span class="dv">0</span>)[<span class="dv">0</span>]</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> make_move(<span class="va">self</span>, action, player):</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.board[action] <span class="op">=</span> player</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> check_winner(<span class="va">self</span>):</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        wins <span class="op">=</span> [</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            (<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>), (<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>), (<span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>),</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            (<span class="dv">0</span>, <span class="dv">3</span>, <span class="dv">6</span>), (<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">7</span>), (<span class="dv">2</span>, <span class="dv">5</span>, <span class="dv">8</span>),</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>            (<span class="dv">0</span>, <span class="dv">4</span>, <span class="dv">8</span>), (<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">6</span>)</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        ]</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> a, b, c <span class="kw">in</span> wins:</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="va">self</span>.board[a] <span class="op">!=</span> <span class="dv">0</span> <span class="kw">and</span> <span class="va">self</span>.board[a] <span class="op">==</span> <span class="va">self</span>.board[b] <span class="op">==</span> <span class="va">self</span>.board[c]:</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> <span class="va">self</span>.board[a]</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(<span class="va">self</span>.legal_moves()) <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="dv">0</span>  <span class="co"># Draw</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span>  <span class="co"># Ongoing</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TabularRLAgent:</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, epsilon<span class="op">=</span><span class="fl">0.1</span>, seed<span class="op">=</span><span class="dv">42</span>):</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.alpha <span class="op">=</span> alpha</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.epsilon <span class="op">=</span> epsilon</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.values <span class="op">=</span> {}</span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.rng <span class="op">=</span> np.random.default_rng(seed)</span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> get_value(<span class="va">self</span>, state, winner<span class="op">=</span><span class="va">None</span>):</span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> winner <span class="op">==</span> <span class="dv">1</span>:</span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="fl">1.0</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> winner <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>:</span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="fl">0.0</span></span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> winner <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="fl">0.5</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> state <span class="kw">not</span> <span class="kw">in</span> <span class="va">self</span>.values:</span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.values[state] <span class="op">=</span> <span class="fl">0.5</span></span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.values[state]</span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> select_action(<span class="va">self</span>, env, explore<span class="op">=</span><span class="va">True</span>):</span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>        moves <span class="op">=</span> env.legal_moves()</span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> explore <span class="kw">and</span> <span class="va">self</span>.rng.random() <span class="op">&lt;</span> <span class="va">self</span>.epsilon:</span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>.rng.choice(moves), <span class="va">True</span></span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>        best_val <span class="op">=</span> <span class="op">-</span>np.inf</span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>        best_moves <span class="op">=</span> []</span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> m <span class="kw">in</span> moves:</span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>            env.make_move(m, <span class="dv">1</span>)</span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>            winner <span class="op">=</span> env.check_winner()</span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>            val <span class="op">=</span> <span class="va">self</span>.get_value(env.get_state(), winner)</span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>            env.make_move(m, <span class="dv">0</span>)</span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> val <span class="op">&gt;</span> best_val:</span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>                best_val <span class="op">=</span> val</span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>                best_moves <span class="op">=</span> [m]</span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> np.isclose(val, best_val):</span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>                best_moves.append(m)</span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>        action <span class="op">=</span> <span class="va">self</span>.rng.choice(best_moves)</span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> action, <span class="va">False</span></span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> update(<span class="va">self</span>, s, s_prime):</span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>        v_s <span class="op">=</span> <span class="va">self</span>.get_value(s)</span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>        v_prime <span class="op">=</span> <span class="va">self</span>.get_value(s_prime)</span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.values[s] <span class="op">=</span> v_s <span class="op">+</span> <span class="va">self</span>.alpha <span class="op">*</span> (v_prime <span class="op">-</span> v_s)</span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> train(episodes<span class="op">=</span><span class="dv">10_000</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, epsilon<span class="op">=</span><span class="fl">0.1</span>, seed<span class="op">=</span><span class="dv">42</span>):</span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>    agent <span class="op">=</span> TabularRLAgent(alpha<span class="op">=</span>alpha, epsilon<span class="op">=</span>epsilon, seed<span class="op">=</span>seed)</span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>    history <span class="op">=</span> []</span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> ep <span class="kw">in</span> <span class="bu">range</span>(episodes):</span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>        env <span class="op">=</span> TicTacToe()</span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> env.reset()</span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>        done <span class="op">=</span> <span class="va">False</span></span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> <span class="kw">not</span> done:</span>
-<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>            action, explored <span class="op">=</span> agent.select_action(env, explore<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>            env.make_move(action, <span class="dv">1</span>)</span>
-<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>            winner <span class="op">=</span> env.check_winner()</span>
-<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> winner <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
-<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="kw">not</span> explored:</span>
-<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>                    agent.update(s, env.get_state())</span>
-<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>                history.append(winner)</span>
-<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
-<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Opponent turn: Random policy</span></span>
-<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>            opp_moves <span class="op">=</span> env.legal_moves()</span>
-<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>            opp_action <span class="op">=</span> rng.choice(opp_moves)</span>
-<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>            env.make_move(opp_action, <span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a>            winner <span class="op">=</span> env.check_winner()</span>
-<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a>            s_next <span class="op">=</span> env.get_state()</span>
-<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="kw">not</span> explored:</span>
-<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a>                agent.update(s, s_next)</span>
-<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> winner <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
-<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>                history.append(winner)</span>
-<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
-<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>            s <span class="op">=</span> s_next</span>
-<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> agent, np.array(history)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TicTacToe:</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.board <span class="op">=</span> np.zeros(<span class="dv">9</span>, dtype<span class="op">=</span><span class="bu">int</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> reset(<span class="va">self</span>):</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.board.fill(<span class="dv">0</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.get_state()</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> get_state(<span class="va">self</span>):</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">tuple</span>(<span class="va">self</span>.board)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> legal_moves(<span class="va">self</span>):</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.where(<span class="va">self</span>.board <span class="op">==</span> <span class="dv">0</span>)[<span class="dv">0</span>]</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> make_move(<span class="va">self</span>, action, player):</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.board[action] <span class="op">=</span> player</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> check_winner(<span class="va">self</span>):</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>        wins <span class="op">=</span> [</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>            (<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>), (<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>), (<span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>),</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>            (<span class="dv">0</span>, <span class="dv">3</span>, <span class="dv">6</span>), (<span class="dv">1</span>, <span class="dv">4</span>, <span class="dv">7</span>), (<span class="dv">2</span>, <span class="dv">5</span>, <span class="dv">8</span>),</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>            (<span class="dv">0</span>, <span class="dv">4</span>, <span class="dv">8</span>), (<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">6</span>)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        ]</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> a, b, c <span class="kw">in</span> wins:</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="va">self</span>.board[a] <span class="op">!=</span> <span class="dv">0</span> <span class="kw">and</span> <span class="va">self</span>.board[a] <span class="op">==</span> <span class="va">self</span>.board[b] <span class="op">==</span> <span class="va">self</span>.board[c]:</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>                <span class="cf">return</span> <span class="va">self</span>.board[a]</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span>(<span class="va">self</span>.legal_moves()) <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="dv">0</span>  <span class="co"># Draw</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span>  <span class="co"># Ongoing</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TabularRLAgent:</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, epsilon<span class="op">=</span><span class="fl">0.1</span>, seed<span class="op">=</span><span class="dv">42</span>):</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.alpha <span class="op">=</span> alpha</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.epsilon <span class="op">=</span> epsilon</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.values <span class="op">=</span> {}</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> get_value(<span class="va">self</span>, state, winner<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> winner <span class="op">==</span> <span class="dv">1</span>:</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="fl">1.0</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> winner <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>:</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="fl">0.0</span></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> winner <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="fl">0.5</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.values.get(state, <span class="fl">0.5</span>)</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> select_action(<span class="va">self</span>, env, explore<span class="op">=</span><span class="va">True</span>):</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>        moves <span class="op">=</span> env.legal_moves()</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> explore <span class="kw">and</span> <span class="va">self</span>.rng.random() <span class="op">&lt;</span> <span class="va">self</span>.epsilon:</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> <span class="va">self</span>.rng.choice(moves), <span class="va">True</span></span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>        best_val <span class="op">=</span> <span class="op">-</span>np.inf</span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a>        best_moves <span class="op">=</span> []</span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> m <span class="kw">in</span> moves:</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>            env.make_move(m, <span class="dv">1</span>)</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>            winner <span class="op">=</span> env.check_winner()</span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>            val <span class="op">=</span> <span class="va">self</span>.get_value(env.get_state(), winner)</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>            env.make_move(m, <span class="dv">0</span>)</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> val <span class="op">&gt;</span> best_val:</span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a>                best_val <span class="op">=</span> val</span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a>                best_moves <span class="op">=</span> [m]</span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> np.isclose(val, best_val):</span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a>                best_moves.append(m)</span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a>        action <span class="op">=</span> <span class="va">self</span>.rng.choice(best_moves)</span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> action, <span class="va">False</span></span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> update(<span class="va">self</span>, afterstate, target):</span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>        v <span class="op">=</span> <span class="va">self</span>.get_value(afterstate)</span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.values[afterstate] <span class="op">=</span> v <span class="op">+</span> <span class="va">self</span>.alpha <span class="op">*</span> (target <span class="op">-</span> v)</span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> train(episodes<span class="op">=</span><span class="dv">10_000</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, epsilon<span class="op">=</span><span class="fl">0.1</span>, seed<span class="op">=</span><span class="dv">42</span>):</span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a>    agent <span class="op">=</span> TabularRLAgent(alpha<span class="op">=</span>alpha, epsilon<span class="op">=</span>epsilon, seed<span class="op">=</span>seed)</span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a>    history <span class="op">=</span> []</span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> ep <span class="kw">in</span> <span class="bu">range</span>(episodes):</span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>        env <span class="op">=</span> TicTacToe()</span>
+<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a>        env.reset()</span>
+<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a>        prev <span class="op">=</span> <span class="va">None</span>  <span class="co"># last greedy afterstate, waiting for its TD target</span></span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> <span class="va">True</span>:</span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a>            action, explored <span class="op">=</span> agent.select_action(env, explore<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a>            env.make_move(action, <span class="dv">1</span>)</span>
+<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a>            winner <span class="op">=</span> env.check_winner()</span>
+<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>            after <span class="op">=</span> env.get_state()</span>
+<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>            <span class="co"># TD(0) between consecutive afterstates; skip exploratory moves.</span></span>
+<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> prev <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span> <span class="kw">and</span> <span class="kw">not</span> explored:</span>
+<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a>                agent.update(prev, agent.get_value(after, winner))</span>
+<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>            prev <span class="op">=</span> <span class="va">None</span> <span class="cf">if</span> explored <span class="cf">else</span> after</span>
+<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> winner <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a>                history.append(winner)</span>
+<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Opponent turn: Random policy</span></span>
+<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a>            opp_action <span class="op">=</span> rng.choice(env.legal_moves())</span>
+<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a>            env.make_move(opp_action, <span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a>            winner <span class="op">=</span> env.check_winner()</span>
+<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> winner <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>                <span class="co"># Back the final outcome up into our last afterstate.</span></span>
+<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> prev <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>                    agent.update(prev, agent.get_value(<span class="va">None</span>, winner))</span>
+<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>                history.append(winner)</span>
+<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> agent, np.array(history)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="empirical-evaluation" class="level3" data-number="0.9">
-<h3 data-number="0.9" class="anchored" data-anchor-id="empirical-evaluation"><span class="header-section-number">0.9</span> Empirical Evaluation</h3>
-<p>Evaluating the agent over 10,000 games reveals monotonic asymptotic improvement. In early iterations, the random opponent scores occasional victories. Within 2,000 episodes, the agent’s win rate ascends past 90%, with losses completely extinguished as credit diffuses back to the root opening state:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>agent, hist <span class="op">=</span> train(episodes<span class="op">=</span><span class="dv">10_000</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, epsilon<span class="op">=</span><span class="fl">0.1</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Windowed win-rate calculation</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>window <span class="op">=</span> <span class="dv">500</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>wins <span class="op">=</span> np.convolve(hist <span class="op">==</span> <span class="dv">1</span>, np.ones(window)<span class="op">/</span>window, mode<span class="op">=</span><span class="st">'valid'</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>draws <span class="op">=</span> np.convolve(hist <span class="op">==</span> <span class="dv">0</span>, np.ones(window)<span class="op">/</span>window, mode<span class="op">=</span><span class="st">'valid'</span>)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>losses <span class="op">=</span> np.convolve(hist <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>, np.ones(window)<span class="op">/</span>window, mode<span class="op">=</span><span class="st">'valid'</span>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Final 1,000 Games Performance:"</span>)</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Win Rate:  </span><span class="sc">{</span>np<span class="sc">.</span>mean(hist[<span class="op">-</span><span class="dv">1000</span>:] <span class="op">==</span> <span class="dv">1</span>) <span class="op">*</span> <span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Draw Rate: </span><span class="sc">{</span>np<span class="sc">.</span>mean(hist[<span class="op">-</span><span class="dv">1000</span>:] <span class="op">==</span> <span class="dv">0</span>) <span class="op">*</span> <span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Loss Rate: </span><span class="sc">{</span>np<span class="sc">.</span>mean(hist[<span class="op">-</span><span class="dv">1000</span>:] <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>) <span class="op">*</span> <span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">%"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="empirical-evaluation" class="level3" data-number="0.11">
+<h3 data-number="0.11" class="anchored" data-anchor-id="empirical-evaluation"><span class="header-section-number">0.11</span> Empirical Evaluation</h3>
+<p>Against a random opponent the agent wins most games from the start, and training mainly removes its remaining losses. With <span class="math inline">\(\alpha = 0.1\)</span> and <span class="math inline">\(\varepsilon = 0.1\)</span> (seed 42), the loss rate falls from 3.9% in the first 1,000 games to 1.0% in the last 1,000, while the win rate rises from 93.0% to 96.1%. Losses never reach zero during training: with <span class="math inline">\(\varepsilon &gt; 0\)</span> the agent keeps making deliberate random moves, some of which hand the opponent a win. (The browser widget in the Idea tab uses a different random number generator, so its exact figures differ.)</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>agent, hist <span class="op">=</span> train(episodes<span class="op">=</span><span class="dv">10_000</span>, alpha<span class="op">=</span><span class="fl">0.1</span>, epsilon<span class="op">=</span><span class="fl">0.1</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Windowed win-rate calculation</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>window <span class="op">=</span> <span class="dv">500</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>wins <span class="op">=</span> np.convolve(hist <span class="op">==</span> <span class="dv">1</span>, np.ones(window)<span class="op">/</span>window, mode<span class="op">=</span><span class="st">'valid'</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>draws <span class="op">=</span> np.convolve(hist <span class="op">==</span> <span class="dv">0</span>, np.ones(window)<span class="op">/</span>window, mode<span class="op">=</span><span class="st">'valid'</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>losses <span class="op">=</span> np.convolve(hist <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>, np.ones(window)<span class="op">/</span>window, mode<span class="op">=</span><span class="st">'valid'</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Final 1,000 Games Performance:"</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Win Rate:  </span><span class="sc">{</span>np<span class="sc">.</span>mean(hist[<span class="op">-</span><span class="dv">1000</span>:] <span class="op">==</span> <span class="dv">1</span>) <span class="op">*</span> <span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Draw Rate: </span><span class="sc">{</span>np<span class="sc">.</span>mean(hist[<span class="op">-</span><span class="dv">1000</span>:] <span class="op">==</span> <span class="dv">0</span>) <span class="op">*</span> <span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Loss Rate: </span><span class="sc">{</span>np<span class="sc">.</span>mean(hist[<span class="op">-</span><span class="dv">1000</span>:] <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>) <span class="op">*</span> <span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">%"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
-<section id="analytical-exercises" class="level3" data-number="0.10">
-<h3 data-number="0.10" class="anchored" data-anchor-id="analytical-exercises"><span class="header-section-number">0.10</span> Analytical Exercises</h3>
+<section id="analytical-exercises" class="level3" data-number="0.12">
+<h3 data-number="0.12" class="anchored" data-anchor-id="analytical-exercises"><span class="header-section-number">0.12</span> Analytical Exercises</h3>
 <ol type="1">
 <li><strong>Exercise 1.1: Self-Play Dynamics.</strong> If both players utilise value iteration simultaneously, how does non-stationarity manifest? Will the system converge to an unexploitable minimax equilibrium, or can cycling occur?</li>
 <li><strong>Exercise 1.2: State-Space Reduction via Symmetries.</strong> The board exhibits the dihedral symmetry group <span class="math inline">\(D_4\)</span> of order 8 (rotations and reflections). By quotienting the state space <span class="math inline">\(\mathcal{S} / D_4\)</span>, by what factor is the tabular parameter size compressed, and how does this accelerate convergence?</li>
@@ -714,6 +892,17 @@ Watkins, Christopher J. C. H., and Peter Dayan. 1992. <span>“Q-Learning.”</s
 </section>
 
 </main> <!-- /main -->
+<script type="ojs-module-contents">
+eyJjb250ZW50cyI6W3sibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtMSIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6ImltcG9ydCB7dHJhaW5UaWNUYWNUb2UsIG1vdmVWYWx1ZXMsIGdyZWVkeU1vdmUsIHdpbm5lciwgTElORVMsIHJvbGxpbmcsIG1ha2VSbmcsIG9ic2VydmVUaGVtZSwgcGFsZXR0ZX0gZnJvbSBcIi4uLy4uL2Fzc2V0cy9vanMvcmwuanNcIlxudGhlbWUgPSBHZW5lcmF0b3JzLm9ic2VydmUob2JzZXJ2ZVRoZW1lKVxucGFsID0gcGFsZXR0ZSh0aGVtZSlcbiJ9LHsibWV0aG9kTmFtZSI6ImludGVycHJldCIsImNlbGxOYW1lIjoib2pzLWNlbGwtMiIsImlubGluZSI6ZmFsc2UsInNvdXJjZSI6InZpZXdvZiB0dHQgPSBJbnB1dHMuZm9ybSh7XG4gIGVwaXNvZGVzOiBJbnB1dHMucmFuZ2UoWzUwMCwgMjAwMDBdLCB7c3RlcDogNTAwLCB2YWx1ZTogNTAwMCwgbGFiZWw6IFwiR2FtZXNcIn0pLFxuICBhbHBoYTogSW5wdXRzLnJhbmdlKFswLjAxLCAxXSwge3N0ZXA6IDAuMDEsIHZhbHVlOiAwLjEsIGxhYmVsOiBcIs6xIChzdGVwIHNpemUpXCJ9KSxcbiAgZXBzaWxvbjogSW5wdXRzLnJhbmdlKFswLCAwLjVdLCB7c3RlcDogMC4wMSwgdmFsdWU6IDAuMSwgbGFiZWw6IFwizrUgKGV4cGxvcmF0aW9uKVwifSksXG4gIHNlZWQ6IElucHV0cy5yYW5nZShbMSwgMTAwXSwge3N0ZXA6IDEsIHZhbHVlOiA0MiwgbGFiZWw6IFwiU2VlZFwifSlcbn0pXG4ifSx7Im1ldGhvZE5hbWUiOiJpbnRlcnByZXQiLCJjZWxsTmFtZSI6Im9qcy1jZWxsLTMiLCJpbmxpbmUiOmZhbHNlLCJzb3VyY2UiOiJ0dHRBZ2VudCA9IHRyYWluVGljVGFjVG9lKHR0dClcbnR0dFJvd3MgPSB7XG4gIGNvbnN0IHdpbmRvdyA9IDI1MDtcbiAgY29uc3QgaCA9IHR0dEFnZW50Lmhpc3Rvcnk7XG4gIGNvbnN0IHJvd3MgPSBbXTtcbiAgZm9yIChjb25zdCBbbmFtZSwgdl0gb2YgW1tcIldpblwiLCAxXSwgW1wiRHJhd1wiLCAwXSwgW1wiTG9zc1wiLCAtMV1dKSB7XG4gICAgY29uc3QgcmF0ZSA9IHJvbGxpbmcoQXJyYXkuZnJvbShoLCAoeCkgPT4gKHggPT09IHYgPyAxMDAgOiAwKSksIHdpbmRvdyk7XG4gICAgZm9yIChsZXQgaSA9IHdpbmRvdyAtIDE7IGkgPCBoLmxlbmd0aDsgaSArPSAxMCkgcm93cy5wdXNoKHtvdXRjb21lOiBuYW1lLCBnYW1lOiBpICsgMSwgcmF0ZTogcmF0ZVtpXX0pO1xuICB9XG4gIHJldHVybiByb3dzO1xufVxuIn0seyJtZXRob2ROYW1lIjoiaW50ZXJwcmV0IiwiY2VsbE5hbWUiOiJvanMtY2VsbC00IiwiaW5saW5lIjpmYWxzZSwic291cmNlIjoiUGxvdC5wbG90KHtcbiAgd2lkdGg6IE1hdGgubWluKHdpZHRoLCA3NjApLFxuICBoZWlnaHQ6IDI1MCxcbiAgbWFyZ2luTGVmdDogNDUsXG4gIHN0eWxlOiB7YmFja2dyb3VuZDogXCJ0cmFuc3BhcmVudFwifSxcbiAgeDoge2xhYmVsOiBcIkdhbWVcIn0sXG4gIHk6IHtsYWJlbDogXCIlIG9mIGxhc3QgMjUwIGdhbWVzXCIsIGdyaWQ6IHRydWUsIGRvbWFpbjogWzAsIDEwMF19LFxuICBjb2xvcjoge2RvbWFpbjogW1wiV2luXCIsIFwiRHJhd1wiLCBcIkxvc3NcIl0sIHJhbmdlOiBbcGFsLmdyZWVuLCBwYWwuYmx1ZSwgcGFsLnJlZF0sIGxlZ2VuZDogdHJ1ZX0sXG4gIG1hcmtzOiBbUGxvdC5saW5lWSh0dHRSb3dzLCB7eDogXCJnYW1lXCIsIHk6IFwicmF0ZVwiLCBzdHJva2U6IFwib3V0Y29tZVwiLCBzdHJva2VXaWR0aDogMS41fSldXG59KVxuIn0seyJtZXRob2ROYW1lIjoiaW50ZXJwcmV0IiwiY2VsbE5hbWUiOiJvanMtY2VsbC01IiwiaW5saW5lIjpmYWxzZSwic291cmNlIjoie1xuICBjb25zdCBsYXN0ID0gdHR0QWdlbnQuaGlzdG9yeS5zbGljZSgtMTAwMCk7XG4gIGNvbnN0IHBjdCA9ICh2KSA9PiAoMTAwICogbGFzdC5maWx0ZXIoKHgpID0+IHggPT09IHYpLmxlbmd0aCAvIGxhc3QubGVuZ3RoKS50b0ZpeGVkKDEpO1xuICByZXR1cm4gaHRtbGA8cCBjbGFzcz1cInJsLXN0YXRzXCI+TGFzdCAke2xhc3QubGVuZ3RofSB0cmFpbmluZyBnYW1lczogd2luICR7cGN0KDEpfSUsIGRyYXcgJHtwY3QoMCl9JSwgbG9zcyAke3BjdCgtMSl9JS5cbiAgICAke3R0dEFnZW50LnZhbHVlcy5zaXplfSBhZnRlcnN0YXRlcyB2aXNpdGVkLjwvcD5cbiAgICA8cCBjbGFzcz1cInJsLW5vdGVcIj5Mb3NzZXMgbmV2ZXIgdmFuaXNoIGVudGlyZWx5IHdoaWxlIM61ID4gMDogdGhlIGFnZW50IGtlZXBzIG1ha2luZyBkZWxpYmVyYXRlIHJhbmRvbSBtb3ZlcyBkdXJpbmcgdHJhaW5pbmcuPC9wPmA7XG59XG4ifSx7Im1ldGhvZE5hbWUiOiJpbnRlcnByZXQiLCJjZWxsTmFtZSI6Im9qcy1jZWxsLTYiLCJpbmxpbmUiOmZhbHNlLCJzb3VyY2UiOiJ0dHRQbGF5ID0ge1xuICBjb25zdCB2YWx1ZXMgPSB0dHRBZ2VudC52YWx1ZXM7XG4gIGNvbnN0IHJuZyA9IG1ha2VSbmcoRGF0ZS5ub3coKSA+Pj4gMCk7XG4gIGxldCBib2FyZCwgc3RhdHVzLCBzaG93biwgbGFzdENlbGw7XG4gIGNvbnN0IHJvb3QgPSBodG1sYDxkaXY+XG4gICAgPGRpdiBjbGFzcz1cInJsLWJvYXJkXCI+PC9kaXY+XG4gICAgPGRpdiBjbGFzcz1cInJsLXN0YXRzXCI+PC9kaXY+XG4gICAgPGRpdj48YnV0dG9uIGRhdGEtYWN0PVwibmV3XCI+TmV3IGdhbWU8L2J1dHRvbj48L2Rpdj5cbiAgPC9kaXY+YDtcbiAgY29uc3QgZ3JpZCA9IHJvb3QucXVlcnlTZWxlY3RvcihcIi5ybC1ib2FyZFwiKTtcbiAgY29uc3QgY2VsbHMgPSBBcnJheS5mcm9tKHtsZW5ndGg6IDl9LCAoXywgaSkgPT4ge1xuICAgIGNvbnN0IGIgPSBodG1sYDxidXR0b24gYXJpYS1sYWJlbD1cIlNxdWFyZSAke2kgKyAxfVwiPjwvYnV0dG9uPmA7XG4gICAgYi5vbmNsaWNrID0gKCkgPT4gaHVtYW5Nb3ZlKGkpO1xuICAgIGdyaWQuYXBwZW5kKGIpO1xuICAgIHJldHVybiBiO1xuICB9KTtcbiAgY29uc3Qgd2luTGluZSA9ICgpID0+IExJTkVTLmZpbmQoKFthLCBiLCBjXSkgPT4gYm9hcmRbYV0gIT09IDAgJiYgYm9hcmRbYV0gPT09IGJvYXJkW2JdICYmIGJvYXJkW2FdID09PSBib2FyZFtjXSkgPz8gW107XG4gIGNvbnN0IGZpbmlzaCA9ICh3KSA9PiB7XG4gICAgc3RhdHVzID0gdyA9PT0gMSA/IFwiQWdlbnQgd2lucy5cIiA6IHcgPT09IC0xID8gXCJZb3Ugd2luISBZb3UgZm91bmQgYSBob2xlIGluIGl0cyB2YWx1ZSB0YWJsZS5cIiA6IFwiRHJhdy5cIjtcbiAgfTtcbiAgY29uc3QgYWdlbnRNb3ZlID0gKCkgPT4ge1xuICAgIHNob3duID0gbmV3IE1hcChtb3ZlVmFsdWVzKHZhbHVlcywgYm9hcmQpLm1hcCgobSkgPT4gW20uY2VsbCwgbS52YWx1ZV0pKTtcbiAgICBsYXN0Q2VsbCA9IGdyZWVkeU1vdmUodmFsdWVzLCBib2FyZCwgcm5nKTtcbiAgICBib2FyZFtsYXN0Q2VsbF0gPSAxO1xuICAgIGNvbnN0IHcgPSB3aW5uZXIoYm9hcmQpO1xuICAgIGlmICh3ICE9PSBudWxsKSBmaW5pc2godyk7IGVsc2Ugc3RhdHVzID0gXCJZb3VyIG1vdmUgKE8pLlwiO1xuICB9O1xuICBjb25zdCBodW1hbk1vdmUgPSAoaSkgPT4ge1xuICAgIGlmIChib2FyZFtpXSAhPT0gMCB8fCB3aW5uZXIoYm9hcmQpICE9PSBudWxsKSByZXR1cm47XG4gICAgYm9hcmRbaV0gPSAtMTtcbiAgICBjb25zdCB3ID0gd2lubmVyKGJvYXJkKTtcbiAgICBpZiAodyAhPT0gbnVsbCkgeyBmaW5pc2godyk7IHNob3duID0gbmV3IE1hcCgpOyB9IGVsc2UgYWdlbnRNb3ZlKCk7XG4gICAgcmVuZGVyKCk7XG4gIH07XG4gIGNvbnN0IHJlbmRlciA9ICgpID0+IHtcbiAgICBjb25zdCBsaW5lID0gd2luTGluZSgpO1xuICAgIGNlbGxzLmZvckVhY2goKGIsIGkpID0+IHtcbiAgICAgIGNvbnN0IHYgPSBib2FyZFtpXTtcbiAgICAgIGIuY2xhc3NOYW1lID0gdiA9PT0gMSA/IFwieFwiIDogdiA9PT0gLTEgPyBcIm9cIiA6IFwiXCI7XG4gICAgICBpZiAobGluZS5pbmNsdWRlcyhpKSkgYi5jbGFzc0xpc3QuYWRkKFwid2luXCIpO1xuICAgICAgY29uc3QgZXN0ID0gdiA9PT0gMCB8fCBpID09PSBsYXN0Q2VsbCA/IHNob3duLmdldChpKSA6IHVuZGVmaW5lZDtcbiAgICAgIGIuaW5uZXJIVE1MID0gKHYgPT09IDEgPyBcIlhcIiA6IHYgPT09IC0xID8gXCJPXCIgOiBcIlwiKSArXG4gICAgICAgIChlc3QgIT09IHVuZGVmaW5lZCA/IGA8c3BhbiBjbGFzcz1cInJsLXZcIj4ke2VzdC50b0ZpeGVkKDIpfTwvc3Bhbj5gIDogXCJcIik7XG4gICAgICBiLmRpc2FibGVkID0gdiAhPT0gMCB8fCB3aW5uZXIoYm9hcmQpICE9PSBudWxsO1xuICAgIH0pO1xuICAgIHJvb3QucXVlcnlTZWxlY3RvcihcIi5ybC1zdGF0c1wiKS50ZXh0Q29udGVudCA9IHN0YXR1cztcbiAgfTtcbiAgY29uc3QgbmV3R2FtZSA9ICgpID0+IHtcbiAgICBib2FyZCA9IG5ldyBBcnJheSg5KS5maWxsKDApO1xuICAgIGFnZW50TW92ZSgpO1xuICAgIHJlbmRlcigpO1xuICB9O1xuICByb290LnF1ZXJ5U2VsZWN0b3IoXCJbZGF0YS1hY3Q9bmV3XVwiKS5vbmNsaWNrID0gbmV3R2FtZTtcbiAgbmV3R2FtZSgpO1xuICByZXR1cm4gcm9vdDtcbn1cbiJ9LHsibWV0aG9kTmFtZSI6ImludGVycHJldFF1aWV0Iiwic291cmNlIjoic2hpbnlJbnB1dCgndHR0JykifV19
+</script>
+<script type="module">
+if (window.location.protocol === "file:") { alert("The OJS runtime does not work with file:// URLs. Please use a web server to view this document."); }
+window._ojs.paths.runtimeToDoc = "../../posts/2026-10-14-learning-from-rewards";
+window._ojs.paths.runtimeToRoot = "../..";
+window._ojs.paths.docToRoot = "../..";
+window._ojs.selfContained = false;
+window._ojs.runtime.interpretFromScriptTags();
+</script>
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";

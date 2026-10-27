@@ -97,11 +97,160 @@ At each round $t$:
 Crucially, **an agent can never exploit and explore simultaneously with a single action**.
 Exploiting maximises immediate expected reward on the current step; exploring sacrifices instantaneous reward to acquire information that elevates future returns.
 
-### What to Notice in the Interactive Widget
+### What to Notice in the Interactive Widgets
 
 1. **The Greed Trap ($\varepsilon = 0$):** A purely greedy agent locks irrevocably onto the first arm that produces an early positive fluctuation, often occluding the globally optimal arm forever.
 2. **The Asymptotic Plateau ($\varepsilon = 0.1$ vs $\varepsilon = 0.01$):** A higher exploration rate ($\varepsilon = 0.1$) discovers the optimal arm rapidly, but plateaus below optimal performance because it continues wasting $10\%$ of its actions on random choices. Conversely, $\varepsilon = 0.01$ learns more conservatively but attains a higher asymptotic ceiling.
 3. **Variance Shrinkage:** As pull count $N_t(a)$ grows, the empirical sample average stabilizes, corroborating the Weak Law of Large Numbers.
+
+### Try It: Ada's Napkin
+
+Play Ada's afternoon yourself.
+Each machine drops a noisy handful of sweets around a hidden average; the napkin keeps the running average $Q(a)$ and pull count $N(a)$ for each.
+Pull by hand, or let Ada's rule ($\varepsilon$-greedy with $\varepsilon = 0.1$) choose for you, then reveal the true averages.
+
+```{ojs}
+//| echo: false
+import {makeRng, argmaxRandom, runTestbed, toRows, observeTheme, palette} from "../../assets/ojs/rl.js"
+theme = Generators.observe(observeTheme)
+pal = palette(theme)
+```
+
+::: {.rl-widget}
+
+```{ojs}
+//| echo: false
+candyBooth = {
+  const rng = makeRng(Date.now() >>> 0);
+  // Hidden mean sweets per pull; green is best, as in the story.
+  const machines = [
+    {name: "Red", cls: "red", mean: 2.0},
+    {name: "Blue", cls: "blue", mean: 2.6},
+    {name: "Green", cls: "green", mean: 4.8}
+  ];
+  let N, Q, total, pulls, last, revealed;
+  const root = html`<div>
+    <div class="rl-widget-title">Three candy machines</div>
+    <div class="rl-machines"></div>
+    <div class="rl-stats"></div>
+    <div>
+      <button data-act="ada">Ada's rule: 1 pull</button>
+      <button data-act="ada10">Ada's rule: 10 pulls</button>
+      <button data-act="reveal">Reveal true averages</button>
+      <button data-act="reset">Reset</button>
+    </div>
+    <p class="rl-note">Sweets per pull are a rounded Gaussian (sd 1.5) around each machine's hidden average.</p>
+  </div>`;
+  const row = root.querySelector(".rl-machines");
+  const stats = root.querySelector(".rl-stats");
+  const buttons = machines.map((m, a) => {
+    const b = html`<button class="rl-machine ${m.cls}"></button>`;
+    b.onclick = () => { pull(a); render(); };
+    row.append(b);
+    return b;
+  });
+  const reset = () => {
+    N = [0, 0, 0]; Q = [0, 0, 0]; total = 0; pulls = 0; last = null; revealed = false;
+  };
+  const pull = (a) => {
+    const sweets = Math.max(0, Math.round(rng.normal(machines[a].mean, 1.5)));
+    N[a] += 1;
+    Q[a] += (sweets - Q[a]) / N[a];
+    total += sweets;
+    pulls += 1;
+    last = {a, sweets};
+  };
+  const adaPull = () => {
+    // Untried machines first, then epsilon-greedy on the napkin averages.
+    const untried = [0, 1, 2].filter((a) => N[a] === 0);
+    const a = untried.length ? untried[0]
+      : rng.random() < 0.1 ? rng.int(3) : argmaxRandom(Q, rng);
+    pull(a);
+  };
+  const render = () => {
+    buttons.forEach((b, a) => {
+      const m = machines[a];
+      b.classList.toggle("last", last !== null && last.a === a);
+      b.innerHTML = `<div class="rl-machine-name">${m.name}</div>
+        <div>N = ${N[a]}</div>
+        <div>Q = ${N[a] ? Q[a].toFixed(2) : "–"}</div>
+        ${revealed ? `<div>q* = ${m.mean.toFixed(1)}</div>` : ""}`;
+    });
+    stats.innerHTML = pulls === 0
+      ? "Click a machine to spend a token."
+      : `Pull ${pulls}: <b>${machines[last.a].name}</b> dropped ${last.sweets} sweet${last.sweets === 1 ? "" : "s"}.
+         Total ${total} sweets, ${(total / pulls).toFixed(2)} per token
+         (best possible on average: ${machines[2].mean.toFixed(1)}).`;
+  };
+  root.onclick = (e) => {
+    const act = e.target.dataset?.act;
+    if (!act) return;
+    if (act === "ada") adaPull();
+    if (act === "ada10") for (let i = 0; i < 10; i++) adaPull();
+    if (act === "reveal") revealed = !revealed;
+    if (act === "reset") reset();
+    render();
+  };
+  reset();
+  render();
+  return root;
+}
+```
+
+:::
+
+### Try It: The 10-Armed Testbed
+
+The same comparison as Sutton & Barto's Figure 2.2, simulated live in your browser.
+Each curve averages many independent 10-armed problems with $q_*(a) \sim \mathcal{N}(0, 1)$ and rewards $R_t \sim \mathcal{N}(q_*(A_t), 1)$.
+Switch on drifting machines to run Exercise 2.5, and compare the two step-size rules.
+
+::: {.rl-widget}
+
+```{ojs}
+//| echo: false
+viewof testbed = Inputs.form({
+  runs: Inputs.range([50, 1000], {step: 50, value: 200, label: "Problems averaged"}),
+  stepRule: Inputs.radio(["sample average (1/n)", "constant α = 0.1"], {value: "sample average (1/n)", label: "Step size"}),
+  drift: Inputs.toggle({label: "Drifting machines", value: false}),
+  seed: Inputs.range([1, 100], {step: 1, value: 1, label: "Seed"})
+})
+```
+
+```{ojs}
+//| echo: false
+testbedRows = {
+  const steps = testbed.drift ? 3000 : 1000;
+  const alpha = testbed.stepRule.startsWith("constant") ? 0.1 : null;
+  const series = [0, 0.01, 0.1].map((epsilon) => ({
+    name: `ε = ${epsilon}`,
+    ...runTestbed({epsilon, alpha, steps, runs: testbed.runs, seed: testbed.seed, nonstationary: testbed.drift})
+  }));
+  return toRows(series, steps / 200);
+}
+```
+
+```{ojs}
+//| echo: false
+testbedPlot = (y, label, domain) => Plot.plot({
+  width: Math.min(width, 760),
+  height: 240,
+  marginLeft: 50,
+  style: {background: "transparent"},
+  x: {label: "Step"},
+  y: {label, grid: true, domain},
+  color: {domain: ["ε = 0", "ε = 0.01", "ε = 0.1"], range: [pal.orange, pal.blue, pal.green], legend: true},
+  marks: [Plot.lineY(testbedRows, {x: "step", y, stroke: "series", strokeWidth: 1.5}), Plot.ruleY([0], {stroke: pal.muted})]
+})
+testbedPlot("reward", "Average reward", undefined)
+```
+
+```{ojs}
+//| echo: false
+testbedPlot("optimal", "% optimal action", [0, 100])
+```
+
+:::
 
 ::: {.callout-warning}
 ## Common Misconception

@@ -148,6 +148,145 @@ Conversely, if an agent explores excessively, it sacrifices performance by repea
 Subsequent decisions are biased toward high-value basins, converting random variance into guided, goal-directed improvement.
 :::
 
+### Try It: Train Ada in Your Browser
+
+The agent below plays crosses (moving first) against a uniformly random opponent and learns $V(s)$ with the temporal-difference rule above, skipping updates after exploratory moves.
+Values are kept for *afterstates*, the boards right after the agent moves, as in Sutton & Barto §1.5.
+Change $\alpha$ and $\varepsilon$ and watch the outcome rates shift.
+
+```{ojs}
+//| echo: false
+import {trainTicTacToe, moveValues, greedyMove, winner, LINES, rolling, makeRng, observeTheme, palette} from "../../assets/ojs/rl.js"
+theme = Generators.observe(observeTheme)
+pal = palette(theme)
+```
+
+::: {.rl-widget}
+
+```{ojs}
+//| echo: false
+viewof ttt = Inputs.form({
+  episodes: Inputs.range([500, 20000], {step: 500, value: 5000, label: "Games"}),
+  alpha: Inputs.range([0.01, 1], {step: 0.01, value: 0.1, label: "α (step size)"}),
+  epsilon: Inputs.range([0, 0.5], {step: 0.01, value: 0.1, label: "ε (exploration)"}),
+  seed: Inputs.range([1, 100], {step: 1, value: 42, label: "Seed"})
+})
+```
+
+```{ojs}
+//| echo: false
+tttAgent = trainTicTacToe(ttt)
+tttRows = {
+  const window = 250;
+  const h = tttAgent.history;
+  const rows = [];
+  for (const [name, v] of [["Win", 1], ["Draw", 0], ["Loss", -1]]) {
+    const rate = rolling(Array.from(h, (x) => (x === v ? 100 : 0)), window);
+    for (let i = window - 1; i < h.length; i += 10) rows.push({outcome: name, game: i + 1, rate: rate[i]});
+  }
+  return rows;
+}
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: Math.min(width, 760),
+  height: 250,
+  marginLeft: 45,
+  style: {background: "transparent"},
+  x: {label: "Game"},
+  y: {label: "% of last 250 games", grid: true, domain: [0, 100]},
+  color: {domain: ["Win", "Draw", "Loss"], range: [pal.green, pal.blue, pal.red], legend: true},
+  marks: [Plot.lineY(tttRows, {x: "game", y: "rate", stroke: "outcome", strokeWidth: 1.5})]
+})
+```
+
+```{ojs}
+//| echo: false
+{
+  const last = tttAgent.history.slice(-1000);
+  const pct = (v) => (100 * last.filter((x) => x === v).length / last.length).toFixed(1);
+  return html`<p class="rl-stats">Last ${last.length} training games: win ${pct(1)}%, draw ${pct(0)}%, loss ${pct(-1)}%.
+    ${tttAgent.values.size} afterstates visited.</p>
+    <p class="rl-note">Losses never vanish entirely while ε > 0: the agent keeps making deliberate random moves during training.</p>`;
+}
+```
+
+:::
+
+### Try It: Play Against the Trained Agent
+
+Now play noughts yourself against the agent trained above (it plays greedily here, with no exploration).
+Before each of its moves, the agent's estimate $V$ of every candidate square is shown in that square's corner.
+An agent trained only against a random opponent may still have blind spots against deliberate play: can you find one?
+
+::: {.rl-widget}
+
+```{ojs}
+//| echo: false
+tttPlay = {
+  const values = tttAgent.values;
+  const rng = makeRng(Date.now() >>> 0);
+  let board, status, shown, lastCell;
+  const root = html`<div>
+    <div class="rl-board"></div>
+    <div class="rl-stats"></div>
+    <div><button data-act="new">New game</button></div>
+  </div>`;
+  const grid = root.querySelector(".rl-board");
+  const cells = Array.from({length: 9}, (_, i) => {
+    const b = html`<button aria-label="Square ${i + 1}"></button>`;
+    b.onclick = () => humanMove(i);
+    grid.append(b);
+    return b;
+  });
+  const winLine = () => LINES.find(([a, b, c]) => board[a] !== 0 && board[a] === board[b] && board[a] === board[c]) ?? [];
+  const finish = (w) => {
+    status = w === 1 ? "Agent wins." : w === -1 ? "You win! You found a hole in its value table." : "Draw.";
+  };
+  const agentMove = () => {
+    shown = new Map(moveValues(values, board).map((m) => [m.cell, m.value]));
+    lastCell = greedyMove(values, board, rng);
+    board[lastCell] = 1;
+    const w = winner(board);
+    if (w !== null) finish(w); else status = "Your move (O).";
+  };
+  const humanMove = (i) => {
+    if (board[i] !== 0 || winner(board) !== null) return;
+    board[i] = -1;
+    const w = winner(board);
+    if (w !== null) { finish(w); shown = new Map(); } else agentMove();
+    render();
+  };
+  const render = () => {
+    const line = winLine();
+    cells.forEach((b, i) => {
+      const v = board[i];
+      b.className = v === 1 ? "x" : v === -1 ? "o" : "";
+      if (line.includes(i)) b.classList.add("win");
+      const est = v === 0 || i === lastCell ? shown.get(i) : undefined;
+      b.innerHTML = (v === 1 ? "X" : v === -1 ? "O" : "") +
+        (est !== undefined ? `<span class="rl-v">${est.toFixed(2)}</span>` : "");
+      b.disabled = v !== 0 || winner(board) !== null;
+    });
+    root.querySelector(".rl-stats").textContent = status;
+  };
+  const newGame = () => {
+    board = new Array(9).fill(0);
+    agentMove();
+    render();
+  };
+  root.querySelector("[data-act=new]").onclick = newGame;
+  newGame();
+  return root;
+}
+```
+
+<p class="rl-note">Corner numbers are the values the agent saw for each square just before its last move, including the square it chose.</p>
+
+:::
+
 ---
 
 ## Maths & Code
@@ -204,7 +343,8 @@ Because the state distribution $d^\pi$ is generated by the agent's own interacti
 
 #### The Temporal-Difference Update Rule
 
-Following each non-exploratory state transition $S_t \to S_{t+1}$ (accounting for the opponent's subsequent counter-move), the value estimate is updated via:
+Here $S_t$ denotes the *afterstate*, the board immediately after the agent's move at turn $t$, so the transition $S_t \to S_{t+1}$ spans the opponent's counter-move and the agent's next move.
+Following each non-exploratory transition, the value estimate is updated via:
 
 $$V(S_t) \leftarrow V(S_t) + \alpha \Big( V(S_{t+1}) - V(S_t) \Big)$$
 
@@ -233,28 +373,31 @@ Initialize V(s) = 1.0 for winning terminal states
 Initialize V(s) = 0.0 for losing terminal states
 Initialize V(s) = 0.5 for draw terminal states
 
+V is indexed by afterstates: boards immediately after the agent has moved.
+
 For each training episode:
-    s = Initial empty board state
-    trajectory = [s]
-    While s is not terminal:
+    board = Initial empty board
+    prev = None                      # last greedy afterstate awaiting its target
+    Loop:
         With probability epsilon:
-            a = UniformRandomChoice(legal_actions(s))
+            a = UniformRandomChoice(legal_actions(board))
             exploratory = True
         Else:
-            a = argmax_{a' in legal_actions(s)} V(successor(s, a'))
+            a = argmax_{a' in legal_actions(board)} V(successor(board, a'))
             exploratory = False
-        
-        Execute a, observe intermediate board s_mid
-        If s_mid is terminal:
-            s_next = s_mid
-        Else:
-            Opponent chooses move a_opp
-            s_next = successor(s_mid, a_opp)
-        
-        If not exploratory:
-            V(s) <- V(s) + alpha * [V(s_next) - V(s)]
-        
-        s = s_next
+
+        after = successor(board, a)
+        If prev is not None and not exploratory:
+            V(prev) <- V(prev) + alpha * [V(after) - V(prev)]
+        prev = None if exploratory else after
+        If after is terminal: stop
+
+        Opponent chooses move a_opp
+        board = successor(after, a_opp)
+        If board is terminal:
+            If prev is not None:
+                V(prev) <- V(prev) + alpha * [V_terminal(board) - V(prev)]
+            stop
 ```
 
 ### Complete NumPy Implementation
@@ -309,9 +452,7 @@ class TabularRLAgent:
             return 0.0
         elif winner == 0:
             return 0.5
-        if state not in self.values:
-            self.values[state] = 0.5
-        return self.values[state]
+        return self.values.get(state, 0.5)
 
     def select_action(self, env, explore=True):
         moves = env.legal_moves()
@@ -335,10 +476,9 @@ class TabularRLAgent:
         action = self.rng.choice(best_moves)
         return action, False
 
-    def update(self, s, s_prime):
-        v_s = self.get_value(s)
-        v_prime = self.get_value(s_prime)
-        self.values[s] = v_s + self.alpha * (v_prime - v_s)
+    def update(self, afterstate, target):
+        v = self.get_value(afterstate)
+        self.values[afterstate] = v + self.alpha * (target - v)
 
 
 def train(episodes=10_000, alpha=0.1, epsilon=0.1, seed=42):
@@ -348,43 +488,45 @@ def train(episodes=10_000, alpha=0.1, epsilon=0.1, seed=42):
 
     for ep in range(episodes):
         env = TicTacToe()
-        s = env.reset()
-        done = False
+        env.reset()
+        prev = None  # last greedy afterstate, waiting for its TD target
 
-        while not done:
+        while True:
             action, explored = agent.select_action(env, explore=True)
             env.make_move(action, 1)
             winner = env.check_winner()
+            after = env.get_state()
+
+            # TD(0) between consecutive afterstates; skip exploratory moves.
+            if prev is not None and not explored:
+                agent.update(prev, agent.get_value(after, winner))
+            prev = None if explored else after
 
             if winner is not None:
-                if not explored:
-                    agent.update(s, env.get_state())
                 history.append(winner)
                 break
 
             # Opponent turn: Random policy
-            opp_moves = env.legal_moves()
-            opp_action = rng.choice(opp_moves)
+            opp_action = rng.choice(env.legal_moves())
             env.make_move(opp_action, -1)
             winner = env.check_winner()
 
-            s_next = env.get_state()
-            if not explored:
-                agent.update(s, s_next)
-
             if winner is not None:
+                # Back the final outcome up into our last afterstate.
+                if prev is not None:
+                    agent.update(prev, agent.get_value(None, winner))
                 history.append(winner)
                 break
-            s = s_next
 
     return agent, np.array(history)
 ```
 
 ### Empirical Evaluation
 
-Evaluating the agent over 10,000 games reveals monotonic asymptotic improvement.
-In early iterations, the random opponent scores occasional victories.
-Within 2,000 episodes, the agent's win rate ascends past 90%, with losses completely extinguished as credit diffuses back to the root opening state:
+Against a random opponent the agent wins most games from the start, and training mainly removes its remaining losses.
+With $\alpha = 0.1$ and $\varepsilon = 0.1$ (seed 42), the loss rate falls from 3.9% in the first 1,000 games to 1.0% in the last 1,000, while the win rate rises from 93.0% to 96.1%.
+Losses never reach zero during training: with $\varepsilon > 0$ the agent keeps making deliberate random moves, some of which hand the opponent a win.
+(The browser widget in the Idea tab uses a different random number generator, so its exact figures differ.)
 
 ```python
 agent, hist = train(episodes=10_000, alpha=0.1, epsilon=0.1)

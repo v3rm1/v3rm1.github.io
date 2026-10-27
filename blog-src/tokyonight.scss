@@ -446,3 +446,153 @@ svg.mermaid-js .labelBkg {
     overflow-x: auto;
   }
 }
+
+// ── Interactive OJS widgets ──────────────────────────────────────
+// Colours are CSS variables so the navbar theme toggle restyles widgets
+// without re-running their cells (and losing their state).
+.rl-widget {
+  --w-bg: #{$bg-dark};
+  --w-cell: #{$bg-highlight};
+  --w-border: #{$gutter};
+  --w-fg: #{$fg};
+  --w-muted: #{$comment};
+  --w-accent: #{$magenta};
+  --w-red: #f7768e;
+  --w-blue: #{$blue};
+  --w-green: #{$green};
+  --w-orange: #{$orange};
+
+  margin: 1.25rem 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--w-border);
+  border-radius: 6px;
+  background: var(--w-bg);
+  color: var(--w-fg);
+  max-width: 100%;
+  overflow-x: auto;
+
+  // OJS cells are echo: false; their copy buttons are noise here.
+  .code-copy-button {
+    display: none;
+  }
+
+  .rl-widget-title {
+    font-weight: 600;
+    color: var(--w-accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .rl-note {
+    font-size: 0.85rem;
+    color: var(--w-muted);
+    margin: 0.4rem 0 0;
+  }
+
+  // Observable Inputs default to light system colours; follow the theme.
+  form, label {
+    color: var(--w-fg);
+  }
+
+  input[type="number"], input[type="text"], select {
+    background: var(--w-cell);
+    color: var(--w-fg);
+    border: 1px solid var(--w-border);
+  }
+
+  input[type="range"], input[type="checkbox"], input[type="radio"] {
+    accent-color: var(--w-accent);
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 0.85rem;
+    background: var(--w-cell);
+    color: var(--w-fg);
+    border: 1px solid var(--w-border);
+    border-radius: 4px;
+    padding: 0.25rem 0.7rem;
+    margin: 0.2rem 0.35rem 0.2rem 0;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      border-color: var(--w-accent);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+  }
+
+  .rl-stats {
+    font-size: 0.9rem;
+    margin: 0.3rem 0;
+  }
+
+  // Candy machines
+  .rl-machines {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 0.4rem 0;
+  }
+
+  .rl-machine {
+    flex: 1 1 8rem;
+    min-width: 8rem;
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-width: 2px;
+    margin: 0;
+
+    .rl-machine-name { font-weight: 600; }
+    &.red { border-color: var(--w-red); .rl-machine-name { color: var(--w-red); } }
+    &.blue { border-color: var(--w-blue); .rl-machine-name { color: var(--w-blue); } }
+    &.green { border-color: var(--w-green); .rl-machine-name { color: var(--w-green); } }
+    &.last { box-shadow: 0 0 0 2px var(--w-accent); }
+  }
+
+  // Tic-tac-toe board
+  .rl-board {
+    display: grid;
+    grid-template-columns: repeat(3, 4rem);
+    grid-template-rows: repeat(3, 4rem);
+    gap: 4px;
+    margin: 0.5rem 0;
+
+    button {
+      margin: 0;
+      padding: 0;
+      font-size: 1.6rem;
+      font-weight: 700;
+      position: relative;
+
+      &.x { color: var(--w-blue); }
+      &.o { color: var(--w-orange); }
+      &.win { box-shadow: inset 0 0 0 2px var(--w-green); }
+      &:disabled { opacity: 1; }
+
+      .rl-v {
+        position: absolute;
+        bottom: 2px;
+        right: 4px;
+        font-size: 0.7rem;
+        font-weight: 400;
+        color: var(--w-fg);
+      }
+    }
+  }
+}
+
+[data-theme="light"] .rl-widget {
+  --w-bg: #d5d6db;
+  --w-cell: #e9e9ed;
+  --w-border: #b4b5ba;
+  --w-fg: #343b58;
+  --w-muted: #6172b0;
+  --w-accent: #7847bd;
+  --w-red: #c64343;
+  --w-blue: #2e7de9;
+  --w-green: #587539;
+  --w-orange: #b15c00;
+}
